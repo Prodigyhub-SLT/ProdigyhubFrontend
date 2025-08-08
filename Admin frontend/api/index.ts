@@ -1,21 +1,23 @@
 import { createServer } from '../server';
-import express from 'express';
-import path from 'path';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const app = createServer();
 
-// Serve static files from the built SPA
-app.use(express.static(path.join(process.cwd(), 'dist/spa')));
-
-// Handle React Router - serve index.html for all non-API routes
-app.get("*", (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith("/api/") || req.path.startsWith("/health")) {
-    return res.status(404).json({ error: "API endpoint not found" });
+// Vercel serverless function handler - only for API routes
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  // Only handle API routes
+  if (req.url?.startsWith('/api/')) {
+    return new Promise((resolve, reject) => {
+      app(req, res, (err: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(undefined);
+        }
+      });
+    });
   }
-
-  res.sendFile(path.join(process.cwd(), 'dist/spa/index.html'));
-});
-
-// Export for Vercel serverless
-export default app;
+  
+  // For non-API routes, let Vercel serve the static files
+  res.status(404).json({ error: "Not found" });
+}
