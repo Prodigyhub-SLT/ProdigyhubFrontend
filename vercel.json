@@ -19,8 +19,28 @@
       "dest": "/ProdigyHub-Unified/server.js"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/images/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/robots.txt"
+    },
+    {
+      "src": "/placeholder.svg",
+      "dest": "/placeholder.svg"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/Admin frontend/dist/index.html"
+      "dest": "/index.html"
     }
   ]
 }
