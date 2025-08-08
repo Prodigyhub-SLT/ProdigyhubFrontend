@@ -127,7 +127,7 @@ const mongoAPI = {
 
   async getQualifications() {
     try {
-      const response = await fetch(`${BASE_URL}/productOfferingQualification/v5/checkProductOfferingQualification`, {
+      const response = await fetch(`${BASE_URL}/productOfferingQualification/v5/checkProductOfferingQualification?limit=100`, {
         headers: { 
           'Accept': 'application/json',
           'Origin': window.location.origin
@@ -549,6 +549,11 @@ function LocationCheckDialog({ open, onOpenChange, onQualificationComplete }: {
             {currentStep === 'checking' && 'Processing...'}
             {currentStep === 'results' && 'Qualification Complete'}
           </DialogTitle>
+          <DialogDescription>
+            {currentStep === 'form' && 'Enter location details to check service availability'}
+            {currentStep === 'checking' && 'Checking infrastructure and service availability...'}
+            {currentStep === 'results' && 'Qualification results and service options'}
+          </DialogDescription>
         </DialogHeader>
 
         {currentStep === 'checking' && (
@@ -776,7 +781,8 @@ export default function ProductQualificationDashboard() {
       ...prev,
       totalQualifications: prev.totalQualifications + 1
     }));
-    setTimeout(() => fetchData(), 2000);
+    // Don't call fetchData immediately - let the user see the new qualification
+    // The qualification will be included in the next manual refresh
   };
 
   useEffect(() => {
