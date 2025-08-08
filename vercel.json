@@ -34,8 +34,12 @@
       "dest": "/dist/favicon.ico"
     },
     {
-      "src": "/robots.txt",
+      "src": "/robots.txt", 
       "dest": "/dist/robots.txt"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
+      "dest": "/dist/$1"
     },
     {
       "src": "/(.*)",
