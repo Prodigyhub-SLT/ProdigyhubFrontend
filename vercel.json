@@ -13,34 +13,14 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/ProdigyHub-Unified/server.js"
+      "source": "/api/(.*)",
+      "destination": "/ProdigyHub-Unified/server.js"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
-    },
-    {
-      "src": "/images/(.*)",
-      "dest": "/dist/images/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/dist/favicon.ico"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/dist/robots.txt"
-    },
-    {
-      "src": "/placeholder.svg",
-      "dest": "/dist/placeholder.svg"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
