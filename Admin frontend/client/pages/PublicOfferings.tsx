@@ -129,7 +129,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const loadOfferings = async () => {
     try {
       setLoading(true);
-      const offeringsData = await productCatalogApi.getOfferings();
+      const offeringsData = await productCatalogApi.getOfferings({ limit: 100 });
       const activeOfferings = offeringsData.filter(
         (offering: ProductOffering) => offering.lifecycleStatus === 'Active'
       );

@@ -58,7 +58,7 @@ export const useMongoSpecsLogic = () => {
   const loadSpecsFromTMF620 = async () => {
     try {
       console.log('📥 Loading specs from TMF620...');
-      const specs = await productCatalogApi.getSpecifications();
+      const specs = await productCatalogApi.getSpecifications({ limit: 100 });
       console.log('📥 Raw TMF620 specs from MongoDB:', JSON.stringify(specs, null, 2));
       
       // Convert TMF620 specs to MongoDB format

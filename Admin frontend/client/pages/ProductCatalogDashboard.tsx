@@ -138,11 +138,11 @@ export default function ProductCatalogDashboard() {
     setLoading(true);
     try {
       const [categoriesData, specsData, offeringsData, pricesData] = await Promise.all([
-        productCatalogApi.getCategories().catch((error) => {
+        productCatalogApi.getCategories({ limit: 100 }).catch((error) => {
           console.warn('Categories API not available:', error.message);
           return [];
         }),
-        productCatalogApi.getSpecifications().catch((error) => {
+        productCatalogApi.getSpecifications({ limit: 100 }).catch((error) => {
           console.warn('Specifications API not available:', error.message);
           return [];
         }),

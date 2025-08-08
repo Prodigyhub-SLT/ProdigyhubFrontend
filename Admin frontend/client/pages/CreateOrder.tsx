@@ -278,7 +278,7 @@ export default function CreateOrder() {
       setLoadingOfferings(true);
       console.log('🔄 Loading offerings from TMF620 MongoDB...');
       
-      const offerings = await productCatalogApi.getOfferings();
+      const offerings = await productCatalogApi.getOfferings({ limit: 100 });
       console.log('📥 Raw offerings from MongoDB:', offerings);
       
       // Convert TMF620 offerings to our format
