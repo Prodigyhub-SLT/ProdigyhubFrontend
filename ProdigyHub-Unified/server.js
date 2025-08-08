@@ -100,6 +100,15 @@ app.use((req, res, next) => {
     next();
   }
 });
+
+// Strip /api prefix from requests (for Vercel deployment)
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/')) {
+    req.url = req.url.replace('/api', '');
+    console.log(`🔧 Stripped /api prefix. New URL: ${req.url}`);
+  }
+  next();
+});
 // ===================================
 // MIDDLEWARE SETUP
 // ===================================
