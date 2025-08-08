@@ -2,6 +2,11 @@
 
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const BACKEND_URL = process.env.NODE_ENV === 'production' 
   ? '' // Use relative URLs when both are on same Vercel deployment
@@ -24,6 +29,10 @@ export function createServer() {
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Serve static files from the built frontend
+  const staticPath = path.join(__dirname, '../dist/spa');
+  app.use(express.static(staticPath));
 
   // Generic proxy function
   const proxyRequest = async (req: express.Request, res: express.Response, targetPath: string) => {
@@ -167,6 +176,11 @@ export function createServer() {
       method: req.method,
       '@type': 'Error'
     });
+  });
+
+  // SPA fallback - serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(staticPath, 'index.html'));
   });
 
   return app;

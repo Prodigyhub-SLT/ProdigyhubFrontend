@@ -2,10 +2,10 @@
   "version": 2,
   "builds": [
     {
-      "src": "Admin frontend/package.json",
-      "use": "@vercel/static-build",
+      "src": "Admin frontend/server/index.ts",
+      "use": "@vercel/node",
       "config": {
-        "distDir": "dist"
+        "maxDuration": 30
       }
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/spa/$1"
+      "dest": "/Admin frontend/server/index.ts"
     }
   ]
 }
