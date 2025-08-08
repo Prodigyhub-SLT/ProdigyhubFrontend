@@ -34,7 +34,7 @@ import {
   Trash2
 } from "lucide-react";
 
-const BASE_URL = 'https://prodigyhub.onrender.com';
+const BASE_URL = '/api';
 
 const testMongoConnection = async () => {
   try {
