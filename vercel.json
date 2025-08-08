@@ -2,10 +2,10 @@
   "version": 2,
   "builds": [
     {
-      "src": "Admin frontend/server/index.ts",
-      "use": "@vercel/node",
+      "src": "Admin frontend/package.json",
+      "use": "@vercel/static-build",
       "config": {
-        "maxDuration": 30
+        "distDir": "dist"
       }
     },
     {
@@ -16,14 +16,14 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/ProdigyHub-Unified/server.js"
+      "source": "/api/(.*)",
+      "destination": "/ProdigyHub-Unified/server.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/Admin frontend/server/index.ts"
+      "source": "/(.*)",
+      "destination": "/dist/spa/index.html"
     }
   ]
 }
