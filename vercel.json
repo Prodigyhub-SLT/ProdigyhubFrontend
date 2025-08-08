@@ -3,21 +3,44 @@
   "builds": [
     {
       "src": "Admin frontend/package.json",
-      "use": "@vercel/static-build"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
       "src": "ProdigyHub-Unified/server.js",
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/ProdigyHub-Unified/server.js"
+      "src": "/api/(.*)",
+      "dest": "/ProdigyHub-Unified/server.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/assets/(.*)",
+      "dest": "/dist/assets/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/dist/images/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/dist/favicon.ico"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/dist/robots.txt"
+    },
+    {
+      "src": "/placeholder.svg",
+      "dest": "/dist/placeholder.svg"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/index.html"
     }
   ]
 }
