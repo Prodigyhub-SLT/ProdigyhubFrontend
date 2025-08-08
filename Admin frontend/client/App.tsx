@@ -1,0 +1,166 @@
+import "./global.css";
+
+import { Toaster } from "@/components/ui/toaster";
+import { createRoot } from "react-dom/client";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+
+// Context Providers
+import { AuthProvider } from "./contexts/AuthContext";
+
+// Components
+import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+// Pages
+import Login from "./pages/Login";
+import Index from "./pages/Index";
+import CreateOrder from "./pages/CreateOrder";
+import OrderDetail from "./pages/OrderDetail";
+import NotFound from "./pages/NotFound";
+import PublicOfferings from "./pages/PublicOfferings";
+
+// API Dashboard Pages
+import ProductCatalogDashboard from "./pages/ProductCatalogDashboard";
+import ProductOrderingDashboard from "./pages/ProductOrderingDashboard";
+import ProductInventoryDashboard from "./pages/ProductInventoryDashboard";
+import ProductQualificationDashboard from "./pages/ProductQualificationDashboard.tsx";
+import EventManagementDashboard from "./pages/EventManagementDashboard";
+import ProductConfigurationDashboard from "./pages/ProductConfigurationDashboard";
+import EnhancedDashboard from "./pages/EnhancedDashboard";
+import UserProfile from "./pages/UserProfile";
+import Settings from "./pages/Settings";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const App = () => (
+  <ErrorBoundary showDetails={process.env.NODE_ENV !== 'production'}>
+    <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<PublicOfferings />} />
+            <Route path="/login" element={<Login />} />
+            
+            {/* Protected Routes with Layout */}
+            <Route path="/admin/*" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Routes>
+                    {/* Main Dashboard */}
+                    <Route path="/" element={<Index />} />
+
+                    {/* Enhanced Dashboard */}
+                    <Route path="/enhanced" element={<EnhancedDashboard />} />
+                    
+                    {/* Order Management */}
+                    <Route 
+                      path="/orders/new" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf622:write">
+                          <CreateOrder />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/orders/:id" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf622:read">
+                          <OrderDetail />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* API Dashboard Routes with Permissions */}
+                    <Route 
+                      path="/catalog" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf620:read">
+                          <ProductCatalogDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/ordering" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf622:read">
+                          <ProductOrderingDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/inventory" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf637:read">
+                          <ProductInventoryDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/qualification" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf679:read">
+                          <ProductQualificationDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/events" 
+                      element={
+                        <ProtectedRoute requiredPermission="tmf688:read">
+                          <EventManagementDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route
+                      path="/configuration"
+                      element={
+                        <ProtectedRoute requiredPermission="tmf760:read">
+                          <ProductConfigurationDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Profile and Settings Routes */}
+                    <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/settings" element={<Settings />} />
+                    
+                    <Route path="/create-order" element={<CreateOrder />} />
+
+                    {/* 404 Route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
+);
+
+createRoot(document.getElementById("root")!).render(<App />);
