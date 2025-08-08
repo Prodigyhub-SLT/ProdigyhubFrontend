@@ -14,7 +14,9 @@ export function createServer() {
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:8080',
-      'https://your-frontend-domain.com' // Add your frontend domain here
+      'https://prodigyhub.vercel.app',
+      'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
+      'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app'
     ],
     credentials: true
   }));
@@ -75,9 +77,20 @@ export function createServer() {
     }
   };
 
-  // Health check
+  // Local health check (doesn't depend on external backend)
   app.get("/api/health", async (req, res) => {
-    await proxyRequest(req, res, '/health');
+    try {
+      // Try to proxy to external backend first
+      await proxyRequest(req, res, '/health');
+    } catch (error) {
+      // If external backend fails, return local health status
+      res.json({ 
+        status: "healthy",
+        message: "Frontend server is running",
+        backend: "offline",
+        timestamp: new Date().toISOString()
+      });
+    }
   });
 
   // TMF620 - Product Catalog Management API
@@ -132,6 +145,7 @@ export function createServer() {
     res.json({ 
       message: "ProdigyHub Frontend Server", 
       backend: BACKEND_URL,
+      status: "online",
       timestamp: new Date().toISOString()
     });
   });

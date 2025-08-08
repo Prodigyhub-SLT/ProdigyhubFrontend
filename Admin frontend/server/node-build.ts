@@ -26,6 +26,7 @@ app.listen(port, () => {
   console.log(`🚀 Fusion Starter server running on port ${port}`);
   console.log(`📱 Frontend: http://localhost:${port}`);
   console.log(`🔧 API: http://localhost:${port}/api`);
+  console.log(`🌐 CORS origins: ${process.env.NODE_ENV === 'production' ? 'Vercel domains' : 'localhost'}`);
 });
 
 // Graceful shutdown
