@@ -20,7 +20,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/dist/index.html"
+      "destination": "/Admin frontend/index.html"
     }
   ]
 }
