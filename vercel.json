@@ -5,7 +5,7 @@
       "src": "Admin frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "Admin frontend/dist"
       }
     },
     {
@@ -23,23 +23,23 @@
     },
     {
       "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
+      "dest": "/Admin frontend/dist/assets/$1"
     },
     {
       "src": "/images/(.*)",
-      "dest": "/dist/images/$1"
+      "dest": "/Admin frontend/dist/images/$1"
     },
     {
       "src": "/favicon.ico",
-      "dest": "/dist/favicon.ico"
+      "dest": "/Admin frontend/dist/favicon.ico"
     },
     {
       "src": "/robots.txt",
-      "dest": "/dist/robots.txt"
+      "dest": "/Admin frontend/dist/robots.txt"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "dest": "/Admin frontend/dist/index.html"
     }
   ]
 }
