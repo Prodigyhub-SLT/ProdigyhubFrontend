@@ -3,7 +3,9 @@
 import express from "express";
 import cors from "cors";
 
-const BACKEND_URL = 'https://prodigyhub.onrender.com';
+const BACKEND_URL = process.env.NODE_ENV === 'production' 
+  ? '' // Use relative URLs when both are on same Vercel deployment
+  : 'http://localhost:3001';
 
 export function createServer() {
   const app = express();
@@ -26,7 +28,14 @@ export function createServer() {
   // Generic proxy function
   const proxyRequest = async (req: express.Request, res: express.Response, targetPath: string) => {
     try {
-      const url = `${BACKEND_URL}${targetPath}`;
+      let url: string;
+      if (BACKEND_URL) {
+        // External backend (development)
+        url = `${BACKEND_URL}${targetPath}`;
+      } else {
+        // Same Vercel deployment (production)
+        url = `http://localhost:${process.env.PORT || 3001}${targetPath}`;
+      }
       const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
       const fullUrl = queryString ? `${url}?${queryString}` : url;
 
