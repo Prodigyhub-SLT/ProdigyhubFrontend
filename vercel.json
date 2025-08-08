@@ -16,14 +16,30 @@
       }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/ProdigyHub-Unified/server.js"
+      "src": "/api/(.*)",
+      "dest": "/ProdigyHub-Unified/server.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/dist/spa/index.html"
+      "src": "/assets/(.*)",
+      "dest": "/dist/assets/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/dist/images/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/dist/favicon.ico"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/dist/robots.txt"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/index.html"
     }
   ]
 }
