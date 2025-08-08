@@ -13,14 +13,26 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/ProdigyHub-Unified/server.js"
+      "src": "/api/(.*)",
+      "dest": "/ProdigyHub-Unified/server.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/Admin frontend/index.html"
+      "src": "/assets/(.*)",
+      "dest": "/Admin frontend/assets/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/Admin frontend/images/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/Admin frontend/favicon.ico"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/Admin frontend/index.html"
     }
   ]
 }
