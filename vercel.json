@@ -5,7 +5,7 @@
       "src": "Admin frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "Admin frontend/dist"
+        "distDir": "dist"
       }
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/Admin frontend/dist/$1"
+      "dest": "/dist/$1"
     }
   ]
 }
