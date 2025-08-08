@@ -1,11 +1,18 @@
 {
-  "buildCommand": "cd 'Admin frontend' && npm install && npm run build",
-  "outputDirectory": "Admin frontend/dist",
-  "functions": {
-    "ProdigyHub-Unified/server.js": {
-      "runtime": "nodejs18.x"
+  "version": 2,
+  "builds": [
+    {
+      "src": "Admin frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "ProdigyHub-Unified/server.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -13,7 +20,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/Admin frontend/dist/index.html"
     }
   ]
 }
