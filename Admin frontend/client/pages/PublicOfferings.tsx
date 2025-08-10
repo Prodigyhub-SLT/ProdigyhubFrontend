@@ -954,7 +954,31 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         ) : selectedCategory === 'broadband' ? (
           // Grouped display for Broadband
           <div className="space-y-8">
-            {Object.entries(groupOfferingsBySubSubCategory(filteredOfferings)).map(([subSubCategory, categoryOfferings]) => (
+            {(() => {
+              const groupedOfferings = groupOfferingsBySubSubCategory(filteredOfferings);
+              // Define the desired order for categories
+              const categoryOrder = [
+                'Data/PEOTV & Voice Packages',
+                'Data Packages', 
+                'Data & Voice'
+              ];
+              
+              // Sort the entries based on the defined order
+              const sortedEntries = Object.entries(groupedOfferings).sort(([a], [b]) => {
+                const aIndex = categoryOrder.indexOf(a);
+                const bIndex = categoryOrder.indexOf(b);
+                // If both categories are in the order array, sort by their position
+                if (aIndex !== -1 && bIndex !== -1) {
+                  return aIndex - bIndex;
+                }
+                // If only one is in the order array, prioritize it
+                if (aIndex !== -1) return -1;
+                if (bIndex !== -1) return 1;
+                // If neither is in the order array, maintain alphabetical order
+                return a.localeCompare(b);
+              });
+              
+              return sortedEntries.map(([subSubCategory, categoryOfferings]) => (
               <div key={subSubCategory} className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Filter className="h-5 w-5 text-blue-600" />
@@ -1075,7 +1099,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                   })}
                 </div>
               </div>
-            ))}
+            ));
+          })()}
           </div>
         ) : (
           // Regular grid display for other categories
