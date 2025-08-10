@@ -1,5 +1,5 @@
 // client/components/Layout.tsx
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -28,8 +28,13 @@ import {
   Search,
   Menu,
   X,
-  Zap
+  Zap,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
+import { productOrderingApi } from '@/lib/api';
 
 interface LayoutProps {
   children: ReactNode;
@@ -93,12 +98,32 @@ const navigationItems = [
   }
 ];
 
+interface OrderEvent {
+  id: string;
+  orderId: string;
+  productName: string;
+  eventType: string;
+  previousState?: string;
+  currentState: string;
+  timestamp: string;
+  priority: string;
+  description: string;
+  orderInfo?: {
+    totalPrice?: number;
+    currency?: string;
+    customerName?: string;
+    items?: any[];
+  };
+}
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout, hasPermission } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lifecycleEvents, setLifecycleEvents] = useState<OrderEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -114,6 +139,201 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       return location.pathname === '/admin' || location.pathname === '/admin/';
     }
     return location.pathname.startsWith(href);
+  };
+
+  const generateLifecycleEvents = (orders: any[]): OrderEvent[] => {
+    const events: OrderEvent[] = [];
+    
+    orders.forEach((order) => {
+      const productName = order.productOrderItem?.[0]?.productOffering?.name || 'Unknown Product';
+      const baseEventData = {
+        orderId: order.id,
+        productName,
+        timestamp: order.orderDate || new Date().toISOString(),
+        orderInfo: {
+          totalPrice: order.orderTotalPrice?.[0]?.price?.taxIncludedAmount?.value,
+          currency: order.orderTotalPrice?.[0]?.price?.taxIncludedAmount?.unit || 'USD',
+          customerName: order.relatedParty?.[0]?.name || 'Unknown Customer',
+          items: order.productOrderItem || []
+        }
+      };
+
+      // Generate events based on current state and create lifecycle progression
+      switch (order.state?.toLowerCase()) {
+        case 'acknowledged':
+          events.push({
+            id: `${order.id}-acknowledged`,
+            ...baseEventData,
+            eventType: 'Order Acknowledged',
+            currentState: 'acknowledged',
+            priority: 'Normal',
+            description: `Order ${order.id.slice(0, 7)}... has been acknowledged and is ready for processing`
+          });
+          break;
+
+        case 'inprogress':
+          // Add acknowledged event first
+          events.push({
+            id: `${order.id}-acknowledged`,
+            ...baseEventData,
+            eventType: 'Order Acknowledged',
+            currentState: 'acknowledged',
+            priority: 'Normal',
+            description: `Order ${order.id.slice(0, 7)}... was acknowledged`,
+            timestamp: new Date(new Date(baseEventData.timestamp).getTime() - 30 * 60000).toISOString() // 30 min ago
+          });
+          
+          // Add in progress event
+          events.push({
+            id: `${order.id}-inprogress`,
+            ...baseEventData,
+            eventType: 'Order In Progress',
+            previousState: 'acknowledged',
+            currentState: 'inprogress',
+            priority: 'High',
+            description: `Order ${order.id.slice(0, 7)}... is now being processed and fulfilled`
+          });
+          break;
+
+        case 'completed':
+          // Add all previous states
+          events.push({
+            id: `${order.id}-acknowledged`,
+            ...baseEventData,
+            eventType: 'Order Acknowledged',
+            currentState: 'acknowledged',
+            priority: 'Normal',
+            description: `Order ${order.id.slice(0, 7)}... was acknowledged`,
+            timestamp: new Date(new Date(baseEventData.timestamp).getTime() - 120 * 60000).toISOString() // 2 hours ago
+          });
+          
+          events.push({
+            id: `${order.id}-inprogress`,
+            ...baseEventData,
+            eventType: 'Order In Progress',
+            previousState: 'acknowledged',
+            currentState: 'inprogress',
+            priority: 'High',
+            description: `Order ${order.id.slice(0, 7)}... was being processed`,
+            timestamp: new Date(new Date(baseEventData.timestamp).getTime() - 60 * 60000).toISOString() // 1 hour ago
+          });
+          
+          events.push({
+            id: `${order.id}-completed`,
+            ...baseEventData,
+            eventType: 'Order Completed',
+            previousState: 'inprogress',
+            currentState: 'completed',
+            priority: 'High',
+            description: `Order ${order.id.slice(0, 7)}... has been successfully completed and delivered`
+          });
+          break;
+
+        case 'cancelled':
+          events.push({
+            id: `${order.id}-cancelled`,
+            ...baseEventData,
+            eventType: 'Order Cancelled',
+            currentState: 'cancelled',
+            priority: 'Critical',
+            description: `Order ${order.id.slice(0, 7)}... has been cancelled`
+          });
+          break;
+
+        default:
+          // Pending or unknown state
+          events.push({
+            id: `${order.id}-pending`,
+            ...baseEventData,
+            eventType: 'Order Created',
+            currentState: 'pending',
+            priority: 'Normal',
+            description: `Order ${order.id.slice(0, 7)}... has been created and is awaiting acknowledgment`
+          });
+      }
+    });
+
+    // Sort by timestamp descending (most recent first)
+    return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  };
+
+  const fetchLifecycleEvents = async () => {
+    try {
+      setLoadingEvents(true);
+      const ordersData = await productOrderingApi.getOrders().catch(() => []);
+      const ordersArray = Array.isArray(ordersData) ? ordersData : [];
+      const events = generateLifecycleEvents(ordersArray);
+      setLifecycleEvents(events);
+    } catch (error) {
+      console.error('Error fetching lifecycle events:', error);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  const handleEventClick = () => {
+    navigate('/admin/events?tab=lifecycle');
+  };
+
+  const handleShowAllMessages = () => {
+    navigate('/admin/events?tab=lifecycle');
+  };
+
+  useEffect(() => {
+    fetchLifecycleEvents();
+    
+    // Set up polling for real-time updates
+    const interval = setInterval(fetchLifecycleEvents, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStateIcon = (state: string) => {
+    switch (state?.toLowerCase()) {
+      case 'acknowledged':
+        return <CheckCircle className="w-4 h-4 text-blue-600" />;
+      case 'inprogress':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'cancelled':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'pending':
+        return <Clock className="w-4 h-4 text-orange-600" />;
+      default:
+        return <AlertTriangle className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Critical':
+        return 'bg-red-100 text-red-800';
+      case 'High':
+        return 'bg-orange-100 text-orange-800';
+      case 'Normal':
+        return 'bg-blue-100 text-blue-800';
+      case 'Low':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStateColor = (state: string) => {
+    switch (state?.toLowerCase()) {
+      case 'acknowledged':
+        return 'bg-blue-100 text-blue-800';
+      case 'inprogress':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -166,12 +386,94 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Right side */}
             <div className="flex items-center space-x-4">
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                  3
-                </span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                      {lifecycleEvents.length > 0 ? Math.min(lifecycleEvents.length, 99) : 0}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Notifications</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {lifecycleEvents.length} events
+                      </Badge>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {loadingEvents ? (
+                    <div className="p-4 text-center text-sm text-gray-500">
+                      Loading events...
+                    </div>
+                  ) : lifecycleEvents.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">
+                      No lifecycle events found
+                    </div>
+                  ) : (
+                    <>
+                      {/* Last 3 Lifecycle Events */}
+                      {lifecycleEvents.slice(0, 3).map((event) => (
+                        <DropdownMenuItem 
+                          key={event.id} 
+                          onClick={handleEventClick}
+                          className="p-3 cursor-pointer hover:bg-gray-50"
+                        >
+                          <div className="flex items-start space-x-3 w-full">
+                            <div className="flex-shrink-0 mt-1">
+                              {getStateIcon(event.currentState)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {event.eventType}
+                                </p>
+                                <Badge className={`text-xs ${getPriorityColor(event.priority)}`}>
+                                  {event.priority}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-gray-600 mb-1 truncate">
+                                {event.productName}
+                              </p>
+                              <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                                {event.description}
+                              </p>
+                              <div className="flex items-center justify-between text-xs text-gray-400">
+                                <span>Order: {event.orderId.slice(0, 7)}...</span>
+                                <span>{new Date(event.timestamp).toLocaleTimeString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                      
+                      {/* Show All Messages Button */}
+                      {lifecycleEvents.length > 3 && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={handleShowAllMessages}
+                            className="p-3 cursor-pointer hover:bg-gray-50 text-center justify-center"
+                          >
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full"
+                              onClick={handleShowAllMessages}
+                            >
+                              Show All Messages ({lifecycleEvents.length - 3} more)
+                            </Button>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* User Menu */}
               <DropdownMenu>

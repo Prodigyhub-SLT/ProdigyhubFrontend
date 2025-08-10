@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +75,7 @@ interface EventStats {
 }
 
 export default function EventManagementDashboard() {
+  const [searchParams] = useSearchParams();
   const [stats, setStats] = useState<EventStats>({
     totalEvents: 0,
     todayEvents: 0,
@@ -291,6 +293,14 @@ export default function EventManagementDashboard() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Check URL query parameters for tab selection
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'lifecycle') {
+      setActiveTab('lifecycle');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchData();
