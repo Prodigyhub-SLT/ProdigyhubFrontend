@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Package, DollarSign, Clock, Shield, ArrowRight, LogIn, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Edit, Trash2, Filter, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, Package, DollarSign, Clock, Shield, ArrowRight, LogIn, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Edit, Trash2, Filter, X, BookOpen } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { ProductOffering } from '../../shared/product-order-types';
 import { SLT_CATEGORIES, getSubCategories, getSubSubCategories } from '../components/types/SLTTypes';
@@ -117,6 +118,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     packageType: 'all',
     dataBundle: 'all'
   });
+
+  // Spec view modal state
+  const [isSpecViewOpen, setIsSpecViewOpen] = useState(false);
+  const [selectedOffering, setSelectedOffering] = useState<ProductOffering | null>(null);
 
   useEffect(() => {
     loadOfferings();
@@ -736,6 +741,16 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     return groups;
   };
 
+  const handleViewSpec = (offering: ProductOffering) => {
+    setSelectedOffering(offering);
+    setIsSpecViewOpen(true);
+  };
+
+  const closeSpecView = () => {
+    setIsSpecViewOpen(false);
+    setSelectedOffering(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -1087,6 +1102,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                             <Button 
                               variant="outline" 
                               size="sm" 
+                              onClick={() => handleViewSpec(offering)}
                               className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
                             >
                               <Eye className="h-4 w-4 mr-2" />
@@ -1220,6 +1236,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       <Button 
                         variant="outline" 
                         size="sm" 
+                        onClick={() => handleViewSpec(offering)}
                         className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
                       >
                         <Eye className="h-4 w-4 mr-2" />
@@ -1244,6 +1261,132 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           </div>
         </div>
       </footer>
+
+      {/* Spec View Modal */}
+      <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="flex-none">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-6 h-6 text-blue-600" />
+                <div>
+                  <DialogTitle className="text-2xl font-bold text-gray-900">{selectedOffering?.name}</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-600 mt-1">
+                    View complete specification information and characteristics
+                  </DialogDescription>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeSpecView}
+                className="h-8 w-8 p-0 rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          
+          {selectedOffering && (
+            <div className="space-y-6 p-6 pt-0">
+              {/* Basic Information */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
+                    ACTIVE
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium text-gray-700">Category:</span>
+                    <span className="text-gray-900">{getOfferingCategory(selectedOffering)}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Brand & Version:</span>
+                    <span className="text-gray-900 ml-2">ProdigyHub v1.0</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {selectedOffering.description || 'Product specification for ' + selectedOffering.name}
+                </p>
+              </div>
+
+              {/* Specifications */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Specifications</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Connection Type:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Data:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).data}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Internet Speed:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Voice:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).voice}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Information */}
+              {getOfferingPrice(selectedOffering) && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Details</h3>
+                  <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white p-6 relative overflow-hidden rounded-lg">
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                    <div className="text-center relative z-10">
+                      <div className="text-3xl font-bold mb-2 drop-shadow-sm">
+                        {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
+                      </div>
+                      <div className="text-lg opacity-90 mb-4">
+                        {getOfferingPrice(selectedOffering)!.period}
+                      </div>
+                      <div className="space-y-2 opacity-80">
+                        <div className="text-sm">Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
+                        <div className="text-sm">Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Timestamps</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium text-gray-700">Created:</span>
+                    <span className="text-gray-900 ml-2">
+                      {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : '8/8/2025, 11:31:45 AM'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Last Updated:</span>
+                    <span className="text-gray-900 ml-2">
+                      {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : '8/8/2025, 11:31:45 AM'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
