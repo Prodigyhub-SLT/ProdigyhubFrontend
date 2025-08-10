@@ -32,6 +32,7 @@ import { CategoryIcons, CATEGORIES } from "../components/CategoryConfig";
 import { useProductCatalogState } from "../hooks/useProductCatalogState";
 import { useMongoOfferingsLogic, MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
 import { useMongoSpecsLogic, MongoProductSpec, SpecCharacteristic } from "../hooks/useMongoSpecsLogic";
+import { EnhancedPricesTab } from "../components/EnhancedPricesTab";
 
 import type { 
   Category, 
@@ -331,7 +332,7 @@ export default function ProductCatalogDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
           <TabsTrigger value="offerings" className="text-xs sm:text-sm">
             Offerings
@@ -346,6 +347,14 @@ export default function ProductCatalogDashboard() {
             {mongoSpecs.length > 0 && (
               <Badge variant="secondary" className="ml-2 text-xs">
                 {mongoSpecs.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="prices" className="text-xs sm:text-sm">
+            Offers' Price
+            {prices.length > 0 && (
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {prices.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -427,6 +436,37 @@ export default function ProductCatalogDashboard() {
             setIsViewDialogOpen={setIsSpecsViewDialogOpen}
             loadSpecForEdit={loadSpecForEdit}
             deleteMongoSpec={deleteMongoSpec}
+            setIsCreateDialogOpen={setIsCreateDialogOpen}
+            setCreateDialogType={setCreateDialogType}
+          />
+        </TabsContent>
+
+        <TabsContent value="prices" className="space-y-4">
+          {/* Show info banner about pricing */}
+          <Card className="border-purple-200 bg-purple-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <DollarSign className="w-5 h-5 text-purple-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-purple-900">Product Offering Prices</h4>
+                  <p className="text-sm text-purple-700 mt-1">
+                    Manage pricing for all product offerings. Create, edit, and view pricing information including 
+                    recurring charges, one-time fees, and usage-based pricing.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <EnhancedPricesTab 
+            prices={prices}
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            categoryFilter={categoryFilter}
+            loading={loading}
+            setSearchTerm={setSearchTerm}
+            setStatusFilter={setStatusFilter}
+            setCategoryFilter={setCategoryFilter}
             setIsCreateDialogOpen={setIsCreateDialogOpen}
             setCreateDialogType={setCreateDialogType}
           />

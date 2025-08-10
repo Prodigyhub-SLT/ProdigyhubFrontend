@@ -17,7 +17,8 @@ import {
   Edit,
   Zap,
   Target,
-  Layers
+  Layers,
+  DollarSign
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
@@ -308,7 +309,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   return (
     <div className="space-y-8">
       {/* Futuristic Hero Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700 text-white border-0 shadow-2xl h-64">
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
@@ -355,6 +356,31 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Specification
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-pink-700 text-white border-0 shadow-2xl h-64">
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full translate-y-12 -translate-x-12"></div>
+          <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle className="text-2xl font-bold">Product Prices</CardTitle>
+              <CardDescription className="text-purple-100">Total: {prices.length} prices</CardDescription>
+            </div>
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <DollarSign className="h-8 w-8 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold mb-6">{prices.length}</div>
+            <Button 
+              onClick={() => openCreateDialog('price')} 
+              className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border-opacity-30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Price
             </Button>
           </CardContent>
         </Card>
