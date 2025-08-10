@@ -100,11 +100,11 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const [offerings, setOfferings] = useState<ProductOffering[]>([]);
   const [filteredOfferings, setFilteredOfferings] = useState<ProductOffering[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('broadband');
   
   // Filter states
   const [filters, setFilters] = useState<FilterState>({
-    mainCategory: 'all',
+    mainCategory: 'Broadband',
     subCategory: 'all',
     subSubCategory: 'all',
     searchTerm: ''
@@ -120,6 +120,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
   useEffect(() => {
     loadOfferings();
+    // Set initial Broadband selection
+    handleCategorySelect('Broadband');
   }, []);
 
   useEffect(() => {
@@ -691,18 +693,6 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-2">
-              <Button
-                variant={selectedCategory === 'all' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleCategorySelect('all')}
-                className={`whitespace-nowrap font-medium transition-all duration-300 px-4 py-2 rounded-xl animate-slide-in-up ${
-                  selectedCategory === 'all' 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-white/20 backdrop-blur-sm'
-                }`}
-              >
-                All Categories
-              </Button>
               {categoryNavItems.map((item) => {
                 const Icon = item.icon;
                 const isSelected = selectedCategory === item.name.toLowerCase();
@@ -739,16 +729,11 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         <div className="mb-6">
           <div className="text-sm text-gray-600 mb-2">
             <Link to="/" className="hover:text-blue-600">Home</Link>
-            {selectedCategory !== 'all' && (
-              <>
-                <span className="mx-2">»</span>
-                <span>{selectedCategory === 'all' ? 'All Categories' : categoryNavItems.find(item => item.name.toLowerCase() === selectedCategory)?.name || selectedCategory}</span>
-              </>
-            )}
+            <span className="mx-2">»</span>
+            <span>{categoryNavItems.find(item => item.name.toLowerCase() === selectedCategory)?.name || selectedCategory}</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {selectedCategory === 'all' ? 'All Products' : 
-             selectedCategory === 'broadband' ? 'Broadband Packages' :
+            {selectedCategory === 'broadband' ? 'Broadband Packages' :
              categoryNavItems.find(item => item.name.toLowerCase() === selectedCategory)?.name + ' Packages' || 'Products'}
           </h1>
         </div>
