@@ -35,6 +35,8 @@ export interface MongoProductOffering {
   updatedAt?: string;
   // NEW: Link to auto-generated spec
   linkedSpecId?: string;
+  // NEW: Link to auto-generated price
+  linkedPriceId?: string;
   '@type': string;
 }
 
@@ -176,6 +178,7 @@ export const useMongoOfferingsLogic = () => {
           createdAt: (offering as any).createdAt || new Date().toISOString(),
           updatedAt: (offering as any).updatedAt,
           linkedSpecId: (offering as any).linkedSpecId, // Preserve linked spec ID
+          linkedPriceId: (offering as any).linkedPriceId, // Preserve linked price ID
           '@type': 'ProductOffering'
         };
 
@@ -482,6 +485,37 @@ export const useMongoOfferingsLogic = () => {
     }
   };
 
+  // ENHANCED: Auto-create price for offering
+  const createPriceForOffering = async (offeringName: string, offeringId: string, pricing: any) => {
+    try {
+      console.log('🔄 Auto-creating price for offering:', offeringName);
+      
+      // Determine price type based on period
+      const priceType: 'recurring' | 'oneTime' | 'usage' = pricing.period === 'one-time' ? 'oneTime' : 'recurring';
+      
+      // Create price data
+      const priceData = {
+        name: `${offeringName} Price`,
+        description: `Pricing for ${offeringName} - ${pricing.amount} ${pricing.currency} ${pricing.period}`,
+        priceType: priceType,
+        value: pricing.amount,
+        unit: pricing.currency
+      };
+
+      console.log('🔄 Creating price with data:', priceData);
+      
+      // Create the price using the API
+      const createdPrice = await productCatalogApi.createPrice(priceData);
+      console.log('✅ Auto-created price:', createdPrice);
+      
+      return createdPrice;
+      
+    } catch (error) {
+      console.error('❌ Error auto-creating price:', error);
+      throw error;
+    }
+  };
+
   // Create MongoDB offering with auto-spec creation
   const createMongoOffering = async () => {
     if (!formData.name.trim()) {
@@ -632,7 +666,25 @@ export const useMongoOfferingsLogic = () => {
           console.warn('⚠️ Could not auto-create specification:', specError);
         }
 
-        // Convert response back to MongoDB format WITH linked spec ID
+        // 🚀 AUTO-CREATE PRICE FOR OFFERING
+        let linkedPriceId = null;
+        try {
+          console.log('🔄 Auto-creating price for offering:', formData.name);
+          
+          const createdPrice = await createPriceForOffering(
+            formData.name,           // Same name as offering
+            savedOffering.id,        // Use the saved offering ID
+            formData.pricing         // Use the pricing from form data
+          );
+          
+          linkedPriceId = createdPrice.id;
+          console.log('✅ Auto-created price with ID:', linkedPriceId);
+          
+        } catch (priceError) {
+          console.warn('⚠️ Could not auto-create price:', priceError);
+        }
+
+        // Convert response back to MongoDB format WITH linked spec ID and price ID
         const mongoFormattedOffering: MongoProductOffering = {
           _id: (savedOffering as any)._id,
           id: savedOffering.id,
@@ -650,19 +702,29 @@ export const useMongoOfferingsLogic = () => {
           createdAt: (savedOffering as any).createdAt || mongoOffering.createdAt,
           updatedAt: (savedOffering as any).updatedAt,
           linkedSpecId: linkedSpecId, // Store the linked spec ID
+          linkedPriceId: linkedPriceId, // Store the linked price ID
           '@type': 'ProductOffering'
         };
         
-        // IMPORTANT: Update the offering in DB with linkedSpecId
-        if (linkedSpecId) {
+        // IMPORTANT: Update the offering in DB with linkedSpecId and linkedPriceId
+        if (linkedSpecId || linkedPriceId) {
           try {
-            await productCatalogApi.updateOffering(savedOffering.id, {
-              linkedSpecId: linkedSpecId,
+            const updateData: any = {
               updatedAt: new Date().toISOString()
-            } as any); // Type assertion to bypass TypeScript error
-            console.log('✅ Updated offering with linkedSpecId:', linkedSpecId);
+            };
+            
+            if (linkedSpecId) {
+              updateData.linkedSpecId = linkedSpecId;
+            }
+            
+            if (linkedPriceId) {
+              updateData.linkedPriceId = linkedPriceId;
+            }
+            
+            await productCatalogApi.updateOffering(savedOffering.id, updateData);
+            console.log('✅ Updated offering with linked IDs:', { linkedSpecId, linkedPriceId });
           } catch (linkError) {
-            console.warn('⚠️ Could not store linkedSpecId in offering:', linkError);
+            console.warn('⚠️ Could not store linked IDs in offering:', linkError);
           }
         }
         
@@ -670,18 +732,21 @@ export const useMongoOfferingsLogic = () => {
         setMongoOfferings(prev => [mongoFormattedOffering, ...prev]);
 
         // Success message
-        if (linkedSpecId) {
-          toast({
-            title: "✅ Success",
-            description: `Offering "${formData.name}" created successfully! Specification auto-created and linked.`,
-          });
+        let successMessage = `Offering "${formData.name}" created successfully!`;
+        if (linkedSpecId && linkedPriceId) {
+          successMessage += ' Specification and price auto-created and linked.';
+        } else if (linkedSpecId) {
+          successMessage += ' Specification auto-created and linked.';
+        } else if (linkedPriceId) {
+          successMessage += ' Price auto-created and linked.';
         } else {
-          toast({
-            title: "⚠️ Partial Success",
-            description: `Offering "${formData.name}" created successfully, but specification auto-creation failed.`,
-            variant: "default",
-          });
+          successMessage += ' Note: Auto-creation of specification and price failed.';
         }
+
+        toast({
+          title: "✅ Success",
+          description: successMessage,
+        });
 
         // Reset form and close dialog
         resetForm();
@@ -828,9 +893,10 @@ export const useMongoOfferingsLogic = () => {
       // First, find the offering to get its linkedSpecId
       const offeringToDelete = mongoOfferings.find(o => o.id === id);
       const linkedSpecId = offeringToDelete?.linkedSpecId;
+      const linkedPriceId = offeringToDelete?.linkedPriceId;
       const offeringName = offeringToDelete?.name || 'Unknown';
       
-      console.log('🗑️ Deleting offering:', offeringName, 'with linkedSpecId:', linkedSpecId);
+      console.log('🗑️ Deleting offering:', offeringName, 'with linkedSpecId:', linkedSpecId, 'and linkedPriceId:', linkedPriceId);
 
       // Delete the offering via TMF620 MongoDB
       await productCatalogApi.deleteOffering(id);
@@ -863,13 +929,39 @@ export const useMongoOfferingsLogic = () => {
         }
       }
 
+      // If there's a linked price, delete it too
+      if (linkedPriceId) {
+        try {
+          console.log('🗑️ Deleting linked price:', linkedPriceId);
+          await productCatalogApi.deletePrice(linkedPriceId);
+          console.log('✅ Successfully deleted linked price');
+        } catch (priceError) {
+          console.warn('⚠️ Could not delete linked price:', priceError);
+        }
+      } else {
+        // Fallback: Try to find and delete price by name match
+        try {
+          console.log('🔍 Looking for price with matching name:', offeringName);
+          const allPrices = await productCatalogApi.getPrices();
+          const matchingPrice = allPrices.find((price: any) => price.name === offeringName);
+          
+          if (matchingPrice) {
+            console.log('🗑️ Found matching price by name, deleting:', matchingPrice.id);
+            await productCatalogApi.deletePrice(matchingPrice.id);
+            console.log('✅ Successfully deleted matching price');
+          }
+        } catch (priceError) {
+          console.warn('⚠️ Could not find/delete price by name:', priceError);
+        }
+      }
+
       // Update local state
       setMongoOfferings(prev => prev.filter(o => o.id !== id));
       
       toast({
         title: "✅ Success",
-        description: linkedSpecId 
-          ? `Offering "${offeringName}" and its linked specification deleted successfully!`
+        description: linkedSpecId || linkedPriceId 
+          ? `Offering "${offeringName}" and its linked specification/price deleted successfully!`
           : `Offering "${offeringName}" deleted successfully!`,
       });
       
@@ -1059,5 +1151,6 @@ export const useMongoOfferingsLogic = () => {
     setIsCreateDialogOpen,
     loadOfferingsFromTMF620, // For manual refresh
     createSpecificationForOffering, // Export the direct spec creation function
-    updateLinkedSpecification // Export the spec update function
+    updateLinkedSpecification, // Export the spec update function
+    createPriceForOffering // Export the price creation function
   }};
