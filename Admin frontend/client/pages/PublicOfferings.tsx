@@ -361,20 +361,84 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           { subCategory: 'Package Type', subSubCategory: 'Fiber' }
         ];
         
-        (mockOfferings[3] as any).subCategory = 'Package Type';
-        (mockOfferings[3] as any).subSubCategory = '4G';
+        (mockOfferings[3] as any).subCategory = 'Connection Type';
+        (mockOfferings[3] as any).subSubCategory = 'Data Packages';
         (mockOfferings[3] as any).broadbandSelections = [
           { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
           { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
           { subCategory: 'Package Type', subSubCategory: '4G' }
         ];
         
-        (mockOfferings[4] as any).subCategory = 'Package Type';
-        (mockOfferings[4] as any).subSubCategory = 'ADSL';
+        (mockOfferings[4] as any).subCategory = 'Connection Type';
+        (mockOfferings[4] as any).subSubCategory = 'Data & Voice';
         (mockOfferings[4] as any).broadbandSelections = [
           { subCategory: 'Connection Type', subSubCategory: 'Data & Voice' },
           { subCategory: 'Package Usage Type', subSubCategory: 'Time Based' },
           { subCategory: 'Package Type', subSubCategory: 'ADSL' }
+        ];
+
+        (mockOfferings[5] as any).subCategory = 'Connection Type';
+        (mockOfferings[5] as any).subSubCategory = 'Data Packages';
+        (mockOfferings[5] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+          { subCategory: 'Package Type', subSubCategory: '4G' }
+        ];
+
+        (mockOfferings[6] as any).subCategory = 'Connection Type';
+        (mockOfferings[6] as any).subSubCategory = 'Data Packages';
+        (mockOfferings[6] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+        ];
+
+        (mockOfferings[7] as any).subCategory = 'Connection Type';
+        (mockOfferings[7] as any).subSubCategory = 'Data Packages';
+        (mockOfferings[7] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+          { subCategory: 'Package Type', subSubCategory: '4G' }
+        ];
+
+        (mockOfferings[8] as any).subCategory = 'Connection Type';
+        (mockOfferings[8] as any).subSubCategory = 'Data & Voice';
+        (mockOfferings[8] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data & Voice' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Time Based' },
+          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+        ];
+
+        (mockOfferings[9] as any).subCategory = 'Connection Type';
+        (mockOfferings[9] as any).subSubCategory = 'Data Packages';
+        (mockOfferings[9] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+          { subCategory: 'Package Type', subSubCategory: '4G' }
+        ];
+
+        (mockOfferings[10] as any).subCategory = 'Connection Type';
+        (mockOfferings[10] as any).subSubCategory = 'Data Packages';
+        (mockOfferings[10] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+          { subCategory: 'Package Type', subSubCategory: '4G' }
+        ];
+
+        (mockOfferings[11] as any).subCategory = 'Connection Type';
+        (mockOfferings[11] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
+        (mockOfferings[11] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
+          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+        ];
+
+        (mockOfferings[12] as any).subCategory = 'Connection Type';
+        (mockOfferings[12] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
+        (mockOfferings[12] as any).broadbandSelections = [
+          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
+          { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
+          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
         ];
 
         // Add pricing data
@@ -528,12 +592,23 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     // Try to get actual specifications from the offering data
     const customAttributes = (offering as any).customAttributes || [];
     
-    // Extract connection type from custom attributes or use category
-    const connectionTypeAttr = customAttributes.find((attr: any) => 
-      attr.name.toLowerCase().includes('connection') || 
-      attr.name.toLowerCase().includes('type')
+    // Extract connection type from broadband selections first
+    let connectionType = 'Data/PEOTV & Voice Packages'; // Default
+    const broadbandSelections = (offering as any).broadbandSelections || [];
+    const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+      selection.subCategory === 'Connection Type'
     );
-    const connectionType = connectionTypeAttr?.value || getOfferingCategory(offering);
+    
+    if (connectionTypeSelection) {
+      connectionType = connectionTypeSelection.subSubCategory;
+    } else {
+      // Fallback to custom attributes or category
+      const connectionTypeAttr = customAttributes.find((attr: any) => 
+        attr.name.toLowerCase().includes('connection') || 
+        attr.name.toLowerCase().includes('type')
+      );
+      connectionType = connectionTypeAttr?.value || getOfferingCategory(offering);
+    }
     
     // Extract data information from custom attributes
     const dataAttr = customAttributes.find((attr: any) => 
@@ -629,11 +704,33 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     const groups: { [key: string]: ProductOffering[] } = {};
     
     offerings.forEach(offering => {
-      const subSubCategory = (offering as any).subSubCategory || 'Other';
-      if (!groups[subSubCategory]) {
-        groups[subSubCategory] = [];
+      // Get the connection type from broadband selections or fallback to subSubCategory
+      let connectionType = 'Data/PEOTV & Voice Packages'; // Default category
+      
+      const broadbandSelections = (offering as any).broadbandSelections || [];
+      const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+        selection.subCategory === 'Connection Type'
+      );
+      
+      if (connectionTypeSelection) {
+        connectionType = connectionTypeSelection.subSubCategory;
+      } else {
+        // Fallback to subSubCategory if no broadband selections
+        const subSubCategory = (offering as any).subSubCategory;
+        if (subSubCategory && subSubCategory !== 'Other') {
+          connectionType = subSubCategory;
+        }
       }
-      groups[subSubCategory].push(offering);
+      
+      // Map any remaining "Other" categories to "Data/PEOTV & Voice Packages"
+      if (connectionType === 'Other') {
+        connectionType = 'Data/PEOTV & Voice Packages';
+      }
+      
+      if (!groups[connectionType]) {
+        groups[connectionType] = [];
+      }
+      groups[connectionType].push(offering);
     });
     
     return groups;
@@ -899,14 +996,30 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                               <span>{category}</span>
                             </div>
                             <span className="text-sm text-gray-600">•</span>
-                            <span className="text-sm text-gray-600">Data & Voice</span>
+                            <span className="text-sm text-gray-600">
+                              {(() => {
+                                const broadbandSelections = (offering as any).broadbandSelections || [];
+                                const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+                                  selection.subCategory === 'Connection Type'
+                                );
+                                return connectionTypeSelection ? connectionTypeSelection.subSubCategory : 'Data & Voice';
+                              })()}
+                            </span>
                           </div>
                           
                           {/* Specifications */}
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="font-medium text-gray-700">Connection Type:</span>
-                              <span className="text-gray-900">{specs.connectionType}</span>
+                              <span className="text-gray-900">
+                                {(() => {
+                                  const broadbandSelections = (offering as any).broadbandSelections || [];
+                                  const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+                                    selection.subCategory === 'Connection Type'
+                                  );
+                                  return connectionTypeSelection ? connectionTypeSelection.subSubCategory : specs.connectionType;
+                                })()}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="font-medium text-gray-700">Data:</span>
