@@ -679,6 +679,38 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     };
   };
 
+  const getSpecDescription = (offering: ProductOffering) => {
+    const specs = getOfferingSpecs(offering);
+    const category = getOfferingCategory(offering);
+    const name = offering.name.toLowerCase();
+    
+    // Generate a comprehensive spec description based on the offering's technical specifications
+    if (category === 'Broadband' || name.includes('fibre') || name.includes('broadband')) {
+      return `High-performance ${specs.connectionType} package featuring ${specs.data} data allocation with ${specs.internetSpeed} internet speeds. This comprehensive broadband solution includes ${specs.voice} for seamless communication, ensuring reliable connectivity for both personal and business use. The package is optimized for streaming, gaming, and high-bandwidth applications.`;
+    } else if (category === 'Mobile' || name.includes('mobile')) {
+      return `Advanced ${specs.connectionType} service providing ${specs.data} data with ${specs.internetSpeed} network coverage. Features ${specs.voice} capabilities for unlimited communication, perfect for on-the-go users who need reliable mobile connectivity with generous data allowances.`;
+    } else if (category === 'Business') {
+      return `Enterprise-grade ${specs.connectionType} solution delivering ${specs.data} data capacity and ${specs.internetSpeed} bandwidth. Includes ${specs.voice} services designed for business communication needs, offering scalable and reliable connectivity for corporate environments.`;
+    } else if (category === 'Product') {
+      return `Professional ${specs.connectionType} offering featuring ${specs.data} capabilities. This hardware/software solution is designed for enterprise deployment with comprehensive support and integration options.`;
+    } else if (category === 'PEOTV') {
+      return `Entertainment-focused service package with ${specs.data} data allocation and ${specs.internetSpeed} streaming capabilities. Includes ${specs.voice} features for a complete multimedia experience.`;
+    } else if (category === 'Telephone') {
+      return `Voice-centric communication package providing ${specs.voice} with ${specs.data} data support. Features ${specs.internetSpeed} connectivity for VoIP services and enhanced calling features.`;
+    } else if (category === 'Gaming & Cloud') {
+      return `Gaming-optimized ${specs.connectionType} package with ${specs.data} data and ${specs.internetSpeed} speeds. Includes ${specs.voice} for team communication, designed for low-latency gaming and cloud gaming services.`;
+    } else if (category === 'IDD') {
+      return `International communication package featuring ${specs.voice} with ${specs.data} data support. Provides ${specs.internetSpeed} connectivity for seamless international calling and data services.`;
+    } else if (category === 'Cloud Service') {
+      return `Cloud-focused ${specs.connectionType} solution with ${specs.data} storage and ${specs.internetSpeed} bandwidth. Includes ${specs.voice} integration for unified communications in cloud environments.`;
+    } else if (category === 'Promotions') {
+      return `Special promotional ${specs.connectionType} package offering ${specs.data} data with ${specs.internetSpeed} speeds. Includes ${specs.voice} features at competitive rates for limited-time offers.`;
+    }
+    
+    // Default fallback description
+    return `Comprehensive ${specs.connectionType} package featuring ${specs.data} data allocation, ${specs.internetSpeed} internet speeds, and ${specs.voice} capabilities. This versatile solution is designed to meet diverse connectivity needs with reliable performance and extensive coverage.`;
+  };
+
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(categoryName.toLowerCase());
     if (categoryName === 'Broadband') {
@@ -1310,11 +1342,11 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Specification Description */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Specification Description</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  {selectedOffering.description || 'Product specification for ' + selectedOffering.name}
+                  {getSpecDescription(selectedOffering)}
                 </p>
               </div>
 
