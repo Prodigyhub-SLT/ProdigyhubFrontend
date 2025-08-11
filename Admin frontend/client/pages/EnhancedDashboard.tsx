@@ -574,6 +574,201 @@ export default function ModernEnhancedDashboard() {
               </Card>
             </div>
 
+            {/* Infrastructure Availability with Glass Donut Chart */}
+            <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <div className="w-4 h-4 bg-white rounded-sm opacity-90"></div>
+                  </div>
+                  Infrastructure Availability
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">Network coverage breakdown</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Glass Donut Chart */}
+                  <div className="relative">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <defs>
+                          <linearGradient id="fiberAdsl" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" />
+                            <stop offset="100%" stopColor="#059669" />
+                          </linearGradient>
+                          <linearGradient id="fiberOnly" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3b82f6" />
+                            <stop offset="100%" stopColor="#2563eb" />
+                          </linearGradient>
+                          <linearGradient id="adslOnly" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#8b5cf6" />
+                            <stop offset="100%" stopColor="#7c3aed" />
+                          </linearGradient>
+                          <linearGradient id="limitedNone" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6b7280" />
+                            <stop offset="100%" stopColor="#4b5563" />
+                          </linearGradient>
+                          <filter id="glassGlow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge> 
+                              <feMergeNode in="coloredBlur"/>
+                              <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                          </filter>
+                        </defs>
+
+                        {/* Glass effect background ring */}
+                        <Pie
+                          data={[{ name: 'glass', value: 1 }]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={85}
+                          outerRadius={125}
+                          paddingAngle={0}
+                          dataKey="value"
+                          isAnimationActive={false}
+                          stroke="none"
+                          fill="rgba(255, 255, 255, 0.1)"
+                          filter="url(#glassGlow)"
+                        />
+
+                        {/* Main donut chart */}
+                        <Pie
+                          data={[
+                            { name: 'Fiber + ADSL', value: 2, color: 'url(#fiberAdsl)', icon: '✓' },
+                            { name: 'Fiber Only', value: 0, color: 'url(#fiberOnly)', icon: '📶' },
+                            { name: 'ADSL Only', value: 3, color: 'url(#adslOnly)', icon: '📡' },
+                            { name: 'Limited/None', value: 0, color: 'url(#limitedNone)', icon: '✗' }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={90}
+                          outerRadius={120}
+                          paddingAngle={3}
+                          cornerRadius={12}
+                          stroke="rgba(255, 255, 255, 0.8)"
+                          strokeWidth={2}
+                          dataKey="value"
+                          isAnimationActive
+                          animationDuration={1200}
+                          animationEasing="ease-out"
+                        >
+                          {[
+                            { name: 'Fiber + ADSL', value: 2, color: 'url(#fiberAdsl)', icon: '✓' },
+                            { name: 'Fiber Only', value: 0, color: 'url(#fiberOnly)', icon: '📶' },
+                            { name: 'ADSL Only', value: 3, color: 'url(#adslOnly)', icon: '📡' },
+                            { name: 'Limited/None', value: 0, color: 'url(#limitedNone)', icon: '✗' }
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+
+                        {/* Center content */}
+                        <text
+                          x="50%"
+                          y="45%"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          style={{ fill: '#1f2937', fontSize: '24px', fontWeight: 700, pointerEvents: 'none' }}
+                        >
+                          5
+                        </text>
+                        <text
+                          x="50%"
+                          y="58%"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          style={{ fill: '#6b7280', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', pointerEvents: 'none' }}
+                        >
+                          TOTAL LOCATIONS
+                        </text>
+
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                            border: 'none', 
+                            borderRadius: '12px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                            backdropFilter: 'blur(10px)'
+                          }}
+                          formatter={(value: number, name: string) => [value, name]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Network Coverage Details */}
+                  <div className="space-y-4">
+                    {[
+                      { 
+                        name: 'Fiber + ADSL', 
+                        count: 2, 
+                        percentage: 40, 
+                        color: 'from-green-500 to-emerald-600',
+                        icon: CheckCircle,
+                        description: 'Dual connectivity available'
+                      },
+                      { 
+                        name: 'Fiber Only', 
+                        count: 0, 
+                        percentage: 0, 
+                        color: 'from-blue-500 to-cyan-600',
+                        icon: Globe,
+                        description: 'High-speed fiber network'
+                      },
+                      { 
+                        name: 'ADSL Only', 
+                        count: 3, 
+                        percentage: 60, 
+                        color: 'from-purple-500 to-violet-600',
+                        icon: Server,
+                        description: 'Standard broadband access'
+                      },
+                      { 
+                        name: 'Limited/None', 
+                        count: 0, 
+                        percentage: 0, 
+                        color: 'from-gray-500 to-slate-600',
+                        icon: AlertTriangle,
+                        description: 'No network coverage'
+                      }
+                    ].map((item, index) => {
+                      const IconComponent = item.icon;
+                      return (
+                        <div key={index} className="relative group">
+                          <div className="p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${item.color} flex items-center justify-center shadow-lg`}>
+                                  <IconComponent className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-800">{item.name}</h4>
+                                  <p className="text-xs text-gray-600">{item.description}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-gray-900">{item.count}</div>
+                                <div className="text-sm text-gray-600">{item.percentage}%</div>
+                              </div>
+                            </div>
+                            
+                            {/* Progress bar */}
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all duration-1000 ease-out shadow-sm`}
+                                style={{ width: `${item.percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Real-time Metrics */}
             <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl">
               <CardHeader>
