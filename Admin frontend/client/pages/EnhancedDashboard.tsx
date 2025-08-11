@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,14 +9,27 @@ import {
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useFirebaseDashboardData } from '@/hooks/useFirebaseDashboardData';
 import { seedDatabase, clearDatabase } from '@/lib/firebaseSeeder';
+import { fetchAndUpdateMongoData, startAutoRefresh } from '@/lib/mongoDataFetcher';
 
 export default function ModernEnhancedDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const { data: dashboardData, loading, error, addData } = useFirebaseDashboardData();
 
+  // Start auto-refresh of MongoDB data
+  useEffect(() => {
+    const cleanup = startAutoRefresh();
+    return cleanup;
+  }, []);
+
   const handleRefresh = () => {
-    // Refresh is automatic with Firebase real-time listeners
-    console.log('Data refreshes automatically in real-time!');
+    // Refresh MongoDB data and update Firebase
+    fetchAndUpdateMongoData().then(success => {
+      if (success) {
+        console.log('MongoDB data refreshed successfully!');
+      } else {
+        console.log('Failed to refresh MongoDB data');
+      }
+    });
   };
 
   const handleSeedDatabase = async () => {
@@ -996,6 +1009,13 @@ export default function ModernEnhancedDashboard() {
                 className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-300"
               >
                 🧹 Clear Database
+              </Button>
+              <Button 
+                onClick={handleRefresh}
+                variant="outline"
+                className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300"
+              >
+                🔄 Refresh MongoDB Data
               </Button>
               <div className="ml-auto text-sm text-gray-500">
                 {loading ? '🔄 Connecting to Firebase...' : '✅ Connected to Firebase'}
