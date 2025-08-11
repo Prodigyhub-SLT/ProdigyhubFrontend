@@ -17,9 +17,25 @@ export default function ModernEnhancedDashboard() {
 
   // Start auto-refresh of MongoDB data
   useEffect(() => {
+    console.log('🚀 Starting MongoDB auto-refresh...');
     const cleanup = startAutoRefresh();
+    
+    // Also fetch data immediately on component mount
+    fetchAndUpdateMongoData().then(success => {
+      if (success) {
+        console.log('✅ Initial MongoDB data fetch successful');
+      } else {
+        console.log('❌ Initial MongoDB data fetch failed');
+      }
+    });
+    
     return cleanup;
   }, []);
+
+  // Debug: Log dashboard data changes
+  useEffect(() => {
+    console.log('📊 Dashboard data updated:', dashboardData);
+  }, [dashboardData]);
 
   const handleRefresh = () => {
     // Refresh MongoDB data and update Firebase
@@ -113,13 +129,9 @@ export default function ModernEnhancedDashboard() {
         color: getStatusColor(status)
       }));
     } else {
-      // Sample data when no orders exist
-      orderStatusData = [
-        { name: 'Pending', value: 5, color: getStatusColor('Pending') },
-        { name: 'In Progress', value: 3, color: getStatusColor('In Progress') },
-        { name: 'Completed', value: 12, color: getStatusColor('Completed') },
-        { name: 'Cancelled', value: 1, color: getStatusColor('Cancelled') }
-      ];
+      // No fallback data - only show real data from MongoDB
+      orderStatusData = [];
+      console.log('⚠️ No orders found in MongoDB - showing empty chart');
     }
 
     // Calculate performance trends (last 6 months)
@@ -141,7 +153,7 @@ export default function ModernEnhancedDashboard() {
         return {
           name: month,
           requests: monthOrders.length,
-          users: Math.floor(Math.random() * 100) + 50, // Mock user data for now
+          users: 0, // No mock data - only real data from MongoDB
           revenue: monthOrders.reduce((sum, order) => {
             const price = order.totalPrice || order.price?.amount || 0;
             return sum + (typeof price === 'number' ? price : 0);
@@ -149,13 +161,9 @@ export default function ModernEnhancedDashboard() {
         };
       });
     } else {
-      // Sample performance data when no orders exist
-      performanceData = last6Months.map((month, index) => ({
-        name: month,
-        requests: Math.floor(Math.random() * 20) + 5,
-        users: Math.floor(Math.random() * 100) + 50,
-        revenue: Math.floor(Math.random() * 5000) + 1000
-      }));
+      // No fallback data - only show real data from MongoDB
+      performanceData = [];
+      console.log('⚠️ No orders found in MongoDB - showing empty performance chart');
     }
 
     // Product category performance
@@ -181,13 +189,9 @@ export default function ModernEnhancedDashboard() {
         };
       });
     } else {
-      // Sample category data when no orders or categories exist
-      categoryPerformance = [
-        { name: 'Broadband', orders: 15, revenue: 8500 },
-        { name: 'Mobile', orders: 12, revenue: 7200 },
-        { name: 'Cloud Services', orders: 8, revenue: 5600 },
-        { name: 'IoT Solutions', orders: 5, revenue: 3200 }
-      ];
+      // No fallback data - only show real data from MongoDB
+      categoryPerformance = [];
+      console.log('⚠️ No orders or categories found in MongoDB - showing empty category chart');
     }
 
     return {
@@ -260,14 +264,14 @@ export default function ModernEnhancedDashboard() {
         console.log(`Order ${o.id}: raw status="${status}", normalized="${normalizedStatus}"`);
         return normalizedStatus === 'In Progress';
       }).length.toString(),
-      change: '+12%', 
-      trend: 'up' 
+      change: dashboardData.orders.length > 0 ? `+${Math.round((dashboardData.orders.length / 10) * 100)}%` : '0%', 
+      trend: dashboardData.orders.length > 0 ? 'up' : 'down' 
     },
     { 
       metric: 'Total Products', 
       value: dashboardData.products.length.toString(),
-      change: '+5%', 
-      trend: 'up' 
+      change: dashboardData.products.length > 0 ? `+${Math.round((dashboardData.products.length / 5) * 100)}%` : '0%', 
+      trend: dashboardData.products.length > 0 ? 'up' : 'down' 
     },
     { 
       metric: 'System Health', 
@@ -444,21 +448,21 @@ export default function ModernEnhancedDashboard() {
                   title: 'Total Revenue', 
                   value: `$${(metrics.totalRevenue / 1000).toFixed(1)}K`, 
                   icon: DollarSign, 
-                  change: '+23.4%', 
+                  change: metrics.totalRevenue > 0 ? `+${Math.round((metrics.totalRevenue / 10000) * 100)}%` : '0%', 
                   color: 'from-green-500 to-emerald-600' 
                 },
                 { 
                   title: 'Active Orders', 
                   value: metrics.totalOrders.toString(), 
                   icon: ShoppingCart, 
-                  change: '+12.8%', 
+                  change: metrics.totalOrders > 0 ? `+${Math.round((metrics.totalOrders / 10) * 100)}%` : '0%', 
                   color: 'from-blue-500 to-cyan-600' 
                 },
                 { 
                   title: 'Total Products', 
                   value: metrics.totalProducts.toString(), 
                   icon: Package, 
-                  change: '+5.2%', 
+                  change: metrics.totalProducts > 0 ? `+${Math.round((metrics.totalProducts / 5) * 100)}%` : '0%', 
                   color: 'from-purple-500 to-violet-600' 
                 },
                 { 
