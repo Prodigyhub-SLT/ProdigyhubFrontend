@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { 
   ShoppingCart, 
   Package, 
@@ -120,49 +121,9 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const getStatusGradient = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'acknowledged': return 'from-blue-400 to-blue-600';
-    case 'inprogress': return 'from-amber-400 to-amber-600';
-    case 'completed': return 'from-emerald-400 to-emerald-600';
-    case 'cancelled': return 'from-red-400 to-red-600';
-    default: return 'from-slate-400 to-slate-600';
-  }
-};
 
-const StatusProgressBar = ({ label, count, total, status, icon: Icon }: { 
-  label: string; 
-  count: number; 
-  total: number; 
-  status: string;
-  icon: any;
-}) => {
-  const percentage = total > 0 ? (count / total) * 100 : 0;
-  
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${getStatusGradient(status)}`}></div>
-          <Icon className="w-4 h-4 text-gray-600" />
-          <span className="font-medium text-gray-700">{label}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-900">{count}</span>
-          <Badge className={getStatusColor(status)} variant="outline">
-            {percentage.toFixed(0)}%
-          </Badge>
-        </div>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-        <div 
-          className={`h-full bg-gradient-to-r ${getStatusGradient(status)} transition-all duration-1000 ease-out rounded-full`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
-  );
-};
+
+
 
 export default function OrderOverview({ stats, recentOrders = [] }: OrderOverviewProps) {
   const completionPercentage = stats.totalOrders > 0 ? (stats.completedOrders / stats.totalOrders) * 100 : 0;
@@ -252,42 +213,74 @@ export default function OrderOverview({ stats, recentOrders = [] }: OrderOvervie
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
-              <StatusProgressBar 
-                label="Acknowledged" 
-                count={stats.acknowledgedOrders} 
-                total={stats.totalOrders} 
-                status="acknowledged"
-                icon={Clock}
-              />
-            </div>
-            <div className="animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-              <StatusProgressBar 
-                label="In Progress" 
-                count={stats.inProgressOrders} 
-                total={stats.totalOrders} 
-                status="inprogress"
-                icon={Activity}
-              />
-            </div>
-            <div className="animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-              <StatusProgressBar 
-                label="Completed" 
-                count={stats.completedOrders} 
-                total={stats.totalOrders} 
-                status="completed"
-                icon={CheckCircle}
-              />
-            </div>
-            <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-              <StatusProgressBar 
-                label="Cancelled" 
-                count={stats.cancelledOrders} 
-                total={stats.totalOrders} 
-                status="cancelled"
-                icon={XCircle}
-              />
+          <CardContent>
+            <div className="relative">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Acknowledged', value: stats.acknowledgedOrders, color: '#3b82f6' },
+                      { name: 'In Progress', value: stats.inProgressOrders, color: '#f59e0b' },
+                      { name: 'Completed', value: stats.completedOrders, color: '#10b981' },
+                      { name: 'Cancelled', value: stats.cancelledOrders, color: '#ef4444' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {[
+                      { name: 'Acknowledged', value: stats.acknowledgedOrders, color: '#3b82f6' },
+                      { name: 'In Progress', value: stats.inProgressOrders, color: '#f59e0b' },
+                      { name: 'Completed', value: stats.completedOrders, color: '#10b981' },
+                      { name: 'Cancelled', value: stats.cancelledOrders, color: '#ef4444' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  
+                  {/* Center Total Display */}
+                  <text
+                    x="50%"
+                    y="50%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="text-2xl font-bold fill-slate-800"
+                  >
+                    {stats.totalOrders}
+                  </text>
+                  <text
+                    x="50%"
+                    y="65%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="text-sm fill-slate-600"
+                  >
+                    Total
+                  </text>
+                  
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                      border: 'none', 
+                      borderRadius: '12px',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    }}
+                    formatter={(value, name) => [value, name]}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry, index) => (
+                      <span className="text-slate-700 font-medium">
+                        {value} ({Math.round((entry.payload.value / stats.totalOrders) * 100)}%)
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
