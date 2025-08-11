@@ -4,24 +4,17 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // 🔥 FIREBASE CONFIGURATION SETUP 🔥
 // 
-// To get your Firebase config:
-// 1. Go to Firebase Console: https://console.firebase.google.com/
-// 2. Select your project: prodigyhub-dashboard
-// 3. Click the gear icon (⚙️) next to "Project Overview"
-// 4. Select "Project settings"
-// 5. Scroll down to "Your apps" section
-// 6. Click on your web app or create one
-// 7. Copy the config object below
-//
-// Your Firebase configuration - Replace with your actual config from Firebase Console
+// ✅ CONFIGURATION UPDATED WITH REAL VALUES!
+// 
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
+  apiKey: "AIzaSyD6M4fOwtZCtvzDIZjqOMj3rgaV-n1XYcc",
+  authDomain: "prodigyhub-dashboard.firebaseapp.com",
   databaseURL: "https://prodigyhub-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "prodigyhub-dashboard",
-  storageBucket: "prodigyhub-dashboard.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id"
+  storageBucket: "prodigyhub-dashboard.firebasestorage.app",
+  messagingSenderId: "686673435740",
+  appId: "1:686673435740:web:5833089fce37c5f9b55a99",
+  measurementId: "G-9X9XM04XJE"
 };
 
 // Initialize Firebase
