@@ -15,7 +15,7 @@ const MONGO_ENDPOINTS = {
 };
 
 // Base URL for your backend
-const BASE_URL = 'http://localhost:3000'; // Your backend server runs on port 3000
+const BASE_URL = '/api'; // Your backend uses /api prefix
 
 // Test function to check backend connectivity
 export const testBackendConnection = async () => {
