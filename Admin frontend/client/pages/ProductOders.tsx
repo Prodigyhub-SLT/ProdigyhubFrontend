@@ -275,7 +275,7 @@ export default function ProductOrders({
                 <TableRow className="bg-gradient-to-r from-slate-100/80 via-white to-slate-100/80 border-b border-slate-200/50 hover:bg-slate-100/80">
                   <TableHead className="font-bold text-slate-700 py-4 px-6">Product Name(s)</TableHead>
                   <TableHead className="font-bold text-slate-700 py-4 px-6">State</TableHead>
-                  <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6">Priority</TableHead>
+                  <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6 text-center">Priority</TableHead>
                   <TableHead className="hidden lg:table-cell font-bold text-slate-700 py-4 px-6">Order Date</TableHead>
                   <TableHead className="font-bold text-slate-700 py-4 px-6">Actions</TableHead>
                 </TableRow>
@@ -314,13 +314,15 @@ export default function ProductOrders({
                           </div>
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell py-4 px-6">
-                        <Badge className={`${getPriorityColor(order.priority || '')} px-3 py-1.5 rounded-lg font-bold`}>
-                          {order.priority === '1' ? 'High' : 
-                           order.priority === '2' ? 'Medium' : 
-                           order.priority === '3' ? 'Low' : 
-                           order.priority || 'Normal'}
-                        </Badge>
+                      <TableCell className="hidden md:table-cell py-4 px-6 text-center">
+                        <div className="flex justify-center items-center">
+                          <Badge className={`${getPriorityColor(order.priority || '')} px-3 py-1.5 rounded-lg font-bold min-w-[60px]`}>
+                            {order.priority === '1' ? 'High' : 
+                             order.priority === '2' ? 'Medium' : 
+                             order.priority === '3' ? 'Low' : 
+                             order.priority || 'Normal'}
+                          </Badge>
+                        </div>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell py-4 px-6 text-slate-600 font-medium">
                         {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}

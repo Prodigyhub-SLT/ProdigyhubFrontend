@@ -38,14 +38,34 @@ export default function ModernEnhancedDashboard() {
         // Try multiple possible status field names
         let status = order.status || order.state || order.orderStatus || order.orderState;
         
-        // If no status found, try to infer from other fields
+        // Enhanced status detection logic
         if (!status) {
-          if (order.completedAt || order.completionDate) {
+          // Check for completion indicators
+          if (order.completedAt || order.completionDate || order.finishedAt) {
             status = 'Completed';
-          } else if (order.cancelledAt || order.cancellationDate) {
+          } 
+          // Check for cancellation indicators
+          else if (order.cancelledAt || order.cancellationDate || order.abortedAt) {
             status = 'Cancelled';
-          } else if (order.orderDate && new Date(order.orderDate) < new Date()) {
+          } 
+          // Check for in-progress indicators
+          else if (order.startedAt || order.processingAt || order.inProgressAt || 
+                   order.workStartedAt || order.workInProgressAt) {
             status = 'In Progress';
+          }
+          // Check order date logic for better inference
+          else if (order.orderDate) {
+            const orderDate = new Date(order.orderDate);
+            const now = new Date();
+            const daysDiff = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysDiff > 7) {
+              status = 'In Progress'; // Orders older than 7 days are likely in progress
+            } else if (daysDiff > 1) {
+              status = 'In Progress'; // Orders older than 1 day are likely in progress
+            } else {
+              status = 'Pending'; // Recent orders are likely pending
+            }
           } else {
             status = 'Pending';
           }
@@ -164,17 +184,24 @@ export default function ModernEnhancedDashboard() {
       'finished': 'Completed',
       'fulfilled': 'Completed',
       'in progress': 'In Progress',
+      'inprogress': 'In Progress',
       'processing': 'In Progress',
       'active': 'In Progress',
+      'started': 'In Progress',
+      'working': 'In Progress',
       'pending': 'Pending',
       'waiting': 'Pending',
       'acknowledged': 'Pending',
+      'new': 'Pending',
+      'created': 'Pending',
+      'submitted': 'Pending',
       'failed': 'Failed',
       'error': 'Failed',
       'rejected': 'Failed',
       'cancelled': 'Cancelled',
       'canceled': 'Cancelled',
-      'aborted': 'Cancelled'
+      'aborted': 'Cancelled',
+      'terminated': 'Cancelled'
     };
     
     return statusMap[normalized] || 'Pending';
@@ -200,7 +227,9 @@ export default function ModernEnhancedDashboard() {
       metric: 'Active Orders', 
       value: dashboardData.orders.filter(o => {
         const status = o.status || o.state || o.orderStatus || o.orderState;
-        return normalizeStatus(status) === 'In Progress';
+        const normalizedStatus = normalizeStatus(status);
+        console.log(`Order ${o.id}: raw status="${status}", normalized="${normalizedStatus}"`);
+        return normalizedStatus === 'In Progress';
       }).length.toString(),
       change: '+12%', 
       trend: 'up' 
@@ -305,6 +334,49 @@ export default function ModernEnhancedDashboard() {
                   <strong>Categories:</strong> {dashboardData.categories.length}
                 </div>
               </div>
+              
+              {/* Status Debug Information */}
+              {dashboardData.orders.length > 0 && (
+                <div className="mt-4 p-3 bg-blue-100 rounded">
+                  <strong>Status Analysis:</strong>
+                  <div className="mt-2 space-y-2">
+                    {dashboardData.orders.slice(0, 5).map((order, index) => (
+                      <div key={index} className="text-xs bg-white p-2 rounded border">
+                        <strong>Order {index + 1}:</strong>
+                        <div>Raw Status: "{order.status || order.state || order.orderStatus || order.orderState || 'undefined'}"</div>
+                        <div>Normalized: "{normalizeStatus(order.status || order.state || order.orderStatus || order.orderState)}"</div>
+                        <div>Order Date: {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</div>
+                        <div>Completed At: {order.completedAt ? new Date(order.completedAt).toLocaleDateString() : 'N/A'}</div>
+                        <div>Started At: {order.startedAt ? new Date(order.startedAt).toLocaleDateString() : 'N/A'}</div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Status Summary */}
+                  <div className="mt-4 p-3 bg-white rounded border">
+                    <strong>Status Summary:</strong>
+                    <div className="mt-2 grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <strong>Raw Statuses Found:</strong>
+                        <div className="mt-1 space-y-1">
+                          {Array.from(new Set(dashboardData.orders.map(o => o.status || o.state || o.orderStatus || o.orderState).filter(Boolean))).map(status => (
+                            <div key={status} className="bg-gray-100 px-2 py-1 rounded">"{status}"</div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <strong>Normalized Statuses:</strong>
+                        <div className="mt-1 space-y-1">
+                          {Array.from(new Set(dashboardData.orders.map(o => normalizeStatus(o.status || o.state || o.orderStatus || o.orderState)))).map(status => (
+                            <div key={status} className="bg-blue-100 px-2 py-1 rounded">"{status}"</div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {dashboardData.orders.length > 0 && (
                 <div className="mt-4 p-3 bg-blue-100 rounded">
                   <strong>First Order Sample:</strong>
