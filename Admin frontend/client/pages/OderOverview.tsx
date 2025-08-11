@@ -244,40 +244,22 @@ export default function OrderOverview({ stats, recentOrders = [] }: OrderOvervie
                       <stop offset="0%" stopColor="#f87171" />
                       <stop offset="100%" stopColor="#ef4444" />
                     </linearGradient>
-                    <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#e2e8f0" />
-                      <stop offset="100%" stopColor="#cbd5e1" />
-                    </linearGradient>
                     <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
                       <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#000000" floodOpacity="0.15" />
                     </filter>
                   </defs>
 
-                  {/* Decorative outer ring */}
-                  <Pie
-                    data={[{ name: 'ring', value: 1 }]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={118}
-                    outerRadius={124}
-                    paddingAngle={0}
-                    dataKey="value"
-                    isAnimationActive={false}
-                    stroke="none"
-                    fill="url(#ringGradient)"
-                  />
-
-                  {/* Main donut */}
+                  {/* Main donut chart - adjusted for better segment visibility */}
                   <Pie
                     data={statusChartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={72}
-                    outerRadius={112}
-                    paddingAngle={4}
-                    cornerRadius={10}
+                    innerRadius={80}
+                    outerRadius={120}
+                    paddingAngle={2}
+                    cornerRadius={8}
                     stroke="#ffffff"
-                    strokeWidth={3}
+                    strokeWidth={2}
                     dataKey="value"
                     isAnimationActive
                     animationDuration={900}
