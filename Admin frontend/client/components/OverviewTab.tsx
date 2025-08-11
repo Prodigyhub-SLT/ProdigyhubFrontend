@@ -19,7 +19,8 @@ import {
   Target,
   Layers,
   DollarSign,
-  Calendar
+  Calendar,
+  Tag
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
