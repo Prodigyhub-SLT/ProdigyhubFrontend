@@ -385,29 +385,22 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-bold mb-6">
-              LKR {totalPricingValue.toLocaleString()}
-            </div>
-            <div className="text-sm text-purple-100 mb-4">
-              Total Value from {pricedOfferings.length} priced offers
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs text-purple-100 mb-4">
-              <div>
-                <div className="font-semibold">Recurring</div>
-                <div>{recurringOfferings.length} offers</div>
-              </div>
-              <div>
-                <div className="font-semibold">One-time</div>
-                <div>{oneTimeOfferings.length} offers</div>
-              </div>
-            </div>
-            <Button 
-              onClick={() => openCreateDialog('offering')} 
-              className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border-opacity-30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Offer
-            </Button>
+                         <div className="text-4xl font-bold mb-6">
+               LKR {totalPricingValue.toLocaleString()}
+             </div>
+             <div className="text-sm text-purple-100 mb-4">
+               Total Value from {pricedOfferings.length} priced offers
+             </div>
+             <div className="grid grid-cols-2 gap-2 text-xs text-purple-100">
+               <div>
+                 <div className="font-semibold">Recurring</div>
+                 <div>{recurringOfferings.length} offers</div>
+               </div>
+               <div>
+                 <div className="font-semibold">One-time</div>
+                 <div>{oneTimeOfferings.length} offers</div>
+               </div>
+             </div>
           </CardContent>
         </Card>
       </div>
