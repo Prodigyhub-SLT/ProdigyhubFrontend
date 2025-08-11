@@ -470,6 +470,9 @@ export default function ProductCatalogDashboard() {
             setCategoryFilter={setCategoryFilter}
             setIsCreateDialogOpen={setIsCreateDialogOpen}
             setCreateDialogType={setCreateDialogType}
+            setSelectedOffering={setSelectedOffering}
+            setIsViewDialogOpen={setIsOfferingsViewDialogOpen}
+            loadOfferingForEdit={loadOfferingForEdit}
           />
         </TabsContent>
       </Tabs>

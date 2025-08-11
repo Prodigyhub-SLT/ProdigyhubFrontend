@@ -31,6 +31,10 @@ interface EnhancedPricesTabProps {
   setCategoryFilter: (filter: string) => void;
   setIsCreateDialogOpen: (open: boolean) => void;
   setCreateDialogType: (type: 'category' | 'spec' | 'offering' | 'price') => void;
+  // Add new props for view and edit functionality
+  setSelectedOffering: (offering: MongoProductOffering) => void;
+  setIsViewDialogOpen: (open: boolean) => void;
+  loadOfferingForEdit: (offering: MongoProductOffering) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -97,7 +101,11 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
   setStatusFilter,
   setCategoryFilter,
   setIsCreateDialogOpen,
-  setCreateDialogType
+  setCreateDialogType,
+  // Add new props for view and edit functionality
+  setSelectedOffering,
+  setIsViewDialogOpen,
+  loadOfferingForEdit
 }) => {
   // Filter MongoDB offerings based on search term and filters
   const filteredOfferings = mongoOfferings.filter(offering => {
@@ -373,11 +381,26 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
                   </div>
                   
                   <div className="flex flex-col gap-2">
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedOffering(offering);
+                        setIsViewDialogOpen(true);
+                      }}
+                    >
                       <Eye className="w-4 h-4 mr-2" />
                       View Details
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => {
+                        loadOfferingForEdit(offering);
+                      }}
+                    >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Offer
                     </Button>
