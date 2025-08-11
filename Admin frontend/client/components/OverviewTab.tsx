@@ -18,7 +18,8 @@ import {
   Zap,
   Target,
   Layers,
-  DollarSign
+  DollarSign,
+  Calendar
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
