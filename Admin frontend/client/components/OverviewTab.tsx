@@ -306,6 +306,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const activeItems = offeringStatusBreakdown.active + specStatusBreakdown.active;
   const completionPercentage = totalItems > 0 ? (activeItems / totalItems) * 100 : 0;
 
+  // Calculate pricing statistics
+  const pricedOfferings = mongoOfferings.filter(o => o.pricing && o.pricing.amount);
+  const totalPricingValue = pricedOfferings.reduce((total, offering) => {
+    return total + (offering.pricing?.amount || 0);
+  }, 0);
+  const averagePricingValue = pricedOfferings.length > 0 ? totalPricingValue / pricedOfferings.length : 0;
+  const recurringOfferings = pricedOfferings.filter(o => o.pricing?.period !== 'one-time');
+  const oneTimeOfferings = pricedOfferings.filter(o => o.pricing?.period === 'one-time');
+
   return (
     <div className="space-y-8">
       {/* Futuristic Hero Cards */}
@@ -367,24 +376,116 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="text-2xl font-bold">Product Prices</CardTitle>
-              <CardDescription className="text-purple-100">Total: {prices.length} prices</CardDescription>
+              <CardDescription className="text-purple-100">Total: {mongoOfferings.filter(o => o.pricing).length} offers with pricing</CardDescription>
             </div>
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <DollarSign className="h-8 w-8 text-white" />
             </div>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-4xl font-bold mb-6">{prices.length}</div>
+            <div className="text-4xl font-bold mb-6">
+              LKR {totalPricingValue.toLocaleString()}
+            </div>
+            <div className="text-sm text-purple-100 mb-4">
+              Total Value from {pricedOfferings.length} priced offers
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-purple-100 mb-4">
+              <div>
+                <div className="font-semibold">Recurring</div>
+                <div>{recurringOfferings.length} offers</div>
+              </div>
+              <div>
+                <div className="font-semibold">One-time</div>
+                <div>{oneTimeOfferings.length} offers</div>
+              </div>
+            </div>
             <Button 
-              onClick={() => openCreateDialog('price')} 
+              onClick={() => openCreateDialog('offering')} 
               className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border-opacity-30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Price
+              Create New Offer
             </Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* Pricing Overview Section */}
+      {pricedOfferings.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] group">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <DollarSign className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold">Average Price</div>
+                  <div className="text-sm text-gray-600">Per offering</div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                LKR {averagePricingValue.toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-600">
+                Based on {pricedOfferings.length} offers
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] group">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold">Recurring Offers</div>
+                  <div className="text-sm text-gray-600">Monthly/Yearly</div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600 mb-2">
+                {recurringOfferings.length}
+              </div>
+              <div className="text-sm text-gray-600">
+                {recurringOfferings.length > 0 ? 
+                  `LKR ${recurringOfferings.reduce((total, o) => total + (o.pricing?.amount || 0), 0).toLocaleString()} total` : 
+                  'No recurring offers'
+                }
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] group">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Tag className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold">One-time Offers</div>
+                  <div className="text-sm text-gray-600">Setup fees</div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600 mb-2">
+                {oneTimeOfferings.length}
+              </div>
+              <div className="text-sm text-gray-600">
+                {oneTimeOfferings.length > 0 ? 
+                  `LKR ${oneTimeOfferings.reduce((total, o) => total + (o.pricing?.amount || 0), 0).toLocaleString()} total` : 
+                  'No one-time offers'
+                }
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Enhanced Status Breakdown with Animations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
