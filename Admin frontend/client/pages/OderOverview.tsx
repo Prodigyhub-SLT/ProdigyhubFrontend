@@ -152,6 +152,16 @@ export default function OrderOverview({ stats, recentOrders = [] }: OrderOvervie
   };
   const totalOrderValue = stats.avgOrderValue * stats.totalOrders;
 
+  // Data for the donut chart (kept in one place)
+  const statusChartData = [
+    { name: 'Acknowledged', value: stats.acknowledgedOrders, color: '#3b82f6', gradientId: 'gradAck' },
+    { name: 'In Progress', value: stats.inProgressOrders, color: '#f59e0b', gradientId: 'gradProg' },
+    { name: 'Completed', value: stats.completedOrders, color: '#10b981', gradientId: 'gradComp' },
+    { name: 'Cancelled', value: stats.cancelledOrders, color: '#ef4444', gradientId: 'gradCancel' },
+  ];
+
+  const totalOrdersCount = stats.totalOrders;
+
   return (
     <div className="space-y-8">
       {/* Futuristic Hero Cards */}
@@ -215,52 +225,90 @@ export default function OrderOverview({ stats, recentOrders = [] }: OrderOvervie
           </CardHeader>
           <CardContent>
             <div className="relative">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
+                  <defs>
+                    <linearGradient id="gradAck" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#60a5fa" />
+                      <stop offset="100%" stopColor="#2563eb" />
+                    </linearGradient>
+                    <linearGradient id="gradProg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#fbbf24" />
+                      <stop offset="100%" stopColor="#f59e0b" />
+                    </linearGradient>
+                    <linearGradient id="gradComp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#34d399" />
+                      <stop offset="100%" stopColor="#059669" />
+                    </linearGradient>
+                    <linearGradient id="gradCancel" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f87171" />
+                      <stop offset="100%" stopColor="#ef4444" />
+                    </linearGradient>
+                    <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#e2e8f0" />
+                      <stop offset="100%" stopColor="#cbd5e1" />
+                    </linearGradient>
+                    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#000000" floodOpacity="0.15" />
+                    </filter>
+                  </defs>
+
+                  {/* Decorative outer ring */}
                   <Pie
-                    data={[
-                      { name: 'Acknowledged', value: stats.acknowledgedOrders, color: '#3b82f6' },
-                      { name: 'In Progress', value: stats.inProgressOrders, color: '#f59e0b' },
-                      { name: 'Completed', value: stats.completedOrders, color: '#10b981' },
-                      { name: 'Cancelled', value: stats.cancelledOrders, color: '#ef4444' }
-                    ]}
+                    data={[{ name: 'ring', value: 1 }]}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
+                    innerRadius={118}
+                    outerRadius={124}
+                    paddingAngle={0}
                     dataKey="value"
+                    isAnimationActive={false}
+                    stroke="none"
+                    fill="url(#ringGradient)"
+                  />
+
+                  {/* Main donut */}
+                  <Pie
+                    data={statusChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={72}
+                    outerRadius={112}
+                    paddingAngle={4}
+                    cornerRadius={10}
+                    stroke="#ffffff"
+                    strokeWidth={3}
+                    dataKey="value"
+                    isAnimationActive
+                    animationDuration={900}
+                    animationEasing="ease-out"
+                    filter="url(#softShadow)"
                   >
-                    {[
-                      { name: 'Acknowledged', value: stats.acknowledgedOrders, color: '#3b82f6' },
-                      { name: 'In Progress', value: stats.inProgressOrders, color: '#f59e0b' },
-                      { name: 'Completed', value: stats.completedOrders, color: '#10b981' },
-                      { name: 'Cancelled', value: stats.cancelledOrders, color: '#ef4444' }
-                    ].map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {statusChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={`url(#${entry.gradientId})`} />
                     ))}
                   </Pie>
-                  
-                  {/* Center Total Display */}
+
+                  {/* Center labels (always visible) */}
                   <text
                     x="50%"
-                    y="50%"
+                    y="46%"
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="text-2xl font-bold fill-slate-800"
+                    style={{ fill: '#0f172a', fontSize: '28px', fontWeight: 800, pointerEvents: 'none' }}
                   >
-                    {stats.totalOrders}
+                    {totalOrdersCount}
                   </text>
                   <text
                     x="50%"
-                    y="65%"
+                    y="58%"
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="text-sm fill-slate-600"
+                    style={{ fill: '#475569', fontSize: '12px', fontWeight: 600, letterSpacing: '0.06em', pointerEvents: 'none' }}
                   >
-                    Total
+                    TOTAL
                   </text>
-                  
+
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255, 255, 255, 0.95)', 
@@ -268,14 +316,14 @@ export default function OrderOverview({ stats, recentOrders = [] }: OrderOvervie
                       borderRadius: '12px',
                       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
                     }}
-                    formatter={(value, name) => [value, name]}
+                    formatter={(value: number, name: string, props: any) => [value, name]}
                   />
                   <Legend 
                     verticalAlign="bottom" 
                     height={36}
-                    formatter={(value, entry, index) => (
+                    formatter={(value: string, entry: any) => (
                       <span className="text-slate-700 font-medium">
-                        {value} ({Math.round((entry.payload.value / stats.totalOrders) * 100)}%)
+                        {value} ({totalOrdersCount > 0 ? Math.round((entry.payload.value / totalOrdersCount) * 100) : 0}%)
                       </span>
                     )}
                   />
