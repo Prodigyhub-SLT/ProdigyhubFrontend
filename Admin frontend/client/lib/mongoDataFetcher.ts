@@ -17,6 +17,29 @@ const MONGO_ENDPOINTS = {
 // Base URL for your backend
 const BASE_URL = 'http://localhost:3000'; // Your backend server runs on port 3000
 
+// Test function to check backend connectivity
+export const testBackendConnection = async () => {
+  try {
+    console.log('🧪 Testing backend connection...');
+    console.log('📍 Backend URL:', BASE_URL);
+    
+    const testResponse = await fetch(`${BASE_URL}/health`);
+    console.log('🔍 Health endpoint response:', testResponse.status, testResponse.ok);
+    
+    if (testResponse.ok) {
+      const healthData = await testResponse.json();
+      console.log('📦 Health data received:', healthData);
+      return true;
+    } else {
+      console.log('❌ Health endpoint failed:', testResponse.status);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Backend connection test failed:', error);
+    return false;
+  }
+};
+
 // Fetch data from MongoDB endpoints and update Firebase
 export const fetchAndUpdateMongoData = async () => {
   try {

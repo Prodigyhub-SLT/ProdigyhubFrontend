@@ -9,7 +9,7 @@ import {
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useFirebaseDashboardData } from '@/hooks/useFirebaseDashboardData';
 import { seedDatabase, clearDatabase } from '@/lib/firebaseSeeder';
-import { fetchAndUpdateMongoData, startAutoRefresh } from '@/lib/mongoDataFetcher';
+import { fetchAndUpdateMongoData, startAutoRefresh, testBackendConnection } from '@/lib/mongoDataFetcher';
 
 export default function ModernEnhancedDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -1020,6 +1020,13 @@ export default function ModernEnhancedDashboard() {
                 className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300"
               >
                 🔄 Refresh MongoDB Data
+              </Button>
+              <Button 
+                onClick={testBackendConnection}
+                variant="outline"
+                className="border-yellow-300 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-400 transition-all duration-300"
+              >
+                🔌 Test Backend Connection
               </Button>
               <div className="ml-auto text-sm text-gray-500">
                 {loading ? '🔄 Connecting to Firebase...' : '✅ Connected to Firebase'}
