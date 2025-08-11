@@ -202,6 +202,7 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
       count: stats.bothAvailable, 
       type: 'both' as const,
       color: 'from-emerald-500 to-green-600',
+      barColor: '#10b981',
       icon: CheckCircle,
       description: 'Dual connectivity'
     },
@@ -210,6 +211,7 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
       count: stats.fiberAvailable - stats.bothAvailable, 
       type: 'fiber' as const,
       color: 'from-blue-500 to-cyan-600',
+      barColor: '#3b82f6',
       icon: Wifi,
       description: 'High-speed fiber'
     },
@@ -218,6 +220,7 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
       count: stats.adslAvailable - stats.bothAvailable, 
       type: 'adsl' as const,
       color: 'from-purple-500 to-violet-600',
+      barColor: '#8b5cf6',
       icon: Router,
       description: 'Standard broadband'
     },
@@ -226,6 +229,7 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
       count: stats.neitherAvailable, 
       type: 'neither' as const,
       color: 'from-gray-500 to-slate-600',
+      barColor: '#6b7280',
       icon: XCircle,
       description: 'No coverage'
     }
@@ -242,12 +246,12 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
           <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <defs>
               <linearGradient id="glassGradient1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.8)" />
-                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.2)" />
+                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.9)" />
+                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.3)" />
               </linearGradient>
               <linearGradient id="glassGradient2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.6)" />
-                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.1)" />
+                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.8)" />
+                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.2)" />
               </linearGradient>
               <filter id="glassShadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -258,7 +262,7 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
               </filter>
             </defs>
             
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.3)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(107, 114, 128, 0.2)" />
             <XAxis 
               dataKey="label" 
               stroke="rgba(107, 114, 128, 0.8)" 
@@ -293,9 +297,10 @@ const InfrastructureChart = ({ stats }: { stats: any }) => {
               {data.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
-                  fill={`url(#${index % 2 === 0 ? 'glassGradient1' : 'glassGradient2'})`}
-                  stroke={`url(#${entry.color})`}
-                  strokeWidth={2}
+                  fill={entry.barColor}
+                  stroke={entry.barColor}
+                  strokeWidth={1}
+                  opacity={0.8}
                 />
               ))}
             </Bar>
