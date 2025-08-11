@@ -4,17 +4,33 @@ import { Button } from '@/components/ui/button';
 import { 
   RefreshCw, Activity, Users, Server, CheckCircle, TrendingUp, 
   ShoppingCart, Package, AlertTriangle, Zap, Globe, BarChart3,
-  ArrowUpRight, ArrowDownRight, Eye, Clock, DollarSign
+  ArrowUpRight, ArrowDownRight, Eye, Clock, DollarSign, Database
 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useFirebaseDashboardData } from '@/hooks/useFirebaseDashboardData';
+import { seedDatabase, clearDatabase } from '@/lib/firebaseSeeder';
 
 export default function ModernEnhancedDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const { data: dashboardData, loading, error, refetch } = useDashboardData();
+  const { data: dashboardData, loading, error, addData } = useFirebaseDashboardData();
 
   const handleRefresh = () => {
-    refetch();
+    // Refresh is automatic with Firebase real-time listeners
+    console.log('Data refreshes automatically in real-time!');
+  };
+
+  const handleSeedDatabase = async () => {
+    const success = await seedDatabase();
+    if (success) {
+      console.log('Database seeded successfully!');
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    const success = await clearDatabase();
+    if (success) {
+      console.log('Database cleared successfully!');
+    }
   };
 
   // Calculate real metrics from actual data
@@ -956,6 +972,42 @@ export default function ModernEnhancedDashboard() {
             </Card>
           </div>
         )}
+
+        {/* Database Management */}
+        <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5 text-purple-600" />
+              Database Management
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Manage your Firebase real-time database</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <Button 
+                onClick={handleSeedDatabase}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
+              >
+                🌱 Seed Database
+              </Button>
+              <Button 
+                onClick={handleClearDatabase}
+                variant="outline"
+                className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-300"
+              >
+                🧹 Clear Database
+              </Button>
+              <div className="ml-auto text-sm text-gray-500">
+                {loading ? '🔄 Connecting to Firebase...' : '✅ Connected to Firebase'}
+              </div>
+            </div>
+            {error && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">⚠️ {error}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Footer Status */}
         <Card className={`border-0 shadow-xl ${
