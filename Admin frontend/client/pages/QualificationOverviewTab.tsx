@@ -21,6 +21,7 @@ import {
   Globe,
   Smartphone
 } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 
 // Add custom CSS animations
 const styles = `
@@ -196,57 +197,162 @@ const StatusProgressBar = ({ label, count, total, type }: {
 
 const InfrastructureChart = ({ stats }: { stats: any }) => {
   const data = [
-    { label: 'Fiber + ADSL', count: stats.bothAvailable, type: 'both' as const },
-    { label: 'Fiber Only', count: stats.fiberAvailable - stats.bothAvailable, type: 'fiber' as const },
-    { label: 'ADSL Only', count: stats.adslAvailable - stats.bothAvailable, type: 'adsl' as const },
-    { label: 'Limited/None', count: stats.neitherAvailable, type: 'neither' as const }
+    { 
+      label: 'Fiber + ADSL', 
+      count: stats.bothAvailable, 
+      type: 'both' as const,
+      color: 'from-emerald-500 to-green-600',
+      icon: CheckCircle,
+      description: 'Dual connectivity'
+    },
+    { 
+      label: 'Fiber Only', 
+      count: stats.fiberAvailable - stats.bothAvailable, 
+      type: 'fiber' as const,
+      color: 'from-blue-500 to-cyan-600',
+      icon: Wifi,
+      description: 'High-speed fiber'
+    },
+    { 
+      label: 'ADSL Only', 
+      count: stats.adslAvailable - stats.bothAvailable, 
+      type: 'adsl' as const,
+      color: 'from-purple-500 to-violet-600',
+      icon: Router,
+      description: 'Standard broadband'
+    },
+    { 
+      label: 'Limited/None', 
+      count: stats.neitherAvailable, 
+      type: 'neither' as const,
+      color: 'from-gray-500 to-slate-600',
+      icon: XCircle,
+      description: 'No coverage'
+    }
   ];
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'both': return CheckCircle;
-      case 'fiber': return Wifi;
-      case 'adsl': return Router;
-      case 'neither': return XCircle;
-      default: return AlertCircle;
-    }
-  };
+  const maxCount = Math.max(...data.map(item => item.count));
+  const total = stats.totalQualifications;
 
   return (
-    <div className="space-y-4">
-      {data.map((item, index) => {
-        const Icon = getIcon(item.type);
-        const percentage = stats.totalQualifications > 0 ? (item.count / stats.totalQualifications) * 100 : 0;
-        
-        return (
-          <div 
-            key={item.type} 
-            className="group animate-fadeInUp hover:scale-[1.02] transition-transform duration-300"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <Icon className="w-5 h-5 text-gray-600 group-hover:scale-110 transition-transform duration-300" />
-                <span className="font-medium text-gray-700">{item.label}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-gray-900 animate-bounceIn" style={{ animationDelay: `${index * 0.1 + 0.3}s` }}>
-                  {item.count}
-                </span>
-                <Badge variant="outline" className="bg-white animate-fadeInUp" style={{ animationDelay: `${index * 0.1 + 0.2}s` }}>
-                  {percentage > 0 ? `${percentage.toFixed(0)}%` : '0%'}
-                </Badge>
+    <div className="space-y-6">
+      {/* Glass-morphism Bar Chart */}
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <defs>
+              <linearGradient id="glassGradient1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.8)" />
+                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.2)" />
+              </linearGradient>
+              <linearGradient id="glassGradient2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255, 255, 255, 0.6)" />
+                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.1)" />
+              </linearGradient>
+              <filter id="glassShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge> 
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.3)" />
+            <XAxis 
+              dataKey="label" 
+              stroke="rgba(107, 114, 128, 0.8)" 
+              fontSize={12}
+              tickLine={false}
+            />
+            <YAxis 
+              stroke="rgba(107, 114, 128, 0.8)" 
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                border: 'none', 
+                borderRadius: '12px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)'
+              }}
+              formatter={(value: number, name: string, props: any) => [
+                `${value} locations`, 
+                props.payload.label
+              ]}
+            />
+            
+            <Bar 
+              dataKey="count" 
+              radius={[8, 8, 0, 0]}
+              filter="url(#glassShadow)"
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={`url(#${index % 2 === 0 ? 'glassGradient1' : 'glassGradient2'})`}
+                  stroke={`url(#${entry.color})`}
+                  strokeWidth={2}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Enhanced Infrastructure Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {data.map((item, index) => {
+          const Icon = item.icon;
+          const percentage = total > 0 ? (item.count / total) * 100 : 0;
+          
+          return (
+            <div 
+              key={item.type} 
+              className="group relative overflow-hidden rounded-2xl bg-white/60 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.02] animate-fadeInUp"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {/* Background gradient */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-5 group-hover:opacity-10 transition-opacity duration-500`}></div>
+              
+              {/* Glass overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm"></div>
+              
+              <div className="relative z-10 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${item.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 text-sm">{item.label}</h4>
+                      <p className="text-xs text-gray-600">{item.description}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-gray-900">{item.count}</div>
+                    <div className="text-sm text-gray-600">{percentage > 0 ? `${percentage.toFixed(0)}%` : '0%'}</div>
+                  </div>
+                </div>
+                
+                {/* Animated progress bar */}
+                <div className="w-full bg-gray-200/50 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+                  <div 
+                    className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all duration-1000 ease-out shadow-sm`}
+                    style={{ 
+                      width: `${percentage}%`,
+                      animationDelay: `${index * 0.2}s`
+                    }}
+                  />
+                </div>
               </div>
             </div>
-            <StatusProgressBar 
-              label=""
-              count={item.count}
-              total={stats.totalQualifications}
-              type={item.type}
-            />
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
