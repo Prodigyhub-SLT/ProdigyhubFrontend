@@ -442,16 +442,16 @@ export default function ProductCatalogDashboard() {
         </TabsContent>
 
         <TabsContent value="prices" className="space-y-4">
-          {/* Show info banner about pricing */}
+          {/* Show info banner about offer pricing */}
           <Card className="border-purple-200 bg-purple-50">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
                 <DollarSign className="w-5 h-5 text-purple-600 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-purple-900">Product Offering Prices</h4>
+                  <h4 className="font-medium text-purple-900">Offers' Price</h4>
                   <p className="text-sm text-purple-700 mt-1">
-                    Manage pricing for all product offerings. Create, edit, and view pricing information including 
-                    recurring charges, one-time fees, and usage-based pricing.
+                    View pricing details from all product offerings. This tab displays the pricing information 
+                    that users include when creating new offers, including main prices, setup fees, and security deposits.
                   </p>
                 </div>
               </div>
@@ -460,6 +460,7 @@ export default function ProductCatalogDashboard() {
           
           <EnhancedPricesTab 
             prices={prices}
+            mongoOfferings={mongoOfferings}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}
