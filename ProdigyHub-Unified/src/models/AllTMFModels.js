@@ -322,6 +322,54 @@ const QueryProductOfferingQualificationSchema = new mongoose.Schema({
 });
 
 // ===================================
+// AREA MANAGEMENT MODELS
+// ===================================
+
+const AreaSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true, default: uuidv4 },
+  name: { type: String, required: true },
+  district: { type: String, required: true },
+  province: { type: String, required: true },
+  postalCode: String,
+  coordinates: {
+    latitude: Number,
+    longitude: Number
+  },
+  infrastructure: {
+    fiber: {
+      available: { type: Boolean, default: false },
+      technology: String,
+      maxSpeed: String,
+      coverage: Number,
+      monthlyFee: Number
+    },
+    adsl: {
+      available: { type: Boolean, default: false },
+      technology: String,
+      maxSpeed: String,
+      coverage: Number,
+      monthlyFee: Number
+    },
+    mobile: {
+      available: { type: Boolean, default: true },
+      technologies: [String],
+      coverage: String,
+      signalStrength: String
+    }
+  },
+  population: Number,
+  areaType: { type: String, enum: ['urban', 'suburban', 'rural'], default: 'suburban' },
+  description: String,
+  status: { type: String, enum: ['active', 'inactive', 'planned'], default: 'active' },
+  lastUpdated: { type: Date, default: Date.now },
+  createdBy: String,
+  '@type': { type: String, default: 'Area' }
+}, {
+  timestamps: true,
+  collection: 'areas'
+});
+
+// ===================================
 // TMF622 - PRODUCT ORDERING MODELS
 // ===================================
 
@@ -517,6 +565,9 @@ const setHrefMiddleware = function(next) {
       case 'queryproductofferingqualifications':
         this.href = `${baseUrl}/productOfferingQualification/v5/queryProductOfferingQualification/${this.id}`;
         break;
+      case 'areas':
+        this.href = `${baseUrl}/areaManagement/v5/area/${this.id}`;
+        break;
       case 'productorders':
         this.href = `${baseUrl}/productOrderingManagement/v4/productOrder/${this.id}`;
         break;
@@ -540,7 +591,7 @@ const setHrefMiddleware = function(next) {
 // Apply middleware to all schemas
 [CategorySchema, ProductSpecificationSchema, ProductOfferingSchema, ProductOfferingPriceSchema, 
  ProductCatalogSchema, ProductSchema, CheckProductOfferingQualificationSchema, 
- QueryProductOfferingQualificationSchema, ProductOrderSchema, CancelProductOrderSchema,
+ QueryProductOfferingQualificationSchema, AreaSchema, ProductOrderSchema, CancelProductOrderSchema,
  EventSchema, HubSchema, TopicSchema].forEach(schema => {
   schema.pre('save', setHrefMiddleware);
 });
@@ -557,6 +608,7 @@ const ProductCatalog = mongoose.model('ProductCatalog', ProductCatalogSchema);
 const Product = mongoose.model('Product', ProductSchema);
 const CheckProductOfferingQualification = mongoose.model('CheckProductOfferingQualification', CheckProductOfferingQualificationSchema);
 const QueryProductOfferingQualification = mongoose.model('QueryProductOfferingQualification', QueryProductOfferingQualificationSchema);
+const Area = mongoose.model('Area', AreaSchema);
 const ProductOrder = mongoose.model('ProductOrder', ProductOrderSchema);
 const CancelProductOrder = mongoose.model('CancelProductOrder', CancelProductOrderSchema);
 const Event = mongoose.model('Event', EventSchema);
@@ -585,5 +637,8 @@ module.exports = {
   // TMF688 Models
   Event,
   Hub,
-  Topic
+  Topic,
+
+  // AREA MANAGEMENT MODELS
+  Area
 };

@@ -1638,16 +1638,18 @@ app.get('/', (req, res) => {
       'TMF679': 'Product Offering Qualification',
       'TMF622': 'Product Ordering Management',
       'TMF688': 'Event Management',
-      'TMF760': 'Product Configuration Management'
+      'TMF760': 'Product Configuration Management',
+      'Area Management': 'Area Management with District/Province'
     },
-    endpoints: {
-      productCatalog: '/productCatalogManagement/v5/*',
-      productInventory: '/tmf-api/product*',
-      productQualification: '/productOfferingQualification/v5/*',
-      productOrdering: '/productOrderingManagement/v4/*',
-      eventManagement: '/tmf-api/event/v4/*',
-      productConfiguration: '/tmf-api/productConfigurationManagement/v5/*'
-    },
+          endpoints: {
+        productCatalog: '/productCatalogManagement/v5/*',
+        productInventory: '/tmf-api/product*',
+        productQualification: '/productOfferingQualification/v5/*',
+        productOrdering: '/productOrderingManagement/v4/*',
+        eventManagement: '/tmf-api/event/v4/*',
+        productConfiguration: '/tmf-api/productConfigurationManagement/v5/*',
+        areaManagement: '/areaManagement/v5/*'
+      },
     storage: 'MongoDB',
     health: '/health',
     timestamp: new Date().toISOString()
@@ -1718,6 +1720,7 @@ app.get('/debug/storage', async (req, res) => {
       counts.products = await models.Product.countDocuments();
       counts.checkproductofferingqualifications = await models.CheckProductOfferingQualification.countDocuments();
       counts.queryproductofferingqualifications = await models.QueryProductOfferingQualification.countDocuments();
+      counts.areas = await models.Area.countDocuments();
       counts.productorders = await models.ProductOrder.countDocuments();
       counts.cancelproductorders = await models.CancelProductOrder.countDocuments();
       counts.events = await models.Event.countDocuments();
@@ -1842,6 +1845,10 @@ app.post('/productOfferingQualification/v5/queryProductOfferingQualification', (
 app.get('/productOfferingQualification/v5/queryProductOfferingQualification/:id', (req, res) => tmf679Controller.getQueryQualificationById(req, res));
 app.patch('/productOfferingQualification/v5/queryProductOfferingQualification/:id', (req, res) => tmf679Controller.updateQueryQualification ? tmf679Controller.updateQueryQualification(req, res) : res.status(501).json({error: 'Not implemented'}));
 app.delete('/productOfferingQualification/v5/queryProductOfferingQualification/:id', (req, res) => tmf679Controller.deleteQueryQualification(req, res));
+
+// Area Management API
+const areaManagementRoutes = require('./src/api/tmf679/routes/areaManagementRoutes');
+app.use('/areaManagement/v5', areaManagementRoutes);
 
 // TMF622 - Product Ordering Management
 // Product Orders
@@ -2066,7 +2073,8 @@ app.use('*', (req, res) => {
       'TMF679': '/productOfferingQualification/v5/',
       'TMF622': '/productOrderingManagement/v4/',
       'TMF688': '/tmf-api/event/v4/',
-      'TMF760': '/tmf-api/productConfigurationManagement/v5/'
+      'TMF760': '/tmf-api/productConfigurationManagement/v5/',
+      'Area Management': '/areaManagement/v5/'
     },
     storage: 'MongoDB'
   });
@@ -2110,6 +2118,7 @@ async function startServer() {
       console.log('  • TMF679 - Product Qualification: /productOfferingQualification/v5');
       console.log('  • TMF688 - Event Management: /tmf-api/event/v4');
       console.log('  • TMF760 - Product Configuration: /tmf-api/productConfigurationManagement/v5');
+      console.log('  • Area Management: /areaManagement/v5');
       console.log('');
       console.log('🔗 Endpoints:');
       console.log(`  • Health Check: http://localhost:${PORT}/health`);

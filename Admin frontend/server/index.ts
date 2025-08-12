@@ -134,6 +134,12 @@ export function createServer() {
     await proxyRequest(req, res, path);
   });
 
+  // Area Management API
+  app.all("/api/areaManagement/v5/*", async (req, res) => {
+    const path = req.url.replace('/api', '');
+    await proxyRequest(req, res, path);
+  });
+
   // TMF622 - Product Ordering Management API
   app.all("/api/productOrderingManagement/v4/*", async (req, res) => {
     const path = req.url.replace('/api', '');
