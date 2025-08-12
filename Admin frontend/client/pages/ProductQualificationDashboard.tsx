@@ -31,7 +31,8 @@ import {
   AlertTriangle,
   Database,
   Zap,
-  Trash2
+  Trash2,
+  Settings
 } from "lucide-react";
 
 const BASE_URL = '/api';
