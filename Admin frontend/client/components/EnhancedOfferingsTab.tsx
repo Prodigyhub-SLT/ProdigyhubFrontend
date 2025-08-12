@@ -243,7 +243,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                 
                 {/* Pricing */}
                 {offering.pricing && (
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4">
+                  <div className="bg-blue-600 text-white rounded-lg p-4">
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold">
                         {offering.pricing.currency || 'LKR'} {(offering.pricing.amount || 0).toLocaleString()}
