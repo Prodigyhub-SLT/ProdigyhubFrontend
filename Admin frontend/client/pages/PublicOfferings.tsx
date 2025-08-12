@@ -1107,10 +1107,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           </div>
                         </div>
 
-                        {/* Pricing Section with Gradient */}
+                        {/* Pricing Section with Solid Blue */}
                         {price && (
-                          <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                          <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-white/10"></div>
                             <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
                             <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
                             <div className="text-center relative z-10">
@@ -1241,10 +1241,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     </div>
                   </div>
 
-                  {/* Pricing Section with Gradient */}
+                  {/* Pricing Section with Solid Blue */}
                   {price && (
-                    <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                    <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-white/10"></div>
                       <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
                       <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
                       <div className="text-center relative z-10">
@@ -1377,8 +1377,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               {getOfferingPrice(selectedOffering) && (
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Details</h3>
-                  <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white p-6 relative overflow-hidden rounded-lg">
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                  <div className="bg-blue-600 text-white p-6 relative overflow-hidden rounded-lg">
+                    <div className="absolute inset-0 bg-white/10"></div>
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
                     <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
                     <div className="text-center relative z-10">
