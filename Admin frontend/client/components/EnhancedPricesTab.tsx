@@ -285,34 +285,7 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
                       </div>
                     </div>
                     
-                    {/* Main Pricing Display */}
-                    {offering.pricing && (
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold">
-                            {offering.pricing.currency || 'LKR'} {(offering.pricing.amount || 0).toLocaleString()}
-                          </span>
-                          <span className="text-blue-100 text-sm">
-                            {offering.pricing.period || 'per month'}
-                          </span>
-                        </div>
-                        
-                        {((offering.pricing.setupFee || 0) > 0 || (offering.pricing.deposit || 0) > 0) && (
-                          <div className="mt-2 text-right">
-                            {(offering.pricing.setupFee || 0) > 0 && (
-                              <div className="text-sm text-blue-100">
-                                Setup: {offering.pricing.currency || 'LKR'} {(offering.pricing.setupFee || 0).toLocaleString()}
-                              </div>
-                            )}
-                            {(offering.pricing.deposit || 0) > 0 && (
-                              <div className="text-sm text-blue-100">
-                                Security Deposit: {offering.pricing.currency || 'LKR'} {(offering.pricing.deposit || 0).toLocaleString()}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    {/* Main Pricing Display - Removed blue gradient area */}
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                       <div>
