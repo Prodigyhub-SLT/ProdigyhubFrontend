@@ -474,7 +474,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Edit MongoDB Offering Dialog */}
+      {/* Edit MongoDB Offering Dialog - Pricing Only */}
       <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
         setIsEditDialogOpen(open);
         if (!open) resetForm();
@@ -483,33 +483,15 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           <DialogHeader>
             <DialogTitle>Edit MongoDB Offering</DialogTitle>
             <DialogDescription>
-              Step {currentStep} of 3 - {
-                currentStep === 1 ? 'Basic Information' :
-                currentStep === 2 ? 'Description & Features' : 'Pricing Information'
-              }
+              Step 3 of 3 - Pricing Information
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            {currentStep === 1 && renderStep1()}
-            {currentStep === 2 && renderStep2()}
-            {currentStep === 3 && renderStep3()}
+            {renderStep3()}
           </div>
           
           <DialogFooter className="flex justify-between">
-            <div className="flex gap-2">
-              {currentStep > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep(prev => prev - 1)}
-                >
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-              )}
-            </div>
-            
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -521,25 +503,16 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
               >
                 Cancel
               </Button>
-              
-              {currentStep < 3 ? (
-                <Button
-                  type="button"
-                  onClick={() => setCurrentStep(prev => prev + 1)}
-                  disabled={!validateCurrentStep()}
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={handleUpdateOffering}
-                  disabled={!validateCurrentStep()}
-                >
-                  Update in MongoDB
-                </Button>
-              )}
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={handleUpdateOffering}
+                disabled={!validateCurrentStep()}
+              >
+                Update in MongoDB
+              </Button>
             </div>
           </DialogFooter>
         </DialogContent>

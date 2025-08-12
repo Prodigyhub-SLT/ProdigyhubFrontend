@@ -1066,7 +1066,7 @@ export const useMongoOfferingsLogic = () => {
       pricing: { ...offering.pricing } // Deep copy
     });
     setEditingOffering(offering);
-    setCurrentStep(1);
+    setCurrentStep(3); // Start directly at pricing step
     setIsEditDialogOpen(true);
   };
 
