@@ -1051,7 +1051,7 @@ export const useMongoOfferingsLogic = () => {
     setEditingOffering(null);
   };
 
-  const loadOfferingForEdit = (offering: MongoProductOffering) => {
+  const loadOfferingForEdit = (offering: MongoProductOffering, pricingOnly: boolean = false) => {
     setFormData({
       name: offering.name,
       lifecycleStatus: offering.lifecycleStatus,
@@ -1066,7 +1066,7 @@ export const useMongoOfferingsLogic = () => {
       pricing: { ...offering.pricing } // Deep copy
     });
     setEditingOffering(offering);
-    setCurrentStep(3); // Start directly at pricing step
+    setCurrentStep(pricingOnly ? 3 : 1); // Start at pricing step if pricingOnly, otherwise at step 1
     setIsEditDialogOpen(true);
   };
 

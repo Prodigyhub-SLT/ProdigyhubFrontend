@@ -371,7 +371,7 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
                       size="sm" 
                       className="w-full"
                       onClick={() => {
-                        loadOfferingForEdit(offering);
+                        loadOfferingForEdit(offering, true); // true = pricing only
                       }}
                     >
                       <Edit className="w-4 h-4 mr-2" />
