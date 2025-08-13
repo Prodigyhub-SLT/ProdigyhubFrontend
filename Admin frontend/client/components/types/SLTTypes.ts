@@ -113,7 +113,7 @@ export const SLT_CATEGORIES: CategoryHierarchy[] = [
     value: 'Broadband', 
     label: 'Broadband', 
     icon: 'Wifi', 
-    color: 'text-blue-600',
+    color: 'text-orange-500',
     description: 'Fiber, ADSL, and wireless internet services',
     subCategories: [
       {
@@ -239,7 +239,7 @@ export const SLT_CATEGORIES: CategoryHierarchy[] = [
     value: 'Product', 
     label: 'Product', 
     icon: 'Package', 
-    color: 'text-indigo-600',
+    color: 'text-indigo-500',
     description: 'Hardware, software, and physical products',
     subCategories: [
       {
@@ -260,6 +260,127 @@ export const SLT_CATEGORIES: CategoryHierarchy[] = [
           { value: 'SLT Branded', label: 'SLT Branded', description: 'SLT own brand products' },
           { value: 'Third Party', label: 'Third Party', description: 'Third party branded products' },
           { value: 'Generic', label: 'Generic', description: 'Generic or white-label products' }
+        ]
+      }
+    ]
+  },
+  { 
+    value: 'PEOTV', 
+    label: 'PEOTV', 
+    icon: 'Tv', 
+    color: 'text-red-500',
+    description: 'Entertainment Services',
+    subCategories: [
+      {
+        value: 'Channel Packages',
+        label: 'Channel Packages',
+        description: 'TV channel bundles',
+        subSubCategories: [
+          { value: 'Basic Package', label: 'Basic Package', description: 'Essential TV channels' },
+          { value: 'Premium Package', label: 'Premium Package', description: 'Premium entertainment channels' },
+          { value: 'Sports Package', label: 'Sports Package', description: 'Sports and live events' }
+        ]
+      },
+      {
+        value: 'Streaming Services',
+        label: 'Streaming Services',
+        description: 'Online streaming platforms',
+        subSubCategories: [
+          { value: 'PEOTVGO', label: 'PEOTVGO', description: 'Local streaming platform' },
+          { value: 'International', label: 'International', description: 'Global streaming services' }
+        ]
+      }
+    ]
+  },
+  { 
+    value: 'Telephone', 
+    label: 'Telephone', 
+    icon: 'Phone', 
+    color: 'text-indigo-500',
+    description: 'Voice Services',
+    subCategories: [
+      {
+        value: 'Service Type',
+        label: 'Service Type',
+        description: 'Type of telephone service',
+        subSubCategories: [
+          { value: 'Landline', label: 'Landline', description: 'Fixed line telephone services' },
+          { value: 'VoIP', label: 'VoIP', description: 'Voice over Internet Protocol' },
+          { value: 'Mobile Voice', label: 'Mobile Voice', description: 'Mobile voice calling plans' }
+        ]
+      }
+    ]
+  },
+  { 
+    value: 'Gaming & Cloud', 
+    label: 'Gaming & Cloud', 
+    icon: 'Gamepad2', 
+    color: 'text-pink-500',
+    description: 'Gaming Solutions',
+    subCategories: [
+      {
+        value: 'Gaming Services',
+        label: 'Gaming Services',
+        description: 'Gaming-related services',
+        subSubCategories: [
+          { value: 'Cloud Gaming', label: 'Cloud Gaming', description: 'Streaming gaming services' },
+          { value: 'Gaming Accessories', label: 'Gaming Accessories', description: 'Gaming hardware and accessories' }
+        ]
+      },
+      {
+        value: 'Cloud Gaming',
+        label: 'Cloud Gaming',
+        description: 'Cloud-based gaming infrastructure',
+        subSubCategories: [
+          { value: 'Game Streaming', label: 'Game Streaming', description: 'Stream games without downloads' },
+          { value: 'Gaming Servers', label: 'Gaming Servers', description: 'Dedicated gaming servers' }
+        ]
+      }
+    ]
+  },
+  { 
+    value: 'IDD', 
+    label: 'IDD', 
+    icon: 'Globe', 
+    color: 'text-cyan-500',
+    description: 'International Services',
+    subCategories: [
+      {
+        value: 'International Calling',
+        label: 'International Calling',
+        description: 'International calling plans',
+        subSubCategories: [
+          { value: 'Asia Pacific', label: 'Asia Pacific', description: 'Calls to Asia Pacific region' },
+          { value: 'Europe', label: 'Europe', description: 'Calls to European countries' },
+          { value: 'Americas', label: 'Americas', description: 'Calls to American continents' }
+        ]
+      },
+      {
+        value: 'Data Roaming',
+        label: 'Data Roaming',
+        description: 'International data services',
+        subSubCategories: [
+          { value: 'Regional Roaming', label: 'Regional Roaming', description: 'Regional data roaming' },
+          { value: 'Global Roaming', label: 'Global Roaming', description: 'Worldwide data roaming' }
+        ]
+      }
+    ]
+  },
+  { 
+    value: 'Promotions', 
+    label: 'Promotions', 
+    icon: 'Gift', 
+    color: 'text-yellow-500',
+    description: 'Special Offers',
+    subCategories: [
+      {
+        value: 'Promotion Type',
+        label: 'Promotion Type',
+        description: 'Type of promotional offer',
+        subSubCategories: [
+          { value: 'Seasonal Offers', label: 'Seasonal Offers', description: 'Holiday and seasonal promotions' },
+          { value: 'Bundle Deals', label: 'Bundle Deals', description: 'Combined service packages' },
+          { value: 'New Customer', label: 'New Customer', description: 'Special offers for new customers' }
         ]
       }
     ]

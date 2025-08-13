@@ -23,8 +23,8 @@ const categoryNavItems = [
   {
     name: 'Business',
     icon: Building,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
+    color: 'text-green-500',
+    bgColor: 'bg-green-50',
     description: 'Enterprise Solutions'
   },
   {
@@ -37,8 +37,8 @@ const categoryNavItems = [
   {
     name: 'Cloud Service',
     icon: Cloud,
-    color: 'text-green-500',
-    bgColor: 'bg-green-50',
+    color: 'text-red-500',
+    bgColor: 'bg-red-50',
     description: 'Cloud & Storage'
   },
   {

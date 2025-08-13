@@ -33,6 +33,7 @@ import { useProductCatalogState } from "../hooks/useProductCatalogState";
 import { useMongoOfferingsLogic, MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
 import { useMongoSpecsLogic, MongoProductSpec, SpecCharacteristic } from "../hooks/useMongoSpecsLogic";
 import { EnhancedPricesTab } from "../components/EnhancedPricesTab";
+import { CategoryManagementTab } from "../components/CategoryManagementTab";
 
 import type { 
   Category, 
@@ -332,7 +333,7 @@ export default function ProductCatalogDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
           <TabsTrigger value="offerings" className="text-xs sm:text-sm">
             Offerings
@@ -357,6 +358,12 @@ export default function ProductCatalogDashboard() {
                 {prices.length}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="text-xs sm:text-sm">
+            Categories
+            <Badge variant="secondary" className="ml-2 text-xs">
+              {categories.length}
+            </Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -473,6 +480,31 @@ export default function ProductCatalogDashboard() {
             setSelectedOffering={setSelectedOffering}
             setIsViewDialogOpen={setIsOfferingsViewDialogOpen}
             loadOfferingForEdit={loadOfferingForEdit}
+          />
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-4">
+          {/* Show info banner about category management */}
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <FolderTree className="w-5 h-5 text-orange-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-orange-900">Category Management</h4>
+                  <p className="text-sm text-orange-700 mt-1">
+                    Manage your product catalog categories hierarchically. Create, edit, and delete main categories, 
+                    sub-categories, and sub-sub-categories to organize your offerings effectively.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <CategoryManagementTab 
+            onCategoriesChange={(updatedCategories) => {
+              // Update the categories state if needed
+              console.log('Categories updated:', updatedCategories);
+            }}
           />
         </TabsContent>
       </Tabs>
