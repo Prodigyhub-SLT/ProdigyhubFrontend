@@ -343,6 +343,314 @@ class TMF620Controller {
     }
   }
 
+  // Hierarchical Category operations for frontend category management
+  async getHierarchicalCategories(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { fields, limit = 100, offset = 0, ...filters } = req.query;
+      
+      console.log('Getting hierarchical categories with query:', req.query);
+      
+      let query = HierarchicalCategory.find(filters);
+      
+      if (fields) {
+        const fieldList = fields.split(',').map(f => f.trim()).join(' ');
+        query = query.select(`${fieldList} @type id href`);
+      }
+      
+      const categories = await query
+        .limit(parseInt(limit))
+        .skip(parseInt(offset))
+        .sort({ createdAt: -1 });
+      
+      console.log(`Found ${categories.length} hierarchical categories`);
+      
+      res.json(categories);
+    } catch (error) {
+      console.error('Error getting hierarchical categories:', error);
+      handleError(res, error, 'get hierarchical categories');
+    }
+  }
+
+  async getHierarchicalCategoryById(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { id } = req.params;
+      const { fields } = req.query;
+      
+      let query = HierarchicalCategory.findOne({ id });
+      
+      if (fields) {
+        const fieldList = fields.split(',').map(f => f.trim()).join(' ');
+        query = query.select(`${fieldList} @type id href`);
+      }
+      
+      const category = await query;
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'get hierarchical category by ID');
+    }
+  }
+
+  async createHierarchicalCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const categoryData = {
+        ...req.body,
+        '@type': 'HierarchicalCategory'
+      };
+      
+      // Ensure required fields are present
+      if (!categoryData.name) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Name field is required'
+        });
+      }
+      
+      // Set defaults for optional fields
+      if (!categoryData.value) {
+        categoryData.value = categoryData.name.toLowerCase().replace(/\s+/g, '_');
+      }
+      if (!categoryData.label) {
+        categoryData.label = categoryData.name;
+      }
+      if (!categoryData.color) {
+        categoryData.color = 'text-blue-600';
+      }
+      if (!categoryData.bgColor) {
+        categoryData.bgColor = 'bg-blue-50';
+      }
+      if (!categoryData.icon) {
+        categoryData.icon = 'Folder';
+      }
+      if (!categoryData.description) {
+        categoryData.description = '';
+      }
+      
+      console.log('Creating hierarchical category with data:', categoryData);
+      
+      const category = new HierarchicalCategory(categoryData);
+      await category.save();
+      
+      console.log('Hierarchical category created successfully:', category.id);
+      
+      res.status(201).json(category);
+    } catch (error) {
+      console.error('Error creating hierarchical category:', error);
+      handleError(res, error, 'create hierarchical category');
+    }
+  }
+
+  async updateHierarchicalCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { id } = req.params;
+      const updates = { ...req.body, lastUpdate: new Date() };
+      
+      const category = await HierarchicalCategory.findOneAndUpdate(
+        { id },
+        { $set: updates },
+        { new: true, runValidators: true }
+      );
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'update hierarchical category');
+    }
+  }
+
+  async deleteHierarchicalCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { id } = req.params;
+      
+      const category = await HierarchicalCategory.findOneAndDelete({ id });
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      handleError(res, error, 'delete hierarchical category');
+    }
+  }
+
+  async addSubCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { categoryId } = req.params;
+      
+      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      const subCategoryData = {
+        ...req.body,
+        '@type': 'SubCategory'
+      };
+      
+      // Set defaults for sub-category
+      if (!subCategoryData.value && subCategoryData.name) {
+        subCategoryData.value = subCategoryData.name.toLowerCase().replace(/\s+/g, '_');
+      }
+      if (!subCategoryData.label && subCategoryData.name) {
+        subCategoryData.label = subCategoryData.name;
+      }
+      
+      category.subCategories.push(subCategoryData);
+      await category.save();
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'add sub-category');
+    }
+  }
+
+  async updateSubCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { categoryId, subCategoryId } = req.params;
+      
+      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      const subCategory = category.subCategories.id(subCategoryId);
+      if (!subCategory) {
+        return res.status(404).json({ error: 'Sub-category not found' });
+      }
+      
+      Object.assign(subCategory, req.body);
+      await category.save();
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'update sub-category');
+    }
+  }
+
+  async deleteSubCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { categoryId, subCategoryId } = req.params;
+      
+      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      category.subCategories = category.subCategories.filter(sub => sub.id !== subCategoryId);
+      await category.save();
+      
+      res.status(204).send();
+    } catch (error) {
+      handleError(res, error, 'delete sub-category');
+    }
+  }
+
+  async addSubSubCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { categoryId, subCategoryId } = req.params;
+      
+      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      const subCategory = category.subCategories.id(subCategoryId);
+      if (!subCategory) {
+        return res.status(404).json({ error: 'Sub-category not found' });
+      }
+      
+      const subSubCategoryData = {
+        ...req.body,
+        '@type': 'SubSubCategory'
+      };
+      
+      // Set defaults for sub-sub-category
+      if (!subSubCategoryData.value && subSubCategoryData.name) {
+        subSubCategoryData.value = subSubCategoryData.name.toLowerCase().replace(/\s+/g, '_');
+      }
+      if (!subSubCategoryData.label && subSubCategoryData.name) {
+        subSubCategoryData.label = subSubCategoryData.name;
+      }
+      
+      subCategory.subSubCategories.push(subSubCategoryData);
+      await category.save();
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'add sub-sub-category');
+    }
+  }
+
+  async updateSubSubCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { categoryId, subCategoryId, subSubCategoryId } = req.params;
+      
+      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      const subCategory = category.subCategories.id(subCategoryId);
+      if (!subCategory) {
+        return res.status(404).json({ error: 'Sub-category not found' });
+      }
+      
+      const subSubCategory = subCategory.subSubCategories.id(subSubCategoryId);
+      if (!subSubCategory) {
+        return res.status(404).json({ error: 'Sub-sub-category not found' });
+      }
+      
+      Object.assign(subSubCategory, req.body);
+      await category.save();
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'update sub-sub-category');
+    }
+  }
+
+  async deleteSubSubCategory(req, res) {
+    try {
+      const { HierarchicalCategory } = require('./src/models/AllTMFModels');
+      const { categoryId, subCategoryId, subSubCategoryId } = req.params;
+      
+      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      const subCategory = category.subCategories.id(subCategoryId);
+      if (!subCategory) {
+        return res.status(404).json({ error: 'Sub-category not found' });
+      }
+      
+      subCategory.subSubCategories = subCategory.subSubCategories.filter(subSub => subSub.id !== subSubCategoryId);
+      await category.save();
+      
+      res.status(204).send();
+    } catch (error) {
+      handleError(res, error, 'delete sub-sub-category');
+    }
+  }
+
   async getProductSpecifications(req, res) {
     try {
       const { ProductSpecification } = require('./src/models/AllTMFModels');
@@ -1785,6 +2093,16 @@ app.post('/productCatalogManagement/v5/hierarchicalCategory', (req, res) => tmf6
 app.get('/productCatalogManagement/v5/hierarchicalCategory/:id', (req, res) => tmf620Controller.getHierarchicalCategoryById(req, res));
 app.patch('/productCatalogManagement/v5/hierarchicalCategory/:id', (req, res) => tmf620Controller.updateHierarchicalCategory(req, res));
 app.delete('/productCatalogManagement/v5/hierarchicalCategory/:id', (req, res) => tmf620Controller.deleteHierarchicalCategory(req, res));
+
+// Sub-category operations
+app.post('/productCatalogManagement/v5/hierarchicalCategory/:categoryId/subCategory', (req, res) => tmf620Controller.addSubCategory(req, res));
+app.patch('/productCatalogManagement/v5/hierarchicalCategory/:categoryId/subCategory/:subCategoryId', (req, res) => tmf620Controller.updateSubCategory(req, res));
+app.delete('/productCatalogManagement/v5/hierarchicalCategory/:categoryId/subCategory/:subCategoryId', (req, res) => tmf620Controller.deleteSubCategory(req, res));
+
+// Sub-sub-category operations
+app.post('/productCatalogManagement/v5/hierarchicalCategory/:categoryId/subCategory/:subCategoryId/subSubCategory', (req, res) => tmf620Controller.addSubSubCategory(req, res));
+app.patch('/productCatalogManagement/v5/hierarchicalCategory/:categoryId/subCategory/:subCategoryId/subSubCategory/:subSubCategoryId', (req, res) => tmf620Controller.updateSubSubCategory(req, res));
+app.delete('/productCatalogManagement/v5/hierarchicalCategory/:categoryId/subCategory/:subCategoryId/subSubCategory/:subSubCategoryId', (req, res) => tmf620Controller.deleteSubSubCategory(req, res));
 
 // Product Specifications
 app.get('/productCatalogManagement/v5/productSpecification', (req, res) => tmf620Controller.getProductSpecifications(req, res));
