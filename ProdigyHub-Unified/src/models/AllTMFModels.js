@@ -31,6 +31,8 @@ const CategorySchema = new mongoose.Schema({
 const HierarchicalCategorySchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
   name: { type: String, required: true },
+  value: { type: String, required: true }, // Frontend expects this field
+  label: { type: String, required: true }, // Frontend expects this field
   description: String,
   color: { type: String, required: true }, // e.g., 'text-orange-500', 'text-blue-600'
   bgColor: { type: String, required: true }, // e.g., 'bg-orange-50', 'bg-blue-50'
@@ -38,10 +40,14 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   subCategories: [{
     id: { type: String, unique: true, required: true, default: uuidv4 },
     name: { type: String, required: true },
+    value: { type: String, required: true }, // Frontend expects this field
+    label: { type: String, required: true }, // Frontend expects this field
     description: String,
     subSubCategories: [{
       id: { type: String, unique: true, required: true, default: uuidv4 },
       name: { type: String, required: true },
+      value: { type: String, required: true }, // Frontend expects this field
+      label: { type: String, required: true }, // Frontend expects this field
       description: String
     }]
   }],

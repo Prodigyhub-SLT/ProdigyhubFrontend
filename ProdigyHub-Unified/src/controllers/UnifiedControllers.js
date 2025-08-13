@@ -201,6 +201,14 @@ class TMF620Controller {
         '@type': 'HierarchicalCategory'
       };
       
+      // Ensure value and label are set if not provided
+      if (!categoryData.value && categoryData.name) {
+        categoryData.value = categoryData.name.toLowerCase().replace(/\s+/g, '_');
+      }
+      if (!categoryData.label && categoryData.name) {
+        categoryData.label = categoryData.name;
+      }
+      
       const category = new HierarchicalCategory(categoryData);
       await category.save();
       

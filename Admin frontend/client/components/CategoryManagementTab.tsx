@@ -107,10 +107,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error loading categories:', error);
       toast({
         title: "Error",
-        description: "Failed to load categories from database",
+        description: "Failed to load categories from database. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
       setCategories([]);
+      
+      // Show additional error info
+      console.warn('Backend API not responding. Please check if the server is running.');
+      
+      // Optionally, you can uncomment the following lines to show sample data for testing
+      // setCategories(getSampleCategories());
     } finally {
       setLoading(false);
     }
@@ -229,7 +235,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error creating main category:', error);
       toast({
         title: "Error",
-        description: "Failed to create main category",
+        description: "Failed to create main category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -273,7 +279,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error updating main category:', error);
       toast({
         title: "Error",
-        description: "Failed to update main category",
+        description: "Failed to update main category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -295,7 +301,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error deleting main category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete main category",
+        description: "Failed to delete main category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -336,7 +342,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error creating sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to create sub-category",
+        description: "Failed to create sub-category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -377,7 +383,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error updating sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to update sub-category",
+        description: "Failed to update sub-category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -405,7 +411,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error deleting sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete sub-category",
+        description: "Failed to delete sub-category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -445,7 +451,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error creating sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to create sub-sub-category",
+        description: "Failed to create sub-sub-category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -486,7 +492,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error updating sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to update sub-sub-category",
+        description: "Failed to update sub-sub-category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -520,7 +526,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error deleting sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete sub-sub-category",
+        description: "Failed to delete sub-sub-category. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
     }
@@ -598,19 +604,55 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
           <p className="text-gray-600">Manage main categories, sub-categories, and sub-sub-categories</p>
+          {categories.length === 0 && !loading && (
+            <p className="text-sm text-amber-600 mt-1">
+              ⚠️ Backend API may not be running. Categories will be loaded when the server is available.
+            </p>
+          )}
         </div>
-        <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Main Category
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={loadCategories} variant="outline" disabled={loading}>
+            {loading ? 'Loading...' : 'Refresh'}
+          </Button>
+          <Button 
+            onClick={() => setCategories(getSampleCategories())} 
+            variant="outline" 
+            className="text-amber-600 border-amber-600 hover:bg-amber-50"
+            title="Load sample data for testing"
+          >
+            Load Sample Data
+          </Button>
+          <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Main Category
+          </Button>
+        </div>
       </div>
 
       {/* Categories List */}
       <div className="space-y-4">
         {loading ? (
-          <p>Loading categories...</p>
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading categories...</p>
+            </div>
+          </div>
         ) : categories.length === 0 ? (
-          <p>No categories found. Add a main category to get started.</p>
+          <div className="text-center p-8">
+            <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
+            <p className="text-gray-600 mb-4">Add a main category to get started with your product catalog.</p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Create First Category
+              </Button>
+              <Button onClick={loadCategories} variant="outline">
+                Retry Load
+              </Button>
+            </div>
+          </div>
         ) : (
           categories.map((category) => {
             const IconComponent = getIconComponent(category.icon);
@@ -1136,4 +1178,72 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       </Dialog>
     </div>
   );
+}
+
+// Sample data for testing when backend is not available
+function getSampleCategories(): CategoryHierarchy[] {
+  return [
+    {
+      id: '1',
+      value: 'broadband',
+      label: 'Broadband',
+      description: 'Internet connectivity services',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      icon: 'Wifi',
+      subCategories: [
+        {
+          id: '1-1',
+          value: 'connection_type',
+          label: 'Connection Type',
+          description: 'Type of internet connection',
+          subSubCategories: [
+            {
+              id: '1-1-1',
+              value: 'fiber',
+              label: 'Fiber',
+              description: 'Fiber optic connection'
+            },
+            {
+              id: '1-1-2',
+              value: 'cable',
+              label: 'Cable',
+              description: 'Cable internet connection'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: '2',
+      value: 'mobile',
+      label: 'Mobile',
+      description: 'Mobile phone services',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      icon: 'Smartphone',
+      subCategories: [
+        {
+          id: '2-1',
+          value: 'plan_type',
+          label: 'Plan Type',
+          description: 'Type of mobile plan',
+          subSubCategories: [
+            {
+              id: '2-1-1',
+              value: 'prepaid',
+              label: 'Prepaid',
+              description: 'Prepaid mobile plans'
+            },
+            {
+              id: '2-1-2',
+              value: 'postpaid',
+              label: 'Postpaid',
+              description: 'Postpaid mobile plans'
+            }
+          ]
+        }
+      ]
+    }
+  ];
 }
