@@ -24,6 +24,9 @@ import type {
   QueryProductConfiguration,
   HealthResponse,
   QueryParams,
+  CategoryHierarchy,
+  SubCategory,
+  SubSubCategory,
 } from '@shared/product-order-types';
 
 class ApiClient {
@@ -171,6 +174,85 @@ class ApiClient {
 
   async deleteCategory(id: string): Promise<void> {
     await this.request<void>(`/productCatalogManagement/v5/category/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Hierarchical Category Management for frontend category management
+  async getHierarchicalCategories(params?: QueryParams): Promise<CategoryHierarchy[]> {
+    const queryString = this.buildQueryString(params);
+    try {
+      return await this.request<CategoryHierarchy[]>(`/productCatalogManagement/v5/hierarchicalCategory${queryString}`);
+    } catch (error) {
+      console.warn('Hierarchical Categories API not available, returning empty array');
+      return [];
+    }
+  }
+
+  async createHierarchicalCategory(category: CategoryHierarchy): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>('/productCatalogManagement/v5/hierarchicalCategory', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...category,
+        '@type': 'HierarchicalCategory'
+      }),
+    });
+  }
+
+  async updateHierarchicalCategory(id: string, category: Partial<CategoryHierarchy>): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        ...category,
+        '@type': 'HierarchicalCategory'
+      }),
+    });
+  }
+
+  async deleteHierarchicalCategory(id: string): Promise<void> {
+    await this.request<void>(`/productCatalogManagement/v5/hierarchicalCategory/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Sub-category operations
+  async addSubCategory(categoryId: string, subCategory: SubCategory): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory`, {
+      method: 'POST',
+      body: JSON.stringify(subCategory),
+    });
+  }
+
+  async updateSubCategory(categoryId: string, subCategory: SubCategory): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategory.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(subCategory),
+    });
+  }
+
+  async deleteSubCategory(categoryId: string, subCategoryId: string): Promise<void> {
+    await this.request<void>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategoryId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Sub-sub-category operations
+  async addSubSubCategory(categoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory`, {
+      method: 'POST',
+      body: JSON.stringify(subSubCategory),
+    });
+  }
+
+  async updateSubSubCategory(categoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory/${subSubCategory.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(subSubCategory),
+    });
+  }
+
+  async deleteSubSubCategory(categoryId: string, subSubCategoryId: string): Promise<void> {
+    await this.request<void>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory/${subSubCategoryId}`, {
       method: 'DELETE',
     });
   }
@@ -481,6 +563,16 @@ export const productCatalogApi = {
   getCategories: (params?: QueryParams) => api.getCategories(params),
   createCategory: (category: CreateCategoryForm) => api.createCategory(category),
   deleteCategory: (id: string) => api.deleteCategory(id),
+  getHierarchicalCategories: (params?: QueryParams) => api.getHierarchicalCategories(params),
+  createHierarchicalCategory: (category: CategoryHierarchy) => api.createHierarchicalCategory(category),
+  updateHierarchicalCategory: (id: string, category: Partial<CategoryHierarchy>) => api.updateHierarchicalCategory(id, category),
+  deleteHierarchicalCategory: (id: string) => api.deleteHierarchicalCategory(id),
+  addSubCategory: (categoryId: string, subCategory: SubCategory) => api.addSubCategory(categoryId, subCategory),
+  updateSubCategory: (categoryId: string, subCategory: SubCategory) => api.updateSubCategory(categoryId, subCategory),
+  deleteSubCategory: (categoryId: string, subCategoryId: string) => api.deleteSubCategory(categoryId, subCategoryId),
+  addSubSubCategory: (categoryId: string, subSubCategory: SubSubCategory) => api.addSubSubCategory(categoryId, subSubCategory),
+  updateSubSubCategory: (categoryId: string, subSubCategory: SubSubCategory) => api.updateSubSubCategory(categoryId, subSubCategory),
+  deleteSubSubCategory: (categoryId: string, subSubCategoryId: string) => api.deleteSubSubCategory(categoryId, subSubCategoryId),
   getSpecifications: (params?: QueryParams) => api.getSpecifications(params),
   createSpecification: (spec: CreateSpecificationForm) => api.createSpecification(spec),
   updateSpecification: (id: string, updates: Partial<ProductSpecification>) => api.updateSpecification(id, updates),

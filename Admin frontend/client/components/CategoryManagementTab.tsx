@@ -30,7 +30,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { SLT_CATEGORIES, CategoryHierarchy, SubCategory, SubSubCategory } from './types/SLTTypes';
+import { productCatalogApi } from '@/lib/api';
+import { CategoryHierarchy, SubCategory, SubSubCategory } from '../../shared/product-order-types';
 
 interface CategoryManagementTabProps {
   onCategoriesChange?: (categories: CategoryHierarchy[]) => void;
@@ -38,22 +39,27 @@ interface CategoryManagementTabProps {
 
 export function CategoryManagementTab({ onCategoriesChange }: CategoryManagementTabProps) {
   const { toast } = useToast();
-  const [categories, setCategories] = useState<CategoryHierarchy[]>(SLT_CATEGORIES);
+  const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
   
   // Dialog states
-  const [isMainCategoryDialogOpen, setIsMainCategoryDialogOpen] = useState(false);
-  const [isSubCategoryDialogOpen, setIsSubCategoryDialogOpen] = useState(false);
-  const [isSubSubCategoryDialogOpen, setIsSubSubCategoryDialogOpen] = useState(false);
+  const [createMainDialogOpen, setCreateMainDialogOpen] = useState(false);
+  const [editMainDialogOpen, setEditMainDialogOpen] = useState(false);
+  const [createSubDialogOpen, setCreateSubDialogOpen] = useState(false);
+  const [editSubDialogOpen, setEditSubDialogOpen] = useState(false);
+  const [createSubSubDialogOpen, setCreateSubSubDialogOpen] = useState(false);
+  const [editSubSubDialogOpen, setEditSubSubDialogOpen] = useState(false);
   
   // Form states
   const [mainCategoryForm, setMainCategoryForm] = useState({
     value: '',
     label: '',
-    icon: 'Folder',
+    description: '',
     color: 'text-blue-600',
-    description: ''
+    bgColor: 'bg-blue-50',
+    icon: 'Folder'
   });
   
   const [subCategoryForm, setSubCategoryForm] = useState({
@@ -71,10 +77,44 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     parentSubCategory: ''
   });
   
-  // Edit states
   const [editingMainCategory, setEditingMainCategory] = useState<CategoryHierarchy | null>(null);
   const [editingSubCategory, setEditingSubCategory] = useState<SubCategory | null>(null);
   const [editingSubSubCategory, setEditingSubSubCategory] = useState<SubSubCategory | null>(null);
+  const [selectedParentCategory, setSelectedParentCategory] = useState<CategoryHierarchy | null>(null);
+  const [selectedParentSubCategory, setSelectedParentSubCategory] = useState<SubCategory | null>(null);
+
+  // Load categories from MongoDB on component mount
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      const fetchedCategories = await productCatalogApi.getHierarchicalCategories();
+      
+      if (fetchedCategories.length === 0) {
+        // If no categories in MongoDB, show empty state
+        console.log('No categories found in MongoDB');
+        setCategories([]);
+      } else {
+        setCategories(fetchedCategories);
+        if (onCategoriesChange) {
+          onCategoriesChange(fetchedCategories);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load categories from database",
+        variant: "destructive",
+      });
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Icon mapping
   const iconMap: { [key: string]: React.ComponentType<any> } = {
@@ -122,9 +162,10 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setMainCategoryForm({
       value: '',
       label: '',
-      icon: 'Folder',
+      description: '',
       color: 'text-blue-600',
-      description: ''
+      bgColor: 'bg-blue-50',
+      icon: 'Folder'
     });
     setEditingMainCategory(null);
   };
@@ -150,7 +191,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setEditingSubSubCategory(null);
   };
 
-  const handleCreateMainCategory = () => {
+  const handleCreateMainCategory = async () => {
     if (!mainCategoryForm.value || !mainCategoryForm.label) {
       toast({
         title: "Validation Error",
@@ -160,34 +201,41 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return;
     }
 
-    if (categories.find(cat => cat.value === mainCategoryForm.value)) {
+    try {
+      const newCategory: Omit<CategoryHierarchy, 'id'> = {
+        value: mainCategoryForm.value,
+        label: mainCategoryForm.label,
+        description: mainCategoryForm.description,
+        color: mainCategoryForm.color,
+        bgColor: mainCategoryForm.bgColor,
+        icon: mainCategoryForm.icon,
+        subCategories: []
+      };
+
+      const createdCategory = await productCatalogApi.createHierarchicalCategory(newCategory as CategoryHierarchy);
+      setCategories(prev => [...prev, createdCategory]);
+      if (onCategoriesChange) {
+        onCategoriesChange([...categories, createdCategory]);
+      }
+      
       toast({
-        title: "Duplicate Error",
-        description: "A category with this value already exists",
+        title: "Success",
+        description: "Main category created successfully",
+      });
+      
+      setCreateMainDialogOpen(false);
+      resetMainCategoryForm();
+    } catch (error) {
+      console.error('Error creating main category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create main category",
         variant: "destructive",
       });
-      return;
     }
-
-    const newCategory: CategoryHierarchy = {
-      ...mainCategoryForm,
-      subCategories: []
-    };
-
-    const updatedCategories = [...categories, newCategory];
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Main category created successfully",
-    });
-    
-    setIsMainCategoryDialogOpen(false);
-    resetMainCategoryForm();
   };
 
-  const handleEditMainCategory = () => {
+  const handleEditMainCategory = async () => {
     if (!editingMainCategory || !mainCategoryForm.value || !mainCategoryForm.label) {
       toast({
         title: "Validation Error",
@@ -197,47 +245,64 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return;
     }
 
-    const updatedCategories = categories.map(cat => 
-      cat.value === editingMainCategory.value 
-        ? { ...cat, ...mainCategoryForm }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Main category updated successfully",
-    });
-    
-    setIsMainCategoryDialogOpen(false);
-    resetMainCategoryForm();
-  };
+    try {
+      const updatedCategory = {
+        ...editingMainCategory,
+        value: mainCategoryForm.value,
+        label: mainCategoryForm.label,
+        description: mainCategoryForm.description,
+        color: mainCategoryForm.color,
+        bgColor: mainCategoryForm.bgColor,
+        icon: mainCategoryForm.icon
+      };
 
-  const handleDeleteMainCategory = (categoryValue: string) => {
-    const category = categories.find(cat => cat.value === categoryValue);
-    if (category?.subCategories && category.subCategories.length > 0) {
+      const updated = await productCatalogApi.updateHierarchicalCategory(editingMainCategory.id, updatedCategory);
+      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      }
+      
       toast({
-        title: "Cannot Delete",
-        description: "Cannot delete category with existing sub-categories",
+        title: "Success",
+        description: "Main category updated successfully",
+      });
+      
+      setEditMainDialogOpen(false);
+      resetMainCategoryForm();
+    } catch (error) {
+      console.error('Error updating main category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update main category",
         variant: "destructive",
       });
-      return;
     }
-
-    const updatedCategories = categories.filter(cat => cat.value !== categoryValue);
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Main category deleted successfully",
-    });
   };
 
-  const handleCreateSubCategory = () => {
-    if (!subCategoryForm.value || !subCategoryForm.label || !subCategoryForm.parentCategory) {
+  const handleDeleteMainCategory = async (categoryId: string) => {
+    try {
+      await productCatalogApi.deleteHierarchicalCategory(categoryId);
+      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.filter(cat => cat.id !== categoryId));
+      }
+      
+      toast({
+        title: "Success",
+        description: "Main category deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting main category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete main category",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateSubCategory = async () => {
+    if (!selectedParentCategory || !subCategoryForm.value || !subCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -246,45 +311,39 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return;
     }
 
-    const parentCategory = categories.find(cat => cat.value === subCategoryForm.parentCategory);
-    if (!parentCategory) return;
+    try {
+      const newSubCategory: Omit<SubCategory, 'id'> = {
+        value: subCategoryForm.value,
+        label: subCategoryForm.label,
+        description: subCategoryForm.description,
+        subSubCategories: []
+      };
 
-    if (parentCategory.subCategories?.find(sub => sub.value === subCategoryForm.value)) {
+      const updated = await productCatalogApi.addSubCategory(selectedParentCategory.id, newSubCategory as SubCategory);
+      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      }
+      
       toast({
-        title: "Duplicate Error",
-        description: "A sub-category with this value already exists in this category",
+        title: "Success",
+        description: "Sub-category created successfully",
+      });
+      
+      setCreateSubDialogOpen(false);
+      resetSubCategoryForm();
+    } catch (error) {
+      console.error('Error creating sub-category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create sub-category",
         variant: "destructive",
       });
-      return;
     }
-
-    const newSubCategory: SubCategory = {
-      value: subCategoryForm.value,
-      label: subCategoryForm.label,
-      description: subCategoryForm.description,
-      subSubCategories: []
-    };
-
-    const updatedCategories = categories.map(cat => 
-      cat.value === subCategoryForm.parentCategory
-        ? { ...cat, subCategories: [...(cat.subCategories || []), newSubCategory] }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Sub-category created successfully",
-    });
-    
-    setIsSubCategoryDialogOpen(false);
-    resetSubCategoryForm();
   };
 
-  const handleEditSubCategory = () => {
-    if (!editingSubCategory || !subCategoryForm.value || !subCategoryForm.label || !subCategoryForm.parentCategory) {
+  const handleEditSubCategory = async () => {
+    if (!editingSubCategory || !selectedParentCategory || !subCategoryForm.value || !subCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -293,121 +352,67 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return;
     }
 
-    const updatedCategories = categories.map(cat => 
-      cat.value === subCategoryForm.parentCategory
-        ? {
-            ...cat,
-            subCategories: cat.subCategories?.map(sub => 
-              sub.value === editingSubCategory.value 
-                ? { ...sub, ...subCategoryForm }
-                : sub
-            ) || []
-          }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Sub-category updated successfully",
-    });
-    
-    setIsSubCategoryDialogOpen(false);
-    resetSubCategoryForm();
-  };
+    try {
+      const updatedSubCategory = {
+        ...editingSubCategory,
+        value: subCategoryForm.value,
+        label: subCategoryForm.label,
+        description: subCategoryForm.description
+      };
 
-  const handleDeleteSubCategory = (parentCategoryValue: string, subCategoryValue: string) => {
-    const parentCategory = categories.find(cat => cat.value === parentCategoryValue);
-    if (!parentCategory) return;
-
-    const subCategory = parentCategory.subCategories?.find(sub => sub.value === subCategoryValue);
-    if (subCategory?.subSubCategories && subCategory.subSubCategories.length > 0) {
+      const updated = await productCatalogApi.updateSubCategory(selectedParentCategory.id, updatedSubCategory);
+      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      }
+      
       toast({
-        title: "Cannot Delete",
-        description: "Cannot delete sub-category with existing sub-sub-categories",
+        title: "Success",
+        description: "Sub-category updated successfully",
+      });
+      
+      setEditSubDialogOpen(false);
+      resetSubCategoryForm();
+    } catch (error) {
+      console.error('Error updating sub-category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update sub-category",
         variant: "destructive",
       });
-      return;
     }
-
-    const updatedCategories = categories.map(cat => 
-      cat.value === parentCategoryValue
-        ? {
-            ...cat,
-            subCategories: cat.subCategories?.filter(sub => sub.value !== subCategoryValue) || []
-          }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Sub-category deleted successfully",
-    });
   };
 
-  const handleCreateSubSubCategory = () => {
-    if (!subSubCategoryForm.value || !subSubCategoryForm.label || !subSubCategoryForm.parentCategory || !subSubCategoryForm.parentSubCategory) {
+  const handleDeleteSubCategory = async (parentCategoryId: string, subCategoryId: string) => {
+    try {
+      await productCatalogApi.deleteSubCategory(parentCategoryId, subCategoryId);
+      setCategories(prev => prev.map(cat => cat.id === parentCategoryId ? {
+        ...cat,
+        subCategories: cat.subCategories?.filter(sub => sub.id !== subCategoryId) || []
+      } : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === parentCategoryId ? {
+          ...cat,
+          subCategories: cat.subCategories?.filter(sub => sub.id !== subCategoryId) || []
+        } : cat));
+      }
+      
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
+        title: "Success",
+        description: "Sub-category deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting sub-category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete sub-category",
         variant: "destructive",
       });
-      return;
     }
-
-    const parentCategory = categories.find(cat => cat.value === subSubCategoryForm.parentCategory);
-    if (!parentCategory) return;
-
-    const parentSubCategory = parentCategory.subCategories?.find(sub => sub.value === subSubCategoryForm.parentSubCategory);
-    if (!parentSubCategory) return;
-
-    if (parentSubCategory.subSubCategories?.find(subSub => subSub.value === subSubCategoryForm.value)) {
-      toast({
-        title: "Duplicate Error",
-        description: "A sub-sub-category with this value already exists in this sub-category",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newSubSubCategory: SubSubCategory = {
-      value: subSubCategoryForm.value,
-      label: subSubCategoryForm.label,
-      description: subSubCategoryForm.description
-    };
-
-    const updatedCategories = categories.map(cat => 
-      cat.value === subSubCategoryForm.parentCategory
-        ? {
-            ...cat,
-            subCategories: cat.subCategories?.map(sub => 
-              sub.value === subSubCategoryForm.parentSubCategory
-                ? { ...sub, subSubCategories: [...(sub.subSubCategories || []), newSubSubCategory] }
-                : sub
-            ) || []
-          }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Sub-sub-category created successfully",
-    });
-    
-    setIsSubSubCategoryDialogOpen(false);
-    resetSubSubCategoryForm();
   };
 
-  const handleEditSubSubCategory = () => {
-    if (!editingSubSubCategory || !subSubCategoryForm.value || !subSubCategoryForm.label || !subSubCategoryForm.parentCategory || !subSubCategoryForm.parentSubCategory) {
+  const handleCreateSubSubCategory = async () => {
+    if (!selectedParentCategory || !selectedParentSubCategory || !subSubCategoryForm.value || !subSubCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -416,62 +421,109 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return;
     }
 
-    const updatedCategories = categories.map(cat => 
-      cat.value === subSubCategoryForm.parentCategory
-        ? {
-            ...cat,
-            subCategories: cat.subCategories?.map(sub => 
-              sub.value === subSubCategoryForm.parentSubCategory
-                ? {
-                    ...sub,
-                    subSubCategories: sub.subSubCategories?.map(subSub => 
-                      subSub.value === editingSubSubCategory.value 
-                        ? { ...subSub, ...subSubCategoryForm }
-                        : subSub
-                    ) || []
-                  }
-                : sub
-            ) || []
-          }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Sub-sub-category updated successfully",
-    });
-    
-    setIsSubSubCategoryDialogOpen(false);
-    resetSubSubCategoryForm();
+    try {
+      const newSubSubCategory: Omit<SubSubCategory, 'id'> = {
+        value: subSubCategoryForm.value,
+        label: subSubCategoryForm.label,
+        description: subSubCategoryForm.description
+      };
+
+      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory.id, newSubSubCategory as SubSubCategory);
+      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      }
+      
+      toast({
+        title: "Success",
+        description: "Sub-sub-category created successfully",
+      });
+      
+      setCreateSubSubDialogOpen(false);
+      resetSubSubCategoryForm();
+    } catch (error) {
+      console.error('Error creating sub-sub-category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create sub-sub-category",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteSubSubCategory = (parentCategoryValue: string, parentSubCategoryValue: string, subSubCategoryValue: string) => {
-    const updatedCategories = categories.map(cat => 
-      cat.value === parentCategoryValue
-        ? {
-            ...cat,
-            subCategories: cat.subCategories?.map(sub => 
-              sub.value === parentSubCategoryValue
-                ? {
-                    ...sub,
-                    subSubCategories: sub.subSubCategories?.filter(subSub => subSub.value !== subSubCategoryValue) || []
-                  }
-                : sub
-            ) || []
-          }
-        : cat
-    );
-    
-    setCategories(updatedCategories);
-    onCategoriesChange?.(updatedCategories);
-    
-    toast({
-      title: "Success",
-      description: "Sub-sub-category deleted successfully",
-    });
+  const handleEditSubSubCategory = async () => {
+    if (!editingSubSubCategory || !selectedParentCategory || !subSubCategoryForm.value || !subSubCategoryForm.label) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const updatedSubSubCategory = {
+        ...editingSubSubCategory,
+        value: subSubCategoryForm.value,
+        label: subSubCategoryForm.label,
+        description: subSubCategoryForm.description
+      };
+
+      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory.id, updatedSubSubCategory);
+      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      }
+      
+      toast({
+        title: "Success",
+        description: "Sub-sub-category updated successfully",
+      });
+      
+      setEditSubSubDialogOpen(false);
+      resetSubSubCategoryForm();
+    } catch (error) {
+      console.error('Error updating sub-sub-category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update sub-sub-category",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteSubSubCategory = async (parentCategoryId: string, parentSubCategoryId: string, subSubCategoryId: string) => {
+    try {
+      await productCatalogApi.deleteSubSubCategory(parentCategoryId, subSubCategoryId);
+      setCategories(prev => prev.map(cat => cat.id === parentCategoryId ? {
+        ...cat,
+        subCategories: cat.subCategories?.map(sub => sub.id === parentSubCategoryId ? {
+          ...sub,
+          subSubCategories: sub.subSubCategories?.filter(subSub => subSub.id !== subSubCategoryId) || []
+        } : sub) || []
+      } : cat));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.map(cat => cat.id === parentCategoryId ? {
+          ...cat,
+          subCategories: cat.subCategories?.map(sub => sub.id === parentSubCategoryId ? {
+            ...sub,
+            subSubCategories: sub.subSubCategories?.filter(subSub => subSub.id !== subSubCategoryId) || []
+          } : sub) || []
+        } : cat));
+      }
+      
+      toast({
+        title: "Success",
+        description: "Sub-sub-category deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting sub-sub-category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete sub-sub-category",
+        variant: "destructive",
+      });
+    }
   };
 
   const openEditMainCategory = (category: CategoryHierarchy) => {
@@ -479,55 +531,64 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setMainCategoryForm({
       value: category.value,
       label: category.label,
-      icon: category.icon,
+      description: category.description || '',
       color: category.color,
-      description: category.description
+      bgColor: category.bgColor,
+      icon: category.icon
     });
-    setIsMainCategoryDialogOpen(true);
+    setEditMainDialogOpen(true);
   };
 
-  const openEditSubCategory = (parentCategoryValue: string, subCategory: SubCategory) => {
+  const openEditSubCategory = (parentCategory: CategoryHierarchy, subCategory: SubCategory) => {
     setEditingSubCategory(subCategory);
+    setSelectedParentCategory(parentCategory);
     setSubCategoryForm({
       value: subCategory.value,
       label: subCategory.label,
-      description: subCategory.description,
-      parentCategory: parentCategoryValue
+      description: subCategory.description || '',
+      parentCategory: parentCategory.id
     });
-    setIsSubCategoryDialogOpen(true);
+    setEditSubDialogOpen(true);
   };
 
-  const openEditSubSubCategory = (parentCategoryValue: string, parentSubCategoryValue: string, subSubCategory: SubSubCategory) => {
+  const openEditSubSubCategory = (parentCategory: CategoryHierarchy, parentSubCategory: SubCategory, subSubCategory: SubSubCategory) => {
     setEditingSubSubCategory(subSubCategory);
+    setSelectedParentCategory(parentCategory);
+    setSelectedParentSubCategory(parentSubCategory);
     setSubSubCategoryForm({
       value: subSubCategory.value,
       label: subSubCategory.label,
-      description: subSubCategory.description,
-      parentCategory: parentCategoryValue,
-      parentSubCategory: parentSubCategoryValue
+      description: subSubCategory.description || '',
+      parentCategory: parentCategory.id,
+      parentSubCategory: parentSubCategory.id
     });
-    setIsSubSubCategoryDialogOpen(true);
+    setEditSubSubDialogOpen(true);
   };
 
-  const openCreateSubCategory = (parentCategoryValue: string) => {
+  const openCreateSubCategory = (parentCategory: CategoryHierarchy) => {
+    setEditingSubCategory(null); // Clear editing state
+    setSelectedParentCategory(parentCategory);
     setSubCategoryForm({
       value: '',
       label: '',
       description: '',
-      parentCategory: parentCategoryValue
+      parentCategory: parentCategory.id
     });
-    setIsSubCategoryDialogOpen(true);
+    setCreateSubDialogOpen(true);
   };
 
-  const openCreateSubSubCategory = (parentCategoryValue: string, parentSubCategoryValue: string) => {
+  const openCreateSubSubCategory = (parentCategory: CategoryHierarchy, parentSubCategory: SubCategory) => {
+    setEditingSubSubCategory(null); // Clear editing state
+    setSelectedParentCategory(parentCategory);
+    setSelectedParentSubCategory(parentSubCategory);
     setSubSubCategoryForm({
       value: '',
       label: '',
       description: '',
-      parentCategory: parentCategoryValue,
-      parentSubCategory: parentSubCategoryValue
+      parentCategory: parentCategory.id,
+      parentSubCategory: parentSubCategory.id
     });
-    setIsSubSubCategoryDialogOpen(true);
+    setCreateSubSubDialogOpen(true);
   };
 
   return (
@@ -538,7 +599,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
           <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
           <p className="text-gray-600">Manage main categories, sub-categories, and sub-sub-categories</p>
         </div>
-        <Button onClick={() => setIsMainCategoryDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
           Add Main Category
         </Button>
@@ -546,187 +607,189 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
       {/* Categories List */}
       <div className="space-y-4">
-        {categories.map((category) => {
-          const IconComponent = getIconComponent(category.icon);
-          const isExpanded = expandedCategories.has(category.value);
-          
-          return (
-            <Card key={category.value} className="border border-gray-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleCategoryExpansion(category.value)}
-                      className="p-1 h-8 w-8"
-                    >
-                      {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    </Button>
-                    <IconComponent className={`w-5 h-5 ${category.color}`} />
-                    <div>
-                      <CardTitle className="text-lg">{category.label}</CardTitle>
-                      <CardDescription className="text-sm">{category.description}</CardDescription>
+        {loading ? (
+          <p>Loading categories...</p>
+        ) : categories.length === 0 ? (
+          <p>No categories found. Add a main category to get started.</p>
+        ) : (
+          categories.map((category) => {
+            const IconComponent = getIconComponent(category.icon);
+            const isExpanded = expandedCategories.has(category.id);
+             
+            return (
+              <Card key={category.id} className="border border-gray-200">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleCategoryExpansion(category.id)}
+                        className="p-1 h-8 w-8"
+                      >
+                        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </Button>
+                      <IconComponent className={`w-5 h-5 ${category.color}`} />
+                      <div>
+                        <CardTitle className="text-lg">{category.label}</CardTitle>
+                        <CardDescription className="text-sm">{category.description}</CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="text-xs">
+                        {category.subCategories?.length || 0} sub-categories
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditMainCategory(category)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteMainCategory(category.id)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-xs">
-                      {category.subCategories?.length || 0} sub-categories
-                    </Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditMainCategory(category)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteMainCategory(category.value)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              {isExpanded && (
-                <CardContent className="pt-0">
-                  <div className="ml-8 space-y-3">
-                    {/* Sub-categories */}
-                    {category.subCategories?.map((subCategory) => {
-                      const isSubExpanded = expandedSubCategories.has(subCategory.value);
-                      
-                      return (
-                        <div key={subCategory.value} className="border-l-2 border-gray-200 pl-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleSubCategoryExpansion(subCategory.value)}
-                                className="p-1 h-6 w-6"
-                              >
-                                {isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                              </Button>
-                              <FolderOpen className="w-4 h-4 text-gray-500" />
-                              <span className="font-medium">{subCategory.label}</span>
-                              <span className="text-sm text-gray-500">- {subCategory.description}</span>
+                </CardHeader>
+               
+                {isExpanded && (
+                  <CardContent className="pt-0">
+                    <div className="ml-8 space-y-3">
+                      {/* Sub-categories */}
+                      {category.subCategories?.map((subCategory) => {
+                        const isSubExpanded = expandedSubCategories.has(subCategory.id);
+                        
+                        return (
+                          <div key={subCategory.id} className="border-l-2 border-gray-200 pl-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleSubCategoryExpansion(subCategory.id)}
+                                  className="p-1 h-6 w-6"
+                                >
+                                  {isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                </Button>
+                                <FolderOpen className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium">{subCategory.label}</span>
+                                <span className="text-sm text-gray-500">- {subCategory.description}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {subCategory.subSubCategories?.length || 0} sub-sub-categories
+                                </Badge>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditSubCategory(category, subCategory)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteSubCategory(category.id, subCategory.id)}
+                                  className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {subCategory.subSubCategories?.length || 0} sub-sub-categories
-                              </Badge>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditSubCategory(category.value, subCategory)}
-                                className="h-6 w-6 p-0"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDeleteSubCategory(category.value, subCategory.value)}
-                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
+                            
+                            {isSubExpanded && (
+                              <div className="ml-6 mt-2 space-y-2">
+                                {/* Sub-sub-categories */}
+                                {subCategory.subSubCategories?.map((subSubCategory) => (
+                                  <div key={subSubCategory.id} className="flex items-center justify-between border-l border-gray-200 pl-3">
+                                    <div className="flex items-center space-x-2">
+                                      <Folder className="w-3 h-3 text-gray-400" />
+                                      <span className="text-sm">{subSubCategory.label}</span>
+                                      <span className="text-xs text-gray-500">- {subSubCategory.description}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => openEditSubSubCategory(category, subCategory, subSubCategory)}
+                                        className="h-5 w-5 p-0"
+                                      >
+                                        <Edit className="w-2.5 h-2.5" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDeleteSubSubCategory(category.id, subCategory.id, subSubCategory.id)}
+                                        className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                                      >
+                                        <Trash2 className="w-2.5 h-2.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                                
+                                {/* Add Sub-sub-category Button */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openCreateSubSubCategory(category, subCategory)}
+                                  className="h-6 text-xs"
+                                >
+                                  <Plus className="w-3 h-3 mr-1" />
+                                  Add Sub-sub-category
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                          
-                          {isSubExpanded && (
-                            <div className="ml-6 mt-2 space-y-2">
-                              {/* Sub-sub-categories */}
-                              {subCategory.subSubCategories?.map((subSubCategory) => (
-                                <div key={subSubCategory.value} className="flex items-center justify-between border-l border-gray-200 pl-3">
-                                  <div className="flex items-center space-x-2">
-                                    <Folder className="w-3 h-3 text-gray-400" />
-                                    <span className="text-sm">{subSubCategory.label}</span>
-                                    <span className="text-xs text-gray-500">- {subSubCategory.description}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => openEditSubSubCategory(category.value, subCategory.value, subSubCategory)}
-                                      className="h-5 w-5 p-0"
-                                    >
-                                      <Edit className="w-2.5 h-2.5" />
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleDeleteSubSubCategory(category.value, subCategory.value, subSubCategory.value)}
-                                      className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-                                    >
-                                      <Trash2 className="w-2.5 h-2.5" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                              
-                              {/* Add Sub-sub-category Button */}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openCreateSubSubCategory(category.value, subCategory.value)}
-                                className="h-6 text-xs"
-                              >
-                                <Plus className="w-3 h-3 mr-1" />
-                                Add Sub-sub-category
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    
-                    {/* Add Sub-category Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openCreateSubCategory(category.value)}
-                      className="h-8"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Sub-category
-                    </Button>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
+                        );
+                      })}
+                      
+                      {/* Add Sub-category Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openCreateSubCategory(category)}
+                        className="h-8"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Sub-category
+                      </Button>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })
+        )}
       </div>
 
       {/* Main Category Dialog */}
-      <Dialog open={isMainCategoryDialogOpen} onOpenChange={setIsMainCategoryDialogOpen}>
+      <Dialog open={createMainDialogOpen} onOpenChange={setCreateMainDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingMainCategory ? 'Edit Main Category' : 'Create Main Category'}
+              Create Main Category
             </DialogTitle>
             <DialogDescription>
-              {editingMainCategory ? 'Update the main category details' : 'Add a new main category to your catalog'}
+              Add a new main category to your catalog
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (editingMainCategory) {
-              handleEditMainCategory();
-            } else {
-              handleCreateMainCategory();
-            }
+            handleCreateMainCategory();
           }} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="value">Value *</Label>
+              <Label htmlFor="mainValue">Value *</Label>
               <Input
-                id="value"
+                id="mainValue"
                 value={mainCategoryForm.value}
                 onChange={(e) => setMainCategoryForm(prev => ({ ...prev, value: e.target.value }))}
                 placeholder="e.g., broadband"
@@ -734,9 +797,9 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="label">Label *</Label>
+              <Label htmlFor="mainLabel">Label *</Label>
               <Input
-                id="label"
+                id="mainLabel"
                 value={mainCategoryForm.label}
                 onChange={(e) => setMainCategoryForm(prev => ({ ...prev, label: e.target.value }))}
                 placeholder="e.g., Broadband"
@@ -744,7 +807,17 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="icon">Icon</Label>
+              <Label htmlFor="mainDescription">Description</Label>
+              <Textarea
+                id="mainDescription"
+                value={mainCategoryForm.description}
+                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of the category"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainIcon">Icon</Label>
               <Select value={mainCategoryForm.icon} onValueChange={(value) => setMainCategoryForm(prev => ({ ...prev, icon: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select icon" />
@@ -764,7 +837,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
+              <Label htmlFor="mainColor">Color</Label>
               <Select value={mainCategoryForm.color} onValueChange={(value) => setMainCategoryForm(prev => ({ ...prev, color: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select color" />
@@ -783,24 +856,151 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="mainBgColor">Background Color</Label>
+              <Select value={mainCategoryForm.bgColor} onValueChange={(value) => setMainCategoryForm(prev => ({ ...prev, bgColor: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select background color" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bg-blue-50">Blue</SelectItem>
+                  <SelectItem value="bg-green-50">Green</SelectItem>
+                  <SelectItem value="bg-purple-50">Purple</SelectItem>
+                  <SelectItem value="bg-red-50">Red</SelectItem>
+                  <SelectItem value="bg-indigo-50">Indigo</SelectItem>
+                  <SelectItem value="bg-orange-50">Orange</SelectItem>
+                  <SelectItem value="bg-pink-50">Pink</SelectItem>
+                  <SelectItem value="bg-cyan-50">Cyan</SelectItem>
+                  <SelectItem value="bg-yellow-50">Yellow</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => {
+                setCreateMainDialogOpen(false);
+                resetMainCategoryForm();
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Create
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Main Category Dialog */}
+      <Dialog open={editMainDialogOpen} onOpenChange={setEditMainDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Edit Main Category
+            </DialogTitle>
+            <DialogDescription>
+              Update the main category details
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleEditMainCategory();
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mainValue">Value *</Label>
+              <Input
+                id="mainValue"
+                value={mainCategoryForm.value}
+                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                placeholder="e.g., broadband"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainLabel">Label *</Label>
+              <Input
+                id="mainLabel"
+                value={mainCategoryForm.label}
+                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, label: e.target.value }))}
+                placeholder="e.g., Broadband"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainDescription">Description</Label>
               <Textarea
-                id="description"
+                id="mainDescription"
                 value={mainCategoryForm.description}
                 onChange={(e) => setMainCategoryForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description of the category"
                 rows={3}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainIcon">Icon</Label>
+              <Select value={mainCategoryForm.icon} onValueChange={(value) => setMainCategoryForm(prev => ({ ...prev, icon: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select icon" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Wifi">Wifi</SelectItem>
+                  <SelectItem value="Settings">Settings</SelectItem>
+                  <SelectItem value="Smartphone">Smartphone</SelectItem>
+                  <SelectItem value="Globe">Globe</SelectItem>
+                  <SelectItem value="Package">Package</SelectItem>
+                  <SelectItem value="Tv">Tv</SelectItem>
+                  <SelectItem value="Phone">Phone</SelectItem>
+                  <SelectItem value="Gamepad2">Gamepad2</SelectItem>
+                  <SelectItem value="Gift">Gift</SelectItem>
+                  <SelectItem value="Folder">Folder</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainColor">Color</Label>
+              <Select value={mainCategoryForm.color} onValueChange={(value) => setMainCategoryForm(prev => ({ ...prev, color: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select color" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text-blue-600">Blue</SelectItem>
+                  <SelectItem value="text-green-600">Green</SelectItem>
+                  <SelectItem value="text-purple-600">Purple</SelectItem>
+                  <SelectItem value="text-red-600">Red</SelectItem>
+                  <SelectItem value="text-indigo-600">Indigo</SelectItem>
+                  <SelectItem value="text-orange-600">Orange</SelectItem>
+                  <SelectItem value="text-pink-600">Pink</SelectItem>
+                  <SelectItem value="text-cyan-600">Cyan</SelectItem>
+                  <SelectItem value="text-yellow-600">Yellow</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainBgColor">Background Color</Label>
+              <Select value={mainCategoryForm.bgColor} onValueChange={(value) => setMainCategoryForm(prev => ({ ...prev, bgColor: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select background color" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bg-blue-50">Blue</SelectItem>
+                  <SelectItem value="bg-green-50">Green</SelectItem>
+                  <SelectItem value="bg-purple-50">Purple</SelectItem>
+                  <SelectItem value="bg-red-50">Red</SelectItem>
+                  <SelectItem value="bg-indigo-50">Indigo</SelectItem>
+                  <SelectItem value="bg-orange-50">Orange</SelectItem>
+                  <SelectItem value="bg-pink-50">Pink</SelectItem>
+                  <SelectItem value="bg-cyan-50">Cyan</SelectItem>
+                  <SelectItem value="bg-yellow-50">Yellow</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => {
-                setIsMainCategoryDialogOpen(false);
+                setEditMainDialogOpen(false);
                 resetMainCategoryForm();
               }}>
                 Cancel
               </Button>
               <Button type="submit">
-                {editingMainCategory ? 'Update' : 'Create'}
+                Update
               </Button>
             </DialogFooter>
           </form>
@@ -808,7 +1008,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       </Dialog>
 
       {/* Sub-category Dialog */}
-      <Dialog open={isSubCategoryDialogOpen} onOpenChange={setIsSubCategoryDialogOpen}>
+      <Dialog open={editSubDialogOpen} onOpenChange={setEditSubDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -858,7 +1058,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => {
-                setIsSubCategoryDialogOpen(false);
+                setEditSubDialogOpen(false);
                 resetSubCategoryForm();
               }}>
                 Cancel
@@ -872,7 +1072,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       </Dialog>
 
       {/* Sub-sub-category Dialog */}
-      <Dialog open={isSubSubCategoryDialogOpen} onOpenChange={setIsSubSubCategoryDialogOpen}>
+      <Dialog open={editSubSubDialogOpen} onOpenChange={setEditSubSubDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -922,7 +1122,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => {
-                setIsSubSubCategoryDialogOpen(false);
+                setEditSubSubDialogOpen(false);
                 resetSubSubCategoryForm();
               }}>
                 Cancel

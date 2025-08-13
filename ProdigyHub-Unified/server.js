@@ -788,6 +788,8 @@ async deleteProductCatalog(req, res) {
     handleError(res, error, 'delete product catalog');
   }
 }
+
+
 }
 
 // ===================================
@@ -1776,6 +1778,13 @@ app.post('/productCatalogManagement/v5/category', (req, res) => tmf620Controller
 app.get('/productCatalogManagement/v5/category/:id', (req, res) => tmf620Controller.getCategoryById(req, res));
 app.patch('/productCatalogManagement/v5/category/:id', (req, res) => tmf620Controller.updateCategory(req, res));
 app.delete('/productCatalogManagement/v5/category/:id', (req, res) => tmf620Controller.deleteCategory(req, res));
+
+// Hierarchical Categories for frontend category management
+app.get('/productCatalogManagement/v5/hierarchicalCategory', (req, res) => tmf620Controller.getHierarchicalCategories(req, res));
+app.post('/productCatalogManagement/v5/hierarchicalCategory', (req, res) => tmf620Controller.createHierarchicalCategory(req, res));
+app.get('/productCatalogManagement/v5/hierarchicalCategory/:id', (req, res) => tmf620Controller.getHierarchicalCategoryById(req, res));
+app.patch('/productCatalogManagement/v5/hierarchicalCategory/:id', (req, res) => tmf620Controller.updateHierarchicalCategory(req, res));
+app.delete('/productCatalogManagement/v5/hierarchicalCategory/:id', (req, res) => tmf620Controller.deleteHierarchicalCategory(req, res));
 
 // Product Specifications
 app.get('/productCatalogManagement/v5/productSpecification', (req, res) => tmf620Controller.getProductSpecifications(req, res));

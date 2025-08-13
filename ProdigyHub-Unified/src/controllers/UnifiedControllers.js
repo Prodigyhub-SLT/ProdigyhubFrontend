@@ -2,7 +2,7 @@
 const {
   Category, ProductSpecification, ProductOffering, ProductOfferingPrice, ProductCatalog,
   Product, CheckProductOfferingQualification, QueryProductOfferingQualification,
-  ProductOrder, CancelProductOrder, Event, Hub, Topic
+  ProductOrder, CancelProductOrder, Event, Hub, Topic, HierarchicalCategory
 } = require('../models/AllTMFModels');
 const { v4: uuidv4 } = require('uuid');
 
@@ -156,6 +156,94 @@ class TMF620Controller {
       res.status(204).send();
     } catch (error) {
       handleError(res, error, 'delete category');
+    }
+  }
+
+  // Hierarchical Category operations for frontend category management
+  async getHierarchicalCategories(req, res) {
+    try {
+      const { fields, limit = 100, offset = 0, ...filters } = req.query;
+      
+      const query = buildQuery(HierarchicalCategory, filters, fields);
+      const categories = await query
+        .limit(parseInt(limit))
+        .skip(parseInt(offset))
+        .sort({ createdAt: -1 });
+      
+      res.json(categories);
+    } catch (error) {
+      handleError(res, error, 'get hierarchical categories');
+    }
+  }
+
+  async getHierarchicalCategoryById(req, res) {
+    try {
+      const { id } = req.params;
+      const { fields } = req.query;
+      
+      const query = buildQuery(HierarchicalCategory, { id }, fields);
+      const category = await query;
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'get hierarchical category by ID');
+    }
+  }
+
+  async createHierarchicalCategory(req, res) {
+    try {
+      const categoryData = {
+        ...req.body,
+        '@type': 'HierarchicalCategory'
+      };
+      
+      const category = new HierarchicalCategory(categoryData);
+      await category.save();
+      
+      res.status(201).json(category);
+    } catch (error) {
+      handleError(res, error, 'create hierarchical category');
+    }
+  }
+
+  async updateHierarchicalCategory(req, res) {
+    try {
+      const { id } = req.params;
+      const updates = { ...req.body, lastUpdate: new Date() };
+      
+      const category = await HierarchicalCategory.findOneAndUpdate(
+        { id },
+        { $set: updates },
+        { new: true, runValidators: true }
+      );
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      handleError(res, error, 'update hierarchical category');
+    }
+  }
+
+  async deleteHierarchicalCategory(req, res) {
+    try {
+      const { id } = req.params;
+      
+      const category = await HierarchicalCategory.findOneAndDelete({ id });
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Hierarchical category not found' });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      handleError(res, error, 'delete hierarchical category');
     }
   }
 

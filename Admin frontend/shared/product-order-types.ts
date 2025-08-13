@@ -79,6 +79,34 @@ export interface Category {
   '@type'?: string;
 }
 
+// Hierarchical Category Structure for frontend category management
+export interface SubSubCategory {
+  id: string;
+  value: string;
+  label: string;
+  description?: string;
+}
+
+export interface SubCategory {
+  id: string;
+  value: string;
+  label: string;
+  description?: string;
+  subSubCategories: SubSubCategory[];
+}
+
+export interface CategoryHierarchy {
+  id: string;
+  value: string;
+  label: string;
+  description?: string;
+  color: string; // e.g., 'text-orange-500', 'text-blue-600'
+  bgColor: string; // e.g., 'bg-orange-50', 'bg-blue-50'
+  icon: string; // e.g., 'Wifi', 'Settings', 'Smartphone'
+  subCategories: SubCategory[];
+  '@type'?: string;
+}
+
 // TMF622 - Product Ordering Types
 export interface ProductOrderItem {
   id?: string;

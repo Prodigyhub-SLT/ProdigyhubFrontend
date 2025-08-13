@@ -27,6 +27,30 @@ const CategorySchema = new mongoose.Schema({
   collection: 'categories'
 });
 
+// New Hierarchical Category Schema for the frontend category management
+const HierarchicalCategorySchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true, default: uuidv4 },
+  name: { type: String, required: true },
+  description: String,
+  color: { type: String, required: true }, // e.g., 'text-orange-500', 'text-blue-600'
+  bgColor: { type: String, required: true }, // e.g., 'bg-orange-50', 'bg-blue-50'
+  icon: { type: String, required: true }, // e.g., 'Wifi', 'Settings', 'Smartphone'
+  subCategories: [{
+    id: { type: String, unique: true, required: true, default: uuidv4 },
+    name: { type: String, required: true },
+    description: String,
+    subSubCategories: [{
+      id: { type: String, unique: true, required: true, default: uuidv4 },
+      name: { type: String, required: true },
+      description: String
+    }]
+  }],
+  '@type': { type: String, default: 'HierarchicalCategory' }
+}, {
+  timestamps: true,
+  collection: 'hierarchical_categories'
+});
+
 const ProductSpecificationSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
   href: String,
@@ -589,7 +613,7 @@ const setHrefMiddleware = function(next) {
 };
 
 // Apply middleware to all schemas
-[CategorySchema, ProductSpecificationSchema, ProductOfferingSchema, ProductOfferingPriceSchema, 
+[CategorySchema, HierarchicalCategorySchema, ProductSpecificationSchema, ProductOfferingSchema, ProductOfferingPriceSchema, 
  ProductCatalogSchema, ProductSchema, CheckProductOfferingQualificationSchema, 
  QueryProductOfferingQualificationSchema, AreaSchema, ProductOrderSchema, CancelProductOrderSchema,
  EventSchema, HubSchema, TopicSchema].forEach(schema => {
@@ -601,6 +625,7 @@ const setHrefMiddleware = function(next) {
 // ===================================
 
 const Category = mongoose.model('Category', CategorySchema);
+const HierarchicalCategory = mongoose.model('HierarchicalCategory', HierarchicalCategorySchema);
 const ProductSpecification = mongoose.model('ProductSpecification', ProductSpecificationSchema);
 const ProductOffering = mongoose.model('ProductOffering', ProductOfferingSchema);
 const ProductOfferingPrice = mongoose.model('ProductOfferingPrice', ProductOfferingPriceSchema);
@@ -618,6 +643,7 @@ const Topic = mongoose.model('Topic', TopicSchema);
 module.exports = {
   // TMF620 Models
   Category,
+  HierarchicalCategory,
   ProductSpecification,
   ProductOffering,
   ProductOfferingPrice,
