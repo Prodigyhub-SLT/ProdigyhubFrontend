@@ -162,6 +162,8 @@ class TMF620Controller {
   // Hierarchical Category operations for frontend category management
   async getHierarchicalCategories(req, res) {
     try {
+      console.log('Getting hierarchical categories with query:', req.query);
+      
       const { fields, limit = 100, offset = 0, ...filters } = req.query;
       
       const query = buildQuery(HierarchicalCategory, filters, fields);
@@ -170,8 +172,11 @@ class TMF620Controller {
         .skip(parseInt(offset))
         .sort({ createdAt: -1 });
       
+      console.log(`Found ${categories.length} hierarchical categories`);
+      
       res.json(categories);
     } catch (error) {
+      console.error('Error getting hierarchical categories:', error);
       handleError(res, error, 'get hierarchical categories');
     }
   }
@@ -201,19 +206,44 @@ class TMF620Controller {
         '@type': 'HierarchicalCategory'
       };
       
-      // Ensure value and label are set if not provided
-      if (!categoryData.value && categoryData.name) {
+      // Ensure required fields are present
+      if (!categoryData.name) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Name field is required'
+        });
+      }
+      
+      // Set defaults for optional fields
+      if (!categoryData.value) {
         categoryData.value = categoryData.name.toLowerCase().replace(/\s+/g, '_');
       }
-      if (!categoryData.label && categoryData.name) {
+      if (!categoryData.label) {
         categoryData.label = categoryData.name;
       }
+      if (!categoryData.color) {
+        categoryData.color = 'text-blue-600';
+      }
+      if (!categoryData.bgColor) {
+        categoryData.bgColor = 'bg-blue-50';
+      }
+      if (!categoryData.icon) {
+        categoryData.icon = 'Folder';
+      }
+      if (!categoryData.description) {
+        categoryData.description = '';
+      }
+      
+      console.log('Creating hierarchical category with data:', categoryData);
       
       const category = new HierarchicalCategory(categoryData);
       await category.save();
       
+      console.log('Hierarchical category created successfully:', category.id);
+      
       res.status(201).json(category);
     } catch (error) {
+      console.error('Error creating hierarchical category:', error);
       handleError(res, error, 'create hierarchical category');
     }
   }

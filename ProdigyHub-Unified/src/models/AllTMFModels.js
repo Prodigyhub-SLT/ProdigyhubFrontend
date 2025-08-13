@@ -31,24 +31,24 @@ const CategorySchema = new mongoose.Schema({
 const HierarchicalCategorySchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
   name: { type: String, required: true },
-  value: { type: String, required: true }, // Frontend expects this field
-  label: { type: String, required: true }, // Frontend expects this field
-  description: String,
-  color: { type: String, required: true }, // e.g., 'text-orange-500', 'text-blue-600'
-  bgColor: { type: String, required: true }, // e.g., 'bg-orange-50', 'bg-blue-50'
-  icon: { type: String, required: true }, // e.g., 'Wifi', 'Settings', 'Smartphone'
+  value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
+  label: { type: String, required: false, default: function() { return this.name || 'Unnamed Category'; } },
+  description: { type: String, default: '' },
+  color: { type: String, required: false, default: 'text-blue-600' },
+  bgColor: { type: String, required: false, default: 'bg-blue-50' },
+  icon: { type: String, required: false, default: 'Folder' },
   subCategories: [{
     id: { type: String, unique: true, required: true, default: uuidv4 },
     name: { type: String, required: true },
-    value: { type: String, required: true }, // Frontend expects this field
-    label: { type: String, required: true }, // Frontend expects this field
-    description: String,
+    value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
+    label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Category'; } },
+    description: { type: String, default: '' },
     subSubCategories: [{
       id: { type: String, unique: true, required: true, default: uuidv4 },
       name: { type: String, required: true },
-      value: { type: String, required: true }, // Frontend expects this field
-      label: { type: String, required: true }, // Frontend expects this field
-      description: String
+      value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
+      label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Sub-Category'; } },
+      description: { type: String, default: '' }
     }]
   }],
   '@type': { type: String, default: 'HierarchicalCategory' }
