@@ -91,6 +91,24 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     loadCategories();
   }, []);
 
+  // Check if categories are being used by offerings
+  const checkCategoryUsage = (categoryId: string) => {
+    // This would typically check against offerings data
+    // For now, we'll show a placeholder
+    // TODO: Integrate with offerings data to check actual usage
+    return false;
+  };
+
+  // Get category usage statistics
+  const getCategoryUsageStats = () => {
+    // TODO: Integrate with offerings data to get actual usage statistics
+    return {
+      totalOfferings: 0,
+      categoriesInUse: 0,
+      mostUsedCategory: null
+    };
+  };
+
   const loadCategories = async () => {
     try {
       setLoading(true);
@@ -613,17 +631,23 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
-          <p className="text-gray-600">Manage main categories, sub-categories, and sub-sub-categories</p>
-          {categories.length === 0 && !loading && (
-            <p className="text-sm text-amber-600 mt-1">
-              ⚠️ Backend API may not be running. Categories will be loaded when the server is available.
-            </p>
-          )}
-        </div>
+             {/* Header */}
+       <div className="flex items-center justify-between">
+         <div>
+           <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+           <p className="text-gray-600">Manage main categories, sub-categories, and sub-sub-categories used in product offerings</p>
+           <div className="flex items-center space-x-2 mt-2">
+             <span className="text-sm text-blue-600">💡</span>
+             <span className="text-sm text-gray-600">
+               Categories defined here are used by product offerings. Edit categories to update offerings automatically.
+             </span>
+           </div>
+           {categories.length === 0 && !loading && (
+             <p className="text-sm text-amber-600 mt-1">
+               ⚠️ Backend API may not be running. Categories will be loaded when the server is available.
+             </p>
+           )}
+         </div>
         <div className="flex gap-2">
           <Button onClick={loadCategories} variant="outline" disabled={loading}>
             {loading ? 'Loading...' : 'Refresh'}
@@ -643,8 +667,88 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         </div>
       </div>
 
-      {/* Categories List */}
-      <div className="space-y-4">
+             {/* Category Usage Statistics */}
+       {categories.length > 0 && (
+         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+           <h3 className="text-lg font-semibold text-blue-900 mb-3">📊 Category Usage Overview</h3>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="bg-white rounded-lg p-4 border border-blue-200">
+               <div className="flex items-center space-x-2">
+                 <Package className="w-5 h-5 text-blue-600" />
+                 <div>
+                   <p className="text-sm text-gray-600">Total Categories</p>
+                   <p className="text-2xl font-bold text-blue-900">{categories.length}</p>
+                 </div>
+               </div>
+             </div>
+             <div className="bg-white rounded-lg p-4 border border-blue-200">
+               <div className="flex items-center space-x-2">
+                 <FolderTree className="w-5 h-5 text-green-600" />
+                 <div>
+                   <p className="text-sm text-gray-600">Total Sub-categories</p>
+                   <p className="text-2xl font-bold text-green-900">
+                     {categories.reduce((total, cat) => total + (cat.subCategories?.length || 0), 0)}
+                   </p>
+                 </div>
+               </div>
+             </div>
+             <div className="bg-white rounded-lg p-4 border border-blue-200">
+               <div className="flex items-center space-x-2">
+                 <Settings className="w-5 h-5 text-purple-600" />
+                 <div>
+                   <p className="text-sm text-gray-600">Categories in Use</p>
+                   <p className="text-2xl font-bold text-purple-900">
+                     {categories.filter(cat => checkCategoryUsage(cat.id)).length}
+                   </p>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Commonly Used Categories in Offerings */}
+       {categories.length > 0 && (
+         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+           <h3 className="text-lg font-semibold text-blue-900 mb-3">📊 Categories Used in Offerings</h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+             {categories.map((category) => (
+               <div key={category.id} className="bg-white rounded-md p-3 border border-blue-200">
+                 <div className="flex items-center justify-between mb-2">
+                   <div className="flex items-center space-x-2">
+                     {React.createElement(getIconComponent(category.icon), { 
+                       className: `w-4 h-4 ${category.color}` 
+                     })}
+                     <span className="font-medium text-sm">{category.label}</span>
+                   </div>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => openEditMainCategory(category)}
+                     className="h-6 w-6 p-0"
+                   >
+                     <Edit className="w-3 h-3" />
+                   </Button>
+                 </div>
+                 <p className="text-xs text-gray-600 mb-2">{category.description}</p>
+                 <div className="flex items-center justify-between text-xs">
+                   <span className="text-blue-600">
+                     {category.subCategories?.length || 0} sub-categories
+                   </span>
+                   {checkCategoryUsage(category.id) && (
+                     <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                       Active in Offerings
+                     </Badge>
+                   )}
+                 </div>
+               </div>
+             ))}
+           </div>
+         </div>
+       )}
+
+       {/* Categories List */}
+       <div className="space-y-4">
         {loading ? (
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
@@ -691,27 +795,34 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                         <CardDescription className="text-sm">{category.description}</CardDescription>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="text-xs">
-                        {category.subCategories?.length || 0} sub-categories
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditMainCategory(category)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteMainCategory(category.id)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                                         <div className="flex items-center space-x-2">
+                       <Badge variant="outline" className="text-xs">
+                         {category.subCategories?.length || 0} sub-categories
+                       </Badge>
+                       {checkCategoryUsage(category.id) && (
+                         <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                           Used in Offerings
+                         </Badge>
+                       )}
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => openEditMainCategory(category)}
+                         className="h-8 w-8 p-0"
+                       >
+                         <Edit className="w-4 h-4" />
+                       </Button>
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => handleDeleteMainCategory(category.id)}
+                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                         disabled={checkCategoryUsage(category.id)}
+                         title={checkCategoryUsage(category.id) ? "Cannot delete category used by offerings" : "Delete category"}
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </Button>
+                     </div>
                   </div>
                 </CardHeader>
                
@@ -738,27 +849,34 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                                 <span className="font-medium">{subCategory.label}</span>
                                 <span className="text-sm text-gray-500">- {subCategory.description}</span>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {subCategory.subSubCategories?.length || 0} sub-sub-categories
-                                </Badge>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditSubCategory(category, subCategory)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteSubCategory(category.id, subCategory.id)}
-                                  className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
+                                                             <div className="flex items-center space-x-2">
+                                 <Badge variant="secondary" className="text-xs">
+                                   {subCategory.subSubCategories?.length || 0} sub-sub-categories
+                                 </Badge>
+                                 {checkCategoryUsage(subCategory.id) && (
+                                   <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                     Used
+                                   </Badge>
+                                 )}
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => openEditSubCategory(category, subCategory)}
+                                   className="h-6 w-6 p-0"
+                                 >
+                                   <Edit className="w-3 h-3" />
+                                 </Button>
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => handleDeleteSubCategory(category.id, subCategory.id)}
+                                   className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                   disabled={checkCategoryUsage(subCategory.id)}
+                                   title={checkCategoryUsage(subCategory.id) ? "Cannot delete sub-category used by offerings" : "Delete sub-category"}
+                                 >
+                                   <Trash2 className="w-3 h-3" />
+                                 </Button>
+                               </div>
                             </div>
                             
                             {isSubExpanded && (
