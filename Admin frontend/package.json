@@ -18,6 +18,7 @@
     "start": "node dist/server/node-build.mjs",
     "vercel-build": "npm run build:client",
     "test": "vitest --run",
+    "test:categories": "node test-hierarchical-categories.js",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
   },

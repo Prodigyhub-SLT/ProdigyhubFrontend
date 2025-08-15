@@ -126,150 +126,33 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     };
   };
 
-  // Extract categories from product offerings data
-  const extractCategoriesFromOfferings = (offerings: any[]): CategoryHierarchy[] => {
-    const categoryMap = new Map<string, CategoryHierarchy>();
-    
-    offerings.forEach(offering => {
-      if (offering.category && Array.isArray(offering.category)) {
-        offering.category.forEach((cat: any) => {
-          if (cat.name) {
-            const categoryKey = cat.name.toLowerCase().replace(/\s+/g, '_');
-            
-            if (!categoryMap.has(categoryKey)) {
-              // Create new main category
-              categoryMap.set(categoryKey, {
-                id: cat.id || `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                name: cat.name,
-                value: categoryKey,
-                label: cat.name,
-                description: cat.description || `Category for ${cat.name}`,
-                color: 'text-blue-600',
-                bgColor: 'bg-blue-50',
-                icon: 'Folder',
-                subCategories: [],
-                '@type': 'HierarchicalCategory'
-              });
-            }
-            
-            // Check for sub-categories in offering data
-            if (offering.subCategory) {
-              const subCategoryKey = offering.subCategory.toLowerCase().replace(/\s+/g, '_');
-              let subCategory = categoryMap.get(categoryKey)?.subCategories?.find(sub => sub.value === subCategoryKey);
-              
-              if (!subCategory) {
-                subCategory = {
-                  id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                  name: offering.subCategory,
-                  value: subCategoryKey,
-                  label: offering.subCategory,
-                  description: `Sub-category for ${offering.subCategory}`,
-                  subSubCategories: []
-                };
-                
-                if (categoryMap.get(categoryKey)) {
-                  categoryMap.get(categoryKey)!.subCategories.push(subCategory);
-                }
-              }
-              
-              // Check for sub-sub-categories
-              if (offering.subSubCategory) {
-                const subSubCategoryKey = offering.subSubCategory.toLowerCase().replace(/\s+/g, '_');
-                let subSubCategory = subCategory.subSubCategories.find(subSub => subSub.value === subSubCategoryKey);
-                
-                if (!subSubCategory) {
-                  subSubCategory = {
-                    id: `subsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                    name: offering.subSubCategory,
-                    value: subSubCategoryKey,
-                    label: offering.subSubCategory,
-                    description: `Sub-sub-category for ${offering.subSubCategory}`
-                  };
-                  
-                  subCategory.subSubCategories.push(subSubCategory);
-                }
-              }
-            }
-          }
-        });
-      }
-    });
-    
-    return Array.from(categoryMap.values());
-  };
-
-  // Update offerings when categories are modified
-  const updateOfferingsWithCategoryChanges = async (oldCategory: CategoryHierarchy, newCategory: CategoryHierarchy) => {
-    try {
-      // Get all offerings
-      const offerings = await productCatalogApi.getOfferings();
-      
-      // Find offerings that use the old category
-      const offeringsToUpdate = offerings.filter(offering => 
-        offering.category?.some(cat => cat.name === oldCategory.name)
-      );
-      
-      console.log(`Found ${offeringsToUpdate.length} offerings to update for category: ${oldCategory.name}`);
-      
-      // Update each offering
-      for (const offering of offeringsToUpdate) {
-        const updatedOffering = {
-          ...offering,
-          category: offering.category?.map(cat => 
-            cat.name === oldCategory.name 
-              ? { ...cat, name: newCategory.name, description: newCategory.description }
-              : cat
-          )
-        };
-        
-        await productCatalogApi.updateOffering(offering.id, updatedOffering);
-        console.log(`Updated offering: ${offering.name}`);
-      }
-      
-      toast({
-        title: "Success",
-        description: `Updated ${offeringsToUpdate.length} offerings with category changes`,
-      });
-      
-    } catch (error) {
-      console.error('Error updating offerings with category changes:', error);
-      toast({
-        title: "Warning",
-        description: "Category updated but failed to update related offerings. Please check offerings manually.",
-        variant: "destructive",
-      });
-    }
-  };
-
+  // Load categories from MongoDB hierarchical category API
   const loadCategories = async () => {
     try {
       setLoading(true);
       
-      // Load categories from product offerings instead of separate categories table
-      const offerings = await productCatalogApi.getOfferings();
-      console.log('Loaded offerings for category extraction:', offerings);
+      // Load categories from MongoDB hierarchical category API
+      const hierarchicalCategories = await productCatalogApi.getHierarchicalCategories();
+      console.log('Loaded hierarchical categories from MongoDB:', hierarchicalCategories);
       
-      // Extract and organize categories from offerings
-      const extractedCategories = extractCategoriesFromOfferings(offerings);
-      
-      if (extractedCategories.length === 0) {
-        console.log('No categories found in offerings');
+      if (hierarchicalCategories.length === 0) {
+        console.log('No hierarchical categories found in MongoDB');
         setCategories([]);
       } else {
-        console.log('Extracted categories from offerings:', extractedCategories);
-        setCategories(extractedCategories);
+        console.log('Loaded hierarchical categories from MongoDB:', hierarchicalCategories);
+        setCategories(hierarchicalCategories);
         if (onCategoriesChange) {
-          onCategoriesChange(extractedCategories);
+          onCategoriesChange(hierarchicalCategories);
         }
         
         // Load category usage information
-        await loadCategoryUsage(extractedCategories);
+        await loadCategoryUsage(hierarchicalCategories);
       }
     } catch (error) {
-      console.error('Error loading categories from offerings:', error);
+      console.error('Error loading hierarchical categories from MongoDB:', error);
       toast({
         title: "Error",
-        description: "Failed to load categories from product offerings. The backend API may not be fully implemented yet.",
+        description: "Failed to load hierarchical categories from MongoDB. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
       setCategories([]);
@@ -300,6 +183,41 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const getIconComponent = (iconName: string) => {
     return iconMap[iconName] || Folder;
+  };
+
+  // Load sample data to MongoDB for testing
+  const loadSampleDataToMongoDB = async () => {
+    try {
+      setLoading(true);
+      const sampleCategories = getSampleCategories();
+      
+      // Save each sample category to MongoDB
+      for (const category of sampleCategories) {
+        try {
+          await productCatalogApi.createHierarchicalCategory(category);
+          console.log(`Sample category saved to MongoDB: ${category.name}`);
+        } catch (error) {
+          console.warn(`Failed to save sample category ${category.name}:`, error);
+        }
+      }
+      
+      // Reload categories from MongoDB
+      await loadCategories();
+      
+      toast({
+        title: "Success",
+        description: "Sample data loaded to MongoDB successfully.",
+      });
+    } catch (error) {
+      console.error('Error loading sample data to MongoDB:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load sample data to MongoDB.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleCategoryExpansion = (categoryValue: string) => {
@@ -400,13 +318,22 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         onCategoriesChange([...categories, createdCategory]);
       }
       
-      // TODO: Update offerings that might use this category
-      // For now, we'll just show success
-      
-      toast({
-        title: "Success",
-        description: "Main category created successfully. Note: This category is not yet linked to any offerings.",
-      });
+             // Save to MongoDB
+       try {
+         const savedCategory = await productCatalogApi.createHierarchicalCategory(createdCategory);
+         console.log('Main category saved to MongoDB:', savedCategory);
+         toast({
+           title: "Success",
+           description: "Main category created successfully and saved to MongoDB.",
+         });
+       } catch (error: any) {
+         console.error('Error saving main category to MongoDB:', error);
+         toast({
+           title: "Error",
+           description: "Failed to save main category to MongoDB. Resource might already exist.",
+           variant: "destructive",
+         });
+       }
       
       setCreateMainDialogOpen(false);
       resetMainCategoryForm();
@@ -448,13 +375,22 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         onCategoriesChange(categories.map(cat => cat.id === editingMainCategory.id ? updatedCategory : cat));
       }
       
-      // Update offerings that use this category
-      await updateOfferingsWithCategoryChanges(editingMainCategory, updatedCategory);
-      
-      toast({
-        title: "Success",
-        description: "Main category updated successfully and related offerings updated",
-      });
+      // Save to MongoDB
+      try {
+        const savedCategory = await productCatalogApi.updateHierarchicalCategory(editingMainCategory.id, updatedCategory);
+        console.log('Main category updated in MongoDB:', savedCategory);
+        toast({
+          title: "Success",
+          description: "Main category updated successfully and saved to MongoDB.",
+        });
+      } catch (error: any) {
+        console.error('Error updating main category in MongoDB:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update main category in MongoDB. Resource might not exist.",
+          variant: "destructive",
+        });
+      }
       
       setEditMainDialogOpen(false);
       resetMainCategoryForm();
@@ -490,16 +426,29 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         console.log(`Removed category from offering: ${offering.name}`);
       }
       
-      // Update local state
-      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.filter(cat => cat.id !== categoryId));
+      // Delete from MongoDB
+      try {
+        await productCatalogApi.deleteHierarchicalCategory(categoryId);
+        console.log(`Main category deleted from MongoDB: ${categoryId}`);
+        
+        // Update local state
+        setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+        if (onCategoriesChange) {
+          onCategoriesChange(categories.filter(cat => cat.id !== categoryId));
+        }
+        
+        toast({
+          title: "Success",
+          description: `Main category deleted successfully from MongoDB and removed from ${offeringsToUpdate.length} offerings`,
+        });
+      } catch (error: any) {
+        console.error('Error deleting main category from MongoDB:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete main category from MongoDB. Resource might not exist.",
+          variant: "destructive",
+        });
       }
-      
-      toast({
-        title: "Success",
-        description: `Main category deleted successfully and removed from ${offeringsToUpdate.length} offerings`,
-      });
     } catch (error) {
       console.error('Error deleting main category:', error);
       toast({
@@ -529,7 +478,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         subSubCategories: []
       };
 
+      // Save to MongoDB
       const updated = await productCatalogApi.addSubCategory(selectedParentCategory.id, newSubCategory as SubCategory);
+      console.log('Sub-category saved to MongoDB:', updated);
+      
+      // Update local state
       setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
       if (onCategoriesChange) {
         onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
@@ -537,7 +490,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Sub-category created successfully",
+        description: "Sub-category created successfully and saved to MongoDB.",
       });
       
       setCreateSubDialogOpen(false);
@@ -546,7 +499,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error creating sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to create sub-category. The backend API may not be fully implemented yet.",
+        description: "Failed to create sub-category in MongoDB. Resource might already exist.",
         variant: "destructive",
       });
     }
@@ -570,7 +523,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subCategoryForm.description
       };
 
+      // Save to MongoDB
       const updated = await productCatalogApi.updateSubCategory(selectedParentCategory.id, updatedSubCategory);
+      console.log('Sub-category updated in MongoDB:', updated);
+      
+      // Update local state
       setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
       if (onCategoriesChange) {
         onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
@@ -578,7 +535,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Sub-category updated successfully",
+        description: "Sub-category updated successfully and saved to MongoDB.",
       });
       
       setEditSubDialogOpen(false);
@@ -587,7 +544,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error updating sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to update sub-category. The backend API may not be fully implemented yet.",
+        description: "Failed to update sub-category in MongoDB. Resource might not exist.",
         variant: "destructive",
       });
     }
@@ -595,7 +552,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const handleDeleteSubCategory = async (parentCategoryId: string, subCategoryId: string) => {
     try {
+      // Delete from MongoDB
       await productCatalogApi.deleteSubCategory(parentCategoryId, subCategoryId);
+      console.log(`Sub-category deleted from MongoDB: ${subCategoryId}`);
+      
+      // Update local state
       setCategories(prev => prev.map(cat => cat.id === parentCategoryId ? {
         ...cat,
         subCategories: cat.subCategories?.filter(sub => sub.id !== subCategoryId) || []
@@ -609,13 +570,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Sub-category deleted successfully",
+        description: "Sub-category deleted successfully from MongoDB.",
       });
     } catch (error) {
       console.error('Error deleting sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete sub-category. The backend API may not be fully implemented yet.",
+        description: "Failed to delete sub-category from MongoDB. Resource might not exist.",
         variant: "destructive",
       });
     }
@@ -639,7 +600,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subSubCategoryForm.description
       };
 
+      // Save to MongoDB
       const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory.id, newSubSubCategory as SubSubCategory);
+      console.log('Sub-sub-category saved to MongoDB:', updated);
+      
+      // Update local state
       setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
       if (onCategoriesChange) {
         onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
@@ -647,7 +612,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Sub-sub-category created successfully",
+        description: "Sub-sub-category created successfully and saved to MongoDB.",
       });
       
       setCreateSubSubDialogOpen(false);
@@ -656,7 +621,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error creating sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to create sub-sub-category. The backend API may not be fully implemented yet.",
+        description: "Failed to create sub-sub-category in MongoDB. Resource might already exist.",
         variant: "destructive",
       });
     }
@@ -680,7 +645,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subSubCategoryForm.description
       };
 
+      // Save to MongoDB
       const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory.id, updatedSubSubCategory);
+      console.log('Sub-sub-category updated in MongoDB:', updated);
+      
+      // Update local state
       setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
       if (onCategoriesChange) {
         onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
@@ -688,7 +657,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Sub-sub-category updated successfully",
+        description: "Sub-sub-category updated successfully and saved to MongoDB.",
       });
       
       setEditSubSubDialogOpen(false);
@@ -697,7 +666,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error updating sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to update sub-sub-category. The backend API may not be fully implemented yet.",
+        description: "Failed to update sub-sub-category in MongoDB. Resource might not exist.",
         variant: "destructive",
       });
     }
@@ -705,7 +674,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const handleDeleteSubSubCategory = async (parentCategoryId: string, parentSubCategoryId: string, subSubCategoryId: string) => {
     try {
+      // Delete from MongoDB
       await productCatalogApi.deleteSubSubCategory(parentCategoryId, subSubCategoryId);
+      console.log(`Sub-sub-category deleted from MongoDB: ${subSubCategoryId}`);
+      
+      // Update local state
       setCategories(prev => prev.map(cat => cat.id === parentCategoryId ? {
         ...cat,
         subCategories: cat.subCategories?.map(sub => sub.id === parentSubCategoryId ? {
@@ -725,13 +698,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Sub-sub-category deleted successfully",
+        description: "Sub-sub-category deleted successfully from MongoDB.",
       });
     } catch (error) {
       console.error('Error deleting sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete sub-sub-category. The backend API may not be fully implemented yet.",
+        description: "Failed to delete sub-sub-category from MongoDB. Resource might not exist.",
         variant: "destructive",
       });
     }
@@ -811,13 +784,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     <div className="space-y-6">
              {/* Header */}
        <div className="flex items-center justify-between">
-         <div>
-                      <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
-           <p className="text-gray-600">Manage categories extracted from product offerings. Edit categories to update offerings automatically.</p>
-                       <div className="flex items-center space-x-2 mt-2">
+                  <div>
+           <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+           <p className="text-gray-600">Manage hierarchical categories stored in MongoDB. Create, edit, and delete main categories, sub-categories, and sub-sub-categories.</p>
+           <div className="flex items-center space-x-2 mt-2">
               <span className="text-sm text-blue-600">💡</span>
               <span className="text-sm text-gray-600">
-                Categories are extracted from existing product offerings. Changes here will update the offerings data.
+                Categories are stored in MongoDB and can be used in product offerings. Changes here are automatically saved to the database.
                </span>
             </div>
             <div className="flex items-center space-x-2 mt-1">
@@ -834,7 +807,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             </div>
            {categories.length === 0 && !loading && (
              <p className="text-sm text-amber-600 mt-1">
-               ⚠️ Backend API may not be running. Categories will be loaded when the server is available.
+               ⚠️ MongoDB connection may not be available. Categories will be loaded when the database is accessible.
              </p>
            )}
          </div>
@@ -843,12 +816,12 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
           <Button 
-            onClick={() => setCategories(getSampleCategories())} 
+            onClick={loadSampleDataToMongoDB} 
             variant="outline" 
             className="text-amber-600 border-amber-600 hover:bg-amber-50"
-            title="Load sample data for testing"
+            title="Load sample data to MongoDB for testing"
           >
-            Load Sample Data
+            Load Sample Data to MongoDB
           </Button>
           <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
@@ -949,12 +922,15 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         ) : categories.length === 0 ? (
           <div className="text-center p-8">
             <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
-            <p className="text-gray-600 mb-4">Add a main category to get started with your product catalog.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found in MongoDB</h3>
+            <p className="text-gray-600 mb-4">Add a main category to get started with your hierarchical category management.</p>
             <div className="flex gap-2 justify-center">
               <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Create First Category
+              </Button>
+              <Button onClick={loadSampleDataToMongoDB} variant="outline" className="text-amber-600 border-amber-600">
+                Load Sample Data
               </Button>
               <Button onClick={loadCategories} variant="outline">
                 Retry Load
