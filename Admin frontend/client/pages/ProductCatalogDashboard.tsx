@@ -140,8 +140,8 @@ export default function ProductCatalogDashboard() {
     setLoading(true);
     try {
       const [categoriesData, specsData, offeringsData, pricesData] = await Promise.all([
-        productCatalogApi.getCategories({ limit: 100 }).catch((error) => {
-          console.warn('Categories API not available:', error.message);
+        productCatalogApi.getHierarchicalCategories().catch((error) => {
+          console.warn('Hierarchical Categories API not available:', error.message);
           return [];
         }),
         productCatalogApi.getSpecifications({ limit: 100 }).catch((error) => {

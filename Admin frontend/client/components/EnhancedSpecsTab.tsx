@@ -14,7 +14,7 @@ import {
   Trash2,
   FileText
 } from "lucide-react";
-import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
+import { CategoryIcons } from "./CategoryConfig";
 import { MongoProductSpec } from "../hooks/useMongoSpecsLogic";
 import { CategoryHierarchy } from "../../shared/product-order-types";
 
@@ -181,18 +181,11 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {mongoCategories.length > 0 ? (
-                  mongoCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name || cat.label}>
-                      {cat.label}
-                    </SelectItem>
-                  ))
-                ) : (
-                  // Fallback to hardcoded categories if MongoDB is not available
-                  CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                  ))
-                )}
+                {mongoCategories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.name || cat.label}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -228,22 +228,11 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            {mongoCategories.length > 0 ? (
-              mongoCategories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.name || cat.label}>
-                  {cat.label}
-                </SelectItem>
-              ))
-            ) : (
-              // Fallback to hardcoded categories if MongoDB is not available
-              <>
-                <SelectItem value="broadband">Broadband</SelectItem>
-                <SelectItem value="mobile">Mobile</SelectItem>
-                <SelectItem value="business">Business</SelectItem>
-                <SelectItem value="cloud service">Cloud Service</SelectItem>
-                <SelectItem value="product">Product</SelectItem>
-              </>
-            )}
+            {mongoCategories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.name || cat.label}>
+                {cat.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

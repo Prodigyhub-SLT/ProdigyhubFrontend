@@ -92,6 +92,23 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     loadCategories();
   }, []);
 
+  // Load initial categories if none exist (migrate from hardcoded to MongoDB)
+  useEffect(() => {
+    const initializeDefaultCategories = async () => {
+      try {
+        const existingCategories = await productCatalogApi.getHierarchicalCategories();
+        if (existingCategories.length === 0) {
+          console.log('No categories found in MongoDB, initializing with default categories...');
+          await loadDefaultCategoriesToMongoDB();
+        }
+      } catch (error) {
+        console.error('Error checking for existing categories:', error);
+      }
+    };
+
+    initializeDefaultCategories();
+  }, []);
+
   // Load category usage information
   const loadCategoryUsage = async (categories: CategoryHierarchy[]) => {
     try {
@@ -183,6 +200,190 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const getIconComponent = (iconName: string) => {
     return iconMap[iconName] || Folder;
+  };
+
+  // Load default categories to MongoDB (migrate from hardcoded)
+  const loadDefaultCategoriesToMongoDB = async () => {
+    try {
+      setLoading(true);
+      
+      // Helper function to generate temporary IDs
+      const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const defaultCategories: CategoryHierarchy[] = [
+        {
+          id: generateTempId(),
+          name: 'broadband',
+          value: 'broadband',
+          label: 'Broadband',
+          description: 'Fiber, ADSL, and wireless internet services',
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-50',
+          icon: 'Wifi',
+          subCategories: [
+            {
+              id: generateTempId(),
+              name: 'connection_type',
+              value: 'connection_type',
+              label: 'Connection Type',
+              description: 'Type of internet connection',
+              subSubCategories: [
+                {
+                  id: generateTempId(),
+                  name: 'fiber',
+                  value: 'fiber',
+                  label: 'Fiber',
+                  description: 'Fiber optic connection'
+                },
+                {
+                  id: generateTempId(),
+                  name: 'adsl',
+                  value: 'adsl',
+                  label: 'ADSL',
+                  description: 'ADSL connection'
+                }
+              ]
+            }
+          ],
+          '@type': 'HierarchicalCategory'
+        },
+        {
+          id: generateTempId(),
+          name: 'mobile',
+          value: 'mobile',
+          label: 'Mobile',
+          description: 'Mobile data plans and voice services',
+          color: 'text-purple-600',
+          bgColor: 'bg-purple-50',
+          icon: 'Smartphone',
+          subCategories: [
+            {
+              id: generateTempId(),
+              name: 'plan_type',
+              value: 'plan_type',
+              label: 'Plan Type',
+              description: 'Type of mobile plan',
+              subSubCategories: [
+                {
+                  id: generateTempId(),
+                  name: 'prepaid',
+                  value: 'prepaid',
+                  label: 'Prepaid',
+                  description: 'Prepaid mobile plan'
+                },
+                {
+                  id: generateTempId(),
+                  name: 'postpaid',
+                  value: 'postpaid',
+                  label: 'Postpaid',
+                  description: 'Postpaid mobile plan'
+                }
+              ]
+            }
+          ],
+          '@type': 'HierarchicalCategory'
+        },
+        {
+          id: generateTempId(),
+          name: 'business',
+          value: 'business',
+          label: 'Business',
+          description: 'Enterprise solutions and dedicated services',
+          color: 'text-green-600',
+          bgColor: 'bg-green-50',
+          icon: 'Building2',
+          subCategories: [
+            {
+              id: generateTempId(),
+              name: 'service_type',
+              value: 'service_type',
+              label: 'Service Type',
+              description: 'Type of business service',
+              subSubCategories: [
+                {
+                  id: generateTempId(),
+                  name: 'dedicated',
+                  value: 'dedicated',
+                  label: 'Dedicated',
+                  description: 'Dedicated business service'
+                },
+                {
+                  id: generateTempId(),
+                  name: 'shared',
+                  value: 'shared',
+                  label: 'Shared',
+                  description: 'Shared business service'
+                }
+              ]
+            }
+          ],
+          '@type': 'HierarchicalCategory'
+        },
+        {
+          id: generateTempId(),
+          name: 'cloud_service',
+          value: 'cloud_service',
+          label: 'Cloud Service',
+          description: 'Cloud hosting, storage, and computing services',
+          color: 'text-red-600',
+          bgColor: 'bg-red-50',
+          icon: 'Globe',
+          subCategories: [
+            {
+              id: generateTempId(),
+              name: 'service_category',
+              value: 'service_category',
+              label: 'Service Category',
+              description: 'Category of cloud service',
+              subSubCategories: [
+                {
+                  id: generateTempId(),
+                  name: 'hosting',
+                  value: 'hosting',
+                  label: 'Hosting',
+                  description: 'Cloud hosting service'
+                },
+                {
+                  id: generateTempId(),
+                  name: 'storage',
+                  value: 'storage',
+                  label: 'Storage',
+                  description: 'Cloud storage service'
+                }
+              ]
+            }
+          ],
+          '@type': 'HierarchicalCategory'
+        }
+      ];
+      
+      // Save each default category to MongoDB
+      for (const category of defaultCategories) {
+        try {
+          await productCatalogApi.createHierarchicalCategory(category);
+          console.log(`Default category saved to MongoDB: ${category.name}`);
+        } catch (error) {
+          console.warn(`Failed to save default category ${category.name}:`, error);
+        }
+      }
+      
+      // Reload categories from MongoDB
+      await loadCategories();
+      
+      toast({
+        title: "Success",
+        description: "Default categories loaded to MongoDB successfully!",
+      });
+    } catch (error) {
+      console.error('Error loading default categories to MongoDB:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load default categories to MongoDB.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Load sample data to MongoDB for testing
@@ -816,12 +1017,20 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
           <Button 
+            onClick={loadDefaultCategoriesToMongoDB} 
+            variant="outline" 
+            className="text-green-600 border-green-600 hover:bg-green-50"
+            title="Load default categories (Broadband, Mobile, Business, Cloud Service) to MongoDB"
+          >
+            Load Default Categories
+          </Button>
+          <Button 
             onClick={loadSampleDataToMongoDB} 
             variant="outline" 
             className="text-amber-600 border-amber-600 hover:bg-amber-50"
             title="Load sample data to MongoDB for testing"
           >
-            Load Sample Data to MongoDB
+            Load Sample Data
           </Button>
           <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />

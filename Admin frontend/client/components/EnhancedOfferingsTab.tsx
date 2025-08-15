@@ -14,7 +14,7 @@ import {
   Eye,
   Trash2
 } from "lucide-react";
-import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
+import { CategoryIcons } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
 import { CategoryHierarchy } from "../../shared/product-order-types";
 
@@ -180,21 +180,14 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {mongoCategories.length > 0 ? (
-                  mongoCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name || cat.label}>
-                      {cat.label}
-                    </SelectItem>
-                  ))
-                ) : (
-                  // Fallback to hardcoded categories if MongoDB is not available
-                  CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                  ))
-                )}
-              </SelectContent>
+                           <SelectContent>
+               <SelectItem value="all">All Categories</SelectItem>
+               {mongoCategories.map((cat) => (
+                 <SelectItem key={cat.id} value={cat.name || cat.label}>
+                   {cat.label}
+                 </SelectItem>
+               ))}
+             </SelectContent>
             </Select>
           </div>
         </CardContent>
