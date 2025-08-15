@@ -397,6 +397,7 @@ export default function ProductCatalogDashboard() {
 
           <EnhancedOfferingsTab 
             mongoOfferings={mongoOfferings}
+            mongoCategories={categories}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}
@@ -432,6 +433,7 @@ export default function ProductCatalogDashboard() {
           
           <EnhancedSpecsTab 
             mongoSpecs={mongoSpecs}
+            mongoCategories={categories}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}
@@ -468,6 +470,7 @@ export default function ProductCatalogDashboard() {
           <EnhancedPricesTab 
             prices={prices}
             mongoOfferings={mongoOfferings}
+            mongoCategories={categories}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}

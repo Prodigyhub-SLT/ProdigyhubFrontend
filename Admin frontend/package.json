@@ -19,6 +19,7 @@
     "vercel-build": "npm run build:client",
     "test": "vitest --run",
     "test:categories": "node test-hierarchical-categories.js",
+    "test:integration": "node test-mongodb-categories-integration.js",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
   },

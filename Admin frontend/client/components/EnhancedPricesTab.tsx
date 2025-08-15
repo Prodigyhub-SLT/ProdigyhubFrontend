@@ -16,12 +16,13 @@ import {
   Tag,
   Package
 } from "lucide-react";
-import { ProductOfferingPrice } from "../../shared/product-order-types";
+import { ProductOfferingPrice, CategoryHierarchy } from "../../shared/product-order-types";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
 
 interface EnhancedPricesTabProps {
   prices: ProductOfferingPrice[];
   mongoOfferings: MongoProductOffering[]; // Add MongoDB offerings
+  mongoCategories: CategoryHierarchy[]; // Add MongoDB categories
   searchTerm: string;
   statusFilter: string;
   categoryFilter: string;
@@ -93,6 +94,7 @@ const formatDate = (dateString: string | undefined) => {
 export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
   prices,
   mongoOfferings, // Add MongoDB offerings
+  mongoCategories, // Add MongoDB categories
   searchTerm,
   statusFilter,
   categoryFilter,
@@ -226,11 +228,22 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="broadband">Broadband</SelectItem>
-            <SelectItem value="mobile">Mobile</SelectItem>
-            <SelectItem value="business">Business</SelectItem>
-            <SelectItem value="cloud service">Cloud Service</SelectItem>
-            <SelectItem value="product">Product</SelectItem>
+            {mongoCategories.length > 0 ? (
+              mongoCategories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.name || cat.label}>
+                  {cat.label}
+                </SelectItem>
+              ))
+            ) : (
+              // Fallback to hardcoded categories if MongoDB is not available
+              <>
+                <SelectItem value="broadband">Broadband</SelectItem>
+                <SelectItem value="mobile">Mobile</SelectItem>
+                <SelectItem value="business">Business</SelectItem>
+                <SelectItem value="cloud service">Cloud Service</SelectItem>
+                <SelectItem value="product">Product</SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>

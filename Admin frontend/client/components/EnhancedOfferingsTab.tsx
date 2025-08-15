@@ -16,9 +16,12 @@ import {
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
+import { CategoryHierarchy } from "../../shared/product-order-types";
 
 interface EnhancedOfferingsTabProps {
   mongoOfferings: MongoProductOffering[];
+  // Add MongoDB categories prop
+  mongoCategories: CategoryHierarchy[];
   searchTerm: string;
   statusFilter: string;
   categoryFilter: string;
@@ -46,6 +49,7 @@ const getStatusColor = (status: string) => {
 
 export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
   mongoOfferings,
+  mongoCategories,
   searchTerm,
   statusFilter,
   categoryFilter,
@@ -178,9 +182,18 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                ))}
+                {mongoCategories.length > 0 ? (
+                  mongoCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name || cat.label}>
+                      {cat.label}
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Fallback to hardcoded categories if MongoDB is not available
+                  CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -195,8 +208,19 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             return null;
           }
 
-          const CategoryIcon = CategoryIcons[offering.category as keyof typeof CategoryIcons]?.icon || Package;
-          const categoryColor = CategoryIcons[offering.category as keyof typeof CategoryIcons]?.color || 'text-gray-600';
+          // Get category icon and color from MongoDB categories or fallback to hardcoded
+          const mongoCategory = mongoCategories.find(cat => cat.name === offering.category || cat.label === offering.category);
+          const CategoryIcon = mongoCategory ? 
+            (() => {
+              // Try to get icon from MongoDB category, fallback to hardcoded
+              const iconName = mongoCategory.icon || 'Package';
+              return CategoryIcons[iconName as keyof typeof CategoryIcons]?.icon || Package;
+            })() : 
+            CategoryIcons[offering.category as keyof typeof CategoryIcons]?.icon || Package;
+          
+          const categoryColor = mongoCategory ? 
+            mongoCategory.color || 'text-gray-600' : 
+            CategoryIcons[offering.category as keyof typeof CategoryIcons]?.color || 'text-gray-600';
           
           return (
             <Card key={offering.id} className="relative overflow-hidden bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 group">

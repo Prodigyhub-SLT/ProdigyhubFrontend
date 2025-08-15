@@ -16,9 +16,11 @@ import {
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductSpec } from "../hooks/useMongoSpecsLogic";
+import { CategoryHierarchy } from "../../shared/product-order-types";
 
 interface EnhancedSpecsTabProps {
   mongoSpecs: MongoProductSpec[];
+  mongoCategories: CategoryHierarchy[];
   searchTerm: string;
   statusFilter: string;
   categoryFilter: string;
@@ -46,6 +48,7 @@ const getStatusColor = (status: string) => {
 
 export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
   mongoSpecs,
+  mongoCategories,
   searchTerm,
   statusFilter,
   categoryFilter,
@@ -178,9 +181,18 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                ))}
+                {mongoCategories.length > 0 ? (
+                  mongoCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name || cat.label}>
+                      {cat.label}
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Fallback to hardcoded categories if MongoDB is not available
+                  CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
