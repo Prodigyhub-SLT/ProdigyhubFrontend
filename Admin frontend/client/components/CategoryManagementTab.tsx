@@ -797,20 +797,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
        <div className="flex items-center justify-between">
                   <div>
                        <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
-            <p className="text-gray-600">Manage the complete SLT hierarchical category structure stored in MongoDB. This includes all categories used in the "Create New Offering" flow: Broadband, Business, Mobile, Cloud Service, Product, PEOTV, Telephone, Gaming & Cloud, IDD, and Promotions.</p>
-           
-                         <div className="flex items-center space-x-2 mt-1">
-               <span className="text-sm text-blue-600">📁</span>
-               <span className="text-sm text-gray-600">
-                 <strong>Complete SLT Structure:</strong> This tab now shows the exact same hierarchical categories used in the "Create New Offering" flow. Click arrow buttons to expand and see all sub-categories and sub-sub-categories.
-               </span>
-             </div>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-sm text-green-600">✏️</span>
-              <span className="text-sm text-gray-600">
-                <strong>Edit Any Level:</strong> Use the edit buttons (✏️) on main categories, sub-categories, and sub-sub-categories to modify names, descriptions, and other properties.
-              </span>
-            </div>
+            
            {categories.length === 0 && !loading && (
              <p className="text-sm text-amber-600 mt-1">
                ⚠️ MongoDB connection may not be available. Categories will be loaded when the database is accessible.
