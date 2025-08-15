@@ -34,6 +34,7 @@ import { useMongoOfferingsLogic, MongoProductOffering, CustomAttribute } from ".
 import { useMongoSpecsLogic, MongoProductSpec, SpecCharacteristic } from "../hooks/useMongoSpecsLogic";
 import { EnhancedPricesTab } from "../components/EnhancedPricesTab";
 import { CategoryManagementTab } from "../components/CategoryManagementTab";
+import { CategoryHierarchy } from "../../shared/product-order-types";
 
 import type { 
   Category, 
@@ -75,6 +76,9 @@ export default function ProductCatalogDashboard() {
     setCreateDialogType,
     setActiveTab
   } = useProductCatalogState();
+
+  // MongoDB categories state for dynamic category management
+  const [mongoCategories, setMongoCategories] = useState<CategoryHierarchy[]>([]);
 
   // MongoDB Offerings Logic
   const {
@@ -379,25 +383,9 @@ export default function ProductCatalogDashboard() {
         </TabsContent>
 
         <TabsContent value="offerings" className="space-y-4">
-          {/* Show info banner about auto-spec creation */}
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Package className="w-5 h-5 text-green-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-green-900">Auto-Specification Creation</h4>
-                  <p className="text-sm text-green-700 mt-1">
-                    When you create an offering, a corresponding specification will be automatically created 
-                    with the same name, category, status, and description. Check the Specs tab to see them.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           <EnhancedOfferingsTab 
             mongoOfferings={mongoOfferings}
-            mongoCategories={categories}
+            mongoCategories={mongoCategories}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}
@@ -415,25 +403,9 @@ export default function ProductCatalogDashboard() {
         </TabsContent>
 
         <TabsContent value="specs" className="space-y-4">
-          {/* Show info banner about auto-creation */}
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <BookOpen className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-blue-900">Auto-Generated Specifications</h4>
-                  <p className="text-sm text-blue-700 mt-1">
-                    Specifications are automatically created when you create an offering. 
-                    Each spec will have the same name, category, status, and description as its corresponding offering.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
           <EnhancedSpecsTab 
             mongoSpecs={mongoSpecs}
-            mongoCategories={categories}
+            mongoCategories={mongoCategories}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}
@@ -451,26 +423,10 @@ export default function ProductCatalogDashboard() {
         </TabsContent>
 
         <TabsContent value="prices" className="space-y-4">
-          {/* Show info banner about offer pricing */}
-          <Card className="border-purple-200 bg-purple-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <DollarSign className="w-5 h-5 text-purple-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-purple-900">Offers' Price</h4>
-                  <p className="text-sm text-purple-700 mt-1">
-                    View pricing details from all product offerings. This tab displays the pricing information 
-                    that users include when creating new offers, including main prices, setup fees, and security deposits.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
           <EnhancedPricesTab 
             prices={prices}
             mongoOfferings={mongoOfferings}
-            mongoCategories={categories}
+            mongoCategories={mongoCategories}
             searchTerm={searchTerm}
             statusFilter={statusFilter}
             categoryFilter={categoryFilter}
@@ -505,7 +461,8 @@ export default function ProductCatalogDashboard() {
           
           <CategoryManagementTab 
             onCategoriesChange={(updatedCategories) => {
-              // Update the categories state if needed
+              // Update the MongoDB categories state
+              setMongoCategories(updatedCategories);
               console.log('Categories updated:', updatedCategories);
             }}
           />
@@ -536,6 +493,7 @@ export default function ProductCatalogDashboard() {
         addCustomAttribute={addCustomAttribute}
         updateCustomAttribute={updateCustomAttribute}
         removeCustomAttribute={removeCustomAttribute}
+        categories={mongoCategories}
       />
 
       {/* Spec Dialogs */}

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, Wifi, Settings, Smartphone, Globe, Package } from 'lucide-react';
-import { SLT_CATEGORIES, getSubCategories, getSubSubCategories } from './types/SLTTypes';
+import { CategoryHierarchy, SubCategory, SubSubCategory } from '../../shared/product-order-types';
 
 interface SubCategorySelection {
   subCategory: string;
@@ -18,6 +18,8 @@ interface HierarchicalCategorySelectorProps {
   // For Broadband: multiple sub-category selections
   broadbandSelections?: SubCategorySelection[];
   onBroadbandSelectionsChange?: (selections: SubCategorySelection[]) => void;
+  // Dynamic categories from MongoDB
+  categories: CategoryHierarchy[];
 }
 
 const iconMap = {
@@ -34,14 +36,27 @@ export default function HierarchicalCategorySelector({
   selectedSubSubCategory, 
   onCategorySelect,
   broadbandSelections = [],
-  onBroadbandSelectionsChange
+  onBroadbandSelectionsChange,
+  categories = []
 }: HierarchicalCategorySelectorProps) {
-  const [currentSubCategories, setCurrentSubCategories] = useState<string[]>([]);
-  const [currentSubSubCategories, setCurrentSubSubCategories] = useState<string[]>([]);
+  const [currentSubCategories, setCurrentSubCategories] = useState<SubCategory[]>([]);
+  const [currentSubSubCategories, setCurrentSubSubCategories] = useState<SubSubCategory[]>([]);
+
+  // Helper functions to work with dynamic categories
+  const getSubCategories = (categoryValue: string): SubCategory[] => {
+    const category = categories.find(cat => cat.value === categoryValue);
+    return category?.subCategories || [];
+  };
+
+  const getSubSubCategories = (categoryValue: string, subCategoryValue: string): SubSubCategory[] => {
+    const category = categories.find(cat => cat.value === categoryValue);
+    const subCategory = category?.subCategories?.find(sub => sub.value === subCategoryValue);
+    return subCategory?.subSubCategories || [];
+  };
 
   const handleCategoryChange = (category: string) => {
     const subCategories = getSubCategories(category);
-    setCurrentSubCategories(subCategories.map(sub => sub.value));
+    setCurrentSubCategories(subCategories);
     setCurrentSubSubCategories([]);
     
     if (category === 'Broadband') {
@@ -62,7 +77,7 @@ export default function HierarchicalCategorySelector({
 
   const handleSubCategoryChange = (subCategory: string) => {
     const subSubCategories = getSubSubCategories(selectedCategory, subCategory);
-    setCurrentSubSubCategories(subSubCategories.map(sub => sub.value));
+    setCurrentSubSubCategories(subSubCategories);
     onCategorySelect(selectedCategory, subCategory, '');
   };
 
@@ -103,7 +118,7 @@ export default function HierarchicalCategorySelector({
       <div className="space-y-4">
         <Label className="text-sm font-medium text-gray-700">Main Category</Label>
         <div className="grid grid-cols-1 gap-3">
-          {SLT_CATEGORIES.map((category) => {
+          {categories.map((category) => {
             const IconComponent = iconMap[category.icon as keyof typeof iconMap] || Package;
             const isSelected = selectedCategory === category.value;
             
@@ -219,17 +234,14 @@ export default function HierarchicalCategorySelector({
               <SelectValue placeholder="Select sub category" />
             </SelectTrigger>
             <SelectContent>
-              {currentSubCategories.map((subCategory) => {
-                const subCategoryData = getSubCategories(selectedCategory).find(sub => sub.value === subCategory);
-                return (
-                  <SelectItem key={subCategory} value={subCategory}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{subCategoryData?.label}</span>
-                      <span className="text-xs text-gray-500">{subCategoryData?.description}</span>
-                    </div>
-                  </SelectItem>
-                );
-              })}
+              {currentSubCategories.map((subCategory) => (
+                <SelectItem key={subCategory.value} value={subCategory.value}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{subCategory.label}</span>
+                    <span className="text-xs text-gray-500">{subCategory.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -244,17 +256,14 @@ export default function HierarchicalCategorySelector({
               <SelectValue placeholder="Select sub-sub category" />
             </SelectTrigger>
             <SelectContent>
-              {currentSubSubCategories.map((subSubCategory) => {
-                const subSubCategoryData = getSubSubCategories(selectedCategory, selectedSubCategory).find(sub => sub.value === subSubCategory);
-                return (
-                  <SelectItem key={subSubCategory} value={subSubCategory}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{subSubCategoryData?.label}</span>
-                      <span className="text-xs text-gray-500">{subSubCategoryData?.description}</span>
-                    </div>
-                  </SelectItem>
-                );
-              })}
+              {currentSubSubCategories.map((subSubCategory) => (
+                <SelectItem key={subSubCategory.value} value={subSubCategory.value}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{subSubCategory.label}</span>
+                    <span className="text-xs text-gray-500">{subSubCategory.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -267,7 +276,7 @@ export default function HierarchicalCategorySelector({
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
               <span className="font-medium">Main:</span>
-              <span className="text-blue-600">{SLT_CATEGORIES.find(cat => cat.value === selectedCategory)?.label}</span>
+              <span className="text-blue-600">{categories.find(cat => cat.value === selectedCategory)?.label}</span>
             </div>
             
             {selectedCategory === 'Broadband' ? (

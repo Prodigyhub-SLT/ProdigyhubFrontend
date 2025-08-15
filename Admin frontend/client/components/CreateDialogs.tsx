@@ -22,6 +22,7 @@ import {
 import { CATEGORIES, CategoryIcons } from "./CategoryConfig";
 import { MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
 import HierarchicalCategorySelector from "./HierarchicalCategorySelector";
+import { CategoryHierarchy } from "../../shared/product-order-types";
 
 interface SubCategorySelection {
   subCategory: string;
@@ -69,6 +70,8 @@ interface CreateDialogsProps {
   addCustomAttribute: () => void;
   updateCustomAttribute: (id: string, field: keyof CustomAttribute, value: any) => void;
   removeCustomAttribute: (id: string) => void;
+  // Dynamic categories from MongoDB
+  categories: CategoryHierarchy[];
 }
 
 const getStatusColor = (status: string) => {
@@ -103,7 +106,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
   handleBroadbandSelectionsChange,
   addCustomAttribute,
   updateCustomAttribute,
-  removeCustomAttribute
+  removeCustomAttribute,
+  categories
 }) => {
   
   // Validation function
@@ -186,6 +190,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             onCategorySelect={handleCategoryChange}
             broadbandSelections={formData.broadbandSelections}
             onBroadbandSelectionsChange={handleBroadbandSelectionsChange}
+            categories={categories}
           />
           
           <div className="space-y-4">
