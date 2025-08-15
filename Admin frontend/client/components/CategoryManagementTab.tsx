@@ -18,6 +18,7 @@ import {
   Smartphone,
   Wifi,
   Building,
+  Building2,
   Cloud,
   Package,
   Tv,
@@ -91,6 +92,24 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   useEffect(() => {
     loadCategories();
   }, []);
+
+  // Auto-expand categories that have sub-categories for better visibility
+  useEffect(() => {
+    if (categories.length > 0) {
+      const categoriesWithSubs = categories.filter(cat => cat.subCategories && cat.subCategories.length > 0);
+      const subCategoriesWithSubs = categories.flatMap(cat => 
+        cat.subCategories?.filter(sub => sub.subSubCategories && sub.subSubCategories.length > 0) || []
+      );
+      
+      // Auto-expand main categories with sub-categories
+      const newExpandedCategories = new Set(categoriesWithSubs.map(cat => cat.id));
+      setExpandedCategories(newExpandedCategories);
+      
+      // Auto-expand sub-categories with sub-sub-categories
+      const newExpandedSubCategories = new Set(subCategoriesWithSubs.map(sub => sub.id));
+      setExpandedSubCategories(newExpandedSubCategories);
+    }
+  }, [categories]);
 
   // Load initial categories if none exist (migrate from hardcoded to MongoDB)
   useEffect(() => {
@@ -195,6 +214,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     FolderOpen,
     FolderTree,
     Building,
+    Building2,
     Cloud
   };
 
@@ -671,7 +691,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
 
     try {
-      const newSubCategory: Omit<SubCategory, 'id'> = {
+      // Generate a temporary ID for the new sub-category
+      const tempId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const newSubCategory: SubCategory = {
+        id: tempId,
         name: subCategoryForm.name,
         value: subCategoryForm.value,
         label: subCategoryForm.label,
@@ -680,7 +704,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       };
 
       // Save to MongoDB
-      const updated = await productCatalogApi.addSubCategory(selectedParentCategory.id, newSubCategory as SubCategory);
+      const updated = await productCatalogApi.addSubCategory(selectedParentCategory.id, newSubCategory);
       console.log('Sub-category saved to MongoDB:', updated);
       
       // Update local state
@@ -696,6 +720,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       setCreateSubDialogOpen(false);
       resetSubCategoryForm();
+      setSelectedParentCategory(null);
     } catch (error) {
       console.error('Error creating sub-category:', error);
       toast({
@@ -794,7 +819,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
 
     try {
-      const newSubSubCategory: Omit<SubSubCategory, 'id'> = {
+      // Generate a temporary ID for the new sub-sub-category
+      const tempId = `subsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const newSubSubCategory: SubSubCategory = {
+        id: tempId,
         name: subSubCategoryForm.name,
         value: subSubCategoryForm.value,
         label: subSubCategoryForm.label,
@@ -802,7 +831,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       };
 
       // Save to MongoDB
-      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory.id, newSubSubCategory as SubSubCategory);
+      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory.id, newSubSubCategory);
       console.log('Sub-sub-category saved to MongoDB:', updated);
       
       // Update local state
@@ -818,6 +847,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       setCreateSubSubDialogOpen(false);
       resetSubSubCategoryForm();
+      setSelectedParentSubCategory(null);
     } catch (error) {
       console.error('Error creating sub-sub-category:', error);
       toast({
@@ -1006,6 +1036,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                 If you get a "Resource already exists" error, try using a different name or leave the value field empty.
               </span>
             </div>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className="text-sm text-blue-600">📁</span>
+              <span className="text-sm text-gray-600">
+                <strong>Hierarchical Editing:</strong> Click the arrow buttons to expand categories and see/edit sub-categories and sub-sub-categories. All changes are automatically saved to MongoDB.
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className="text-sm text-green-600">✏️</span>
+              <span className="text-sm text-gray-600">
+                <strong>Edit Any Level:</strong> Use the edit buttons (✏️) on main categories, sub-categories, and sub-sub-categories to modify names, descriptions, and other properties.
+              </span>
+            </div>
            {categories.length === 0 && !loading && (
              <p className="text-sm text-amber-600 mt-1">
                ⚠️ MongoDB connection may not be available. Categories will be loaded when the database is accessible.
@@ -1031,6 +1073,17 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             title="Load sample data to MongoDB for testing"
           >
             Load Sample Data
+          </Button>
+          <Button 
+            onClick={() => {
+              setExpandedCategories(new Set());
+              setExpandedSubCategories(new Set());
+            }} 
+            variant="outline" 
+            className="text-gray-600 border-gray-600 hover:bg-gray-50"
+            title="Collapse all expanded categories"
+          >
+            Collapse All
           </Button>
           <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
@@ -1119,6 +1172,59 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
          </div>
        )}
 
+       {/* Hierarchy Summary */}
+       {categories.length > 0 && (
+         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+           <h3 className="text-lg font-semibold text-indigo-900 mb-3">🏗️ Category Hierarchy Overview</h3>
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+               <div className="text-2xl font-bold text-indigo-600">{categories.length}</div>
+               <div className="text-sm text-indigo-700">Main Categories</div>
+             </div>
+             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+               <div className="text-2xl font-bold text-blue-600">
+                 {categories.reduce((total, cat) => total + (cat.subCategories?.length || 0), 0)}
+               </div>
+               <div className="text-sm text-blue-700">Sub-categories</div>
+             </div>
+             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+               <div className="text-2xl font-bold text-green-600">
+                 {categories.reduce((total, cat) => 
+                   total + (cat.subCategories?.reduce((subTotal, sub) => 
+                     subTotal + (sub.subSubCategories?.length || 0), 0) || 0), 0)
+                 }
+               </div>
+               <div className="text-sm text-green-700">Sub-sub-categories</div>
+             </div>
+             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+               <div className="text-2xl font-bold text-purple-600">
+                 {categories.reduce((total, cat) => 
+                   total + (cat.subCategories?.reduce((subTotal, sub) => 
+                     subTotal + (sub.subSubCategories?.length || 0), 0) || 0) + (cat.subCategories?.length || 0), 0)
+                 }
+               </div>
+               <div className="text-sm text-purple-700">Total Items</div>
+             </div>
+           </div>
+           <div className="mt-3 text-center">
+             <p className="text-sm text-indigo-700">
+               💡 <strong>Tip:</strong> Click the arrow buttons (▶️) to expand categories and see all levels. Use edit buttons (✏️) to modify any category level.
+             </p>
+             <div className="mt-2 flex justify-center space-x-4 text-xs text-indigo-600">
+               <span>
+                 🔵 <strong>{expandedCategories.size}</strong> main categories expanded
+               </span>
+               <span>
+                 🟢 <strong>{expandedSubCategories.size}</strong> sub-categories expanded
+               </span>
+               <span>
+                 📊 <strong>{categories.length}</strong> total main categories
+               </span>
+             </div>
+           </div>
+         </div>
+       )}
+
        {/* Categories List */}
        <div className="space-y-4">
         {loading ? (
@@ -1160,9 +1266,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleCategoryExpansion(category.id)}
-                        className="p-1 h-8 w-8"
+                        className={`p-1 h-8 w-8 ${category.subCategories && category.subCategories.length > 0 ? 'text-blue-600 hover:bg-blue-100' : 'text-gray-400'}`}
+                        disabled={!category.subCategories || category.subCategories.length === 0}
+                        title={category.subCategories && category.subCategories.length > 0 ? 
+                          `Click to ${isExpanded ? 'collapse' : 'expand'} sub-categories (${category.subCategories.length} items)` : 
+                          'No sub-categories to expand'
+                        }
                       >
-                        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        {category.subCategories && category.subCategories.length > 0 ? (
+                          isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
+                        ) : (
+                          <div className="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50"></div>
+                        )}
                       </Button>
                       <IconComponent className={`w-5 h-5 ${category.color}`} />
                       <div>
@@ -1204,109 +1319,157 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                 {isExpanded && (
                   <CardContent className="pt-0">
                     <div className="ml-8 space-y-3">
+                      {/* Hierarchy Level Indicator */}
+                      <div className="flex items-center space-x-2 mb-3 p-2 bg-blue-50 rounded-md border border-blue-200">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Sub-categories</span>
+                        <span className="text-sm text-blue-600 font-medium">({category.subCategories?.length || 0} items)</span>
+                        <div className="ml-auto">
+                          <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
+                            Level 2
+                          </Badge>
+                        </div>
+                      </div>
+                      
                       {/* Sub-categories */}
-                      {category.subCategories?.map((subCategory) => {
-                        const isSubExpanded = expandedSubCategories.has(subCategory.id);
-                        
-                        return (
-                          <div key={subCategory.id} className="border-l-2 border-gray-200 pl-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleSubCategoryExpansion(subCategory.id)}
-                                  className="p-1 h-6 w-6"
-                                >
-                                  {isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                                </Button>
-                                <FolderOpen className="w-4 h-4 text-gray-500" />
-                                <span className="font-medium">{subCategory.label}</span>
-                                <span className="text-sm text-gray-500">- {subCategory.description}</span>
+                      {category.subCategories && category.subCategories.length > 0 ? (
+                        category.subCategories.map((subCategory) => {
+                          const isSubExpanded = expandedSubCategories.has(subCategory.id);
+                          
+                          return (
+                            <div key={subCategory.id} className="border-l-2 border-blue-200 pl-4 bg-blue-50/30 rounded-r-md">
+                              <div className="flex items-center justify-between p-2">
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleSubCategoryExpansion(subCategory.id)}
+                                    className={`p-1 h-6 w-6 ${subCategory.subSubCategories && subCategory.subSubCategories.length > 0 ? 'text-green-600 hover:bg-green-100' : 'text-gray-400'}`}
+                                    disabled={!subCategory.subSubCategories || subCategory.subSubCategories.length === 0}
+                                    title={subCategory.subSubCategories && subCategory.subSubCategories.length > 0 ? 
+                                      `Click to ${isSubExpanded ? 'collapse' : 'expand'} sub-sub-categories (${subCategory.subSubCategories.length} items)` : 
+                                      'No sub-sub-categories to expand'
+                                    }
+                                  >
+                                    {subCategory.subSubCategories && subCategory.subSubCategories.length > 0 ? (
+                                      isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />
+                                    ) : (
+                                      <div className="w-3 h-3 border border-gray-300 rounded-sm bg-gray-50"></div>
+                                    )}
+                                  </Button>
+                                  <FolderOpen className="w-4 h-4 text-blue-600" />
+                                  <span className="font-medium text-blue-900">{subCategory.label}</span>
+                                  <span className="text-sm text-blue-700">- {subCategory.description}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                                    {subCategory.subSubCategories?.length || 0} sub-sub-categories
+                                  </Badge>
+                                  {checkCategoryUsage(subCategory.id) && (
+                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                      Used
+                                    </Badge>
+                                  )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openEditSubCategory(category, subCategory)}
+                                    className="h-6 w-6 p-0 border-blue-300 text-blue-700 hover:bg-blue-50"
+                                    title="Edit sub-category"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteSubCategory(category.id, subCategory.id)}
+                                    className="h-6 w-6 p-0 text-red-600 hover:text-red-700 border-red-300"
+                                    disabled={checkCategoryUsage(subCategory.id)}
+                                    title={checkCategoryUsage(subCategory.id) ? "Cannot delete sub-category used by offerings" : "Delete sub-category"}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
                               </div>
-                                                             <div className="flex items-center space-x-2">
-                                 <Badge variant="secondary" className="text-xs">
-                                   {subCategory.subSubCategories?.length || 0} sub-sub-categories
-                                 </Badge>
-                                 {checkCategoryUsage(subCategory.id) && (
-                                   <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                                     Used
-                                   </Badge>
-                                 )}
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => openEditSubCategory(category, subCategory)}
-                                   className="h-6 w-6 p-0"
-                                 >
-                                   <Edit className="w-3 h-3" />
-                                 </Button>
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   onClick={() => handleDeleteSubCategory(category.id, subCategory.id)}
-                                   className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                                   disabled={checkCategoryUsage(subCategory.id)}
-                                   title={checkCategoryUsage(subCategory.id) ? "Cannot delete sub-category used by offerings" : "Delete sub-category"}
-                                 >
-                                   <Trash2 className="w-3 h-3" />
-                                 </Button>
-                               </div>
-                            </div>
-                            
-                            {isSubExpanded && (
-                              <div className="ml-6 mt-2 space-y-2">
-                                {/* Sub-sub-categories */}
-                                {subCategory.subSubCategories?.map((subSubCategory) => (
-                                  <div key={subSubCategory.id} className="flex items-center justify-between border-l border-gray-200 pl-3">
-                                    <div className="flex items-center space-x-2">
-                                      <Folder className="w-3 h-3 text-gray-400" />
-                                      <span className="text-sm">{subSubCategory.label}</span>
-                                      <span className="text-xs text-gray-500">- {subSubCategory.description}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => openEditSubSubCategory(category, subCategory, subSubCategory)}
-                                        className="h-5 w-5 p-0"
-                                      >
-                                        <Edit className="w-2.5 h-2.5" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleDeleteSubSubCategory(category.id, subCategory.id, subSubCategory.id)}
-                                        className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-                                      >
-                                        <Trash2 className="w-2.5 h-2.5" />
-                                      </Button>
-                                    </div>
+                              
+                              {isSubExpanded && (
+                                <div className="ml-6 mt-2 space-y-2">
+                                                                  {/* Sub-sub-categories Level Indicator */}
+                                <div className="flex items-center space-x-2 mb-2 p-2 bg-green-50 rounded-md border border-green-200">
+                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                  <span className="text-sm font-semibold text-green-700 uppercase tracking-wide">Sub-sub-categories</span>
+                                  <span className="text-sm text-green-600 font-medium">({subCategory.subSubCategories?.length || 0} items)</span>
+                                  <div className="ml-auto">
+                                    <Badge variant="outline" className="text-xs border-green-300 text-green-700">
+                                      Level 3
+                                    </Badge>
                                   </div>
-                                ))}
-                                
-                                {/* Add Sub-sub-category Button */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openCreateSubSubCategory(category, subCategory)}
-                                  className="h-6 text-xs"
-                                >
-                                  <Plus className="w-3 h-3 mr-1" />
-                                  Add Sub-sub-category
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                                </div>
+                                  
+                                  {/* Sub-sub-categories */}
+                                  {subCategory.subSubCategories && subCategory.subSubCategories.length > 0 ? (
+                                    subCategory.subSubCategories.map((subSubCategory) => (
+                                      <div key={subSubCategory.id} className="flex items-center justify-between border-l-2 border-green-200 pl-3 bg-green-50/50 rounded-r-md p-2">
+                                        <div className="flex items-center space-x-2">
+                                          <Folder className="w-3 h-3 text-green-600" />
+                                          <span className="text-sm font-medium text-green-900">{subSubCategory.label}</span>
+                                          <span className="text-xs text-green-700">- {subSubCategory.description}</span>
+                                        </div>
+                                        <div className="flex items-center space-x-1">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => openEditSubSubCategory(category, subCategory, subSubCategory)}
+                                            className="h-5 w-5 p-0 border-green-300 text-green-700 hover:bg-green-50"
+                                            title="Edit sub-sub-category"
+                                          >
+                                            <Edit className="w-2.5 h-2.5" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDeleteSubSubCategory(category.id, subCategory.id, subSubCategory.id)}
+                                            className="h-5 w-5 p-0 text-red-600 hover:text-red-700 border-red-300"
+                                            title="Delete sub-sub-category"
+                                          >
+                                            <Trash2 className="w-2.5 h-2.5" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-center py-2 text-sm text-gray-500 bg-gray-50 rounded-md">
+                                      No sub-sub-categories yet. Use the button below to add one.
+                                    </div>
+                                  )}
+                                  
+                                  {/* Add Sub-sub-category Button */}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openCreateSubSubCategory(category, subCategory)}
+                                    className="h-6 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                                  >
+                                    <Plus className="w-3 h-3 mr-1" />
+                                    Add Sub-sub-category
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-4 text-sm text-gray-500 bg-gray-50 rounded-md border-l-2 border-gray-200 pl-4">
+                          No sub-categories yet. Use the button below to add one.
+                        </div>
+                      )}
                       
                       {/* Add Sub-category Button */}
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openCreateSubCategory(category)}
-                        className="h-8"
+                        className="h-8 border-blue-300 text-blue-700 hover:bg-blue-50"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Sub-category
@@ -1606,6 +1769,76 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         </DialogContent>
       </Dialog>
 
+      {/* Create Sub-category Dialog */}
+      <Dialog open={createSubDialogOpen} onOpenChange={setCreateSubDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Create Sub-category
+            </DialogTitle>
+            <DialogDescription>
+              Add a new sub-category to {selectedParentCategory?.label || 'the selected category'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateSubCategory();
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="subName">Name *</Label>
+              <Input
+                id="subName"
+                value={subCategoryForm.name}
+                onChange={(e) => setSubCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Connection Type"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subValue">Value *</Label>
+              <Input
+                id="subValue"
+                value={subCategoryForm.value}
+                onChange={(e) => setSubCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                placeholder="e.g., connection_type"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subLabel">Label *</Label>
+              <Input
+                id="subLabel"
+                value={subCategoryForm.label}
+                onChange={(e) => setSubCategoryForm(prev => ({ ...prev, label: e.target.value }))}
+                placeholder="e.g., Connection Type"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subDescription">Description</Label>
+              <Textarea
+                id="subDescription"
+                value={subCategoryForm.description}
+                onChange={(e) => setSubCategoryForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of the sub-category"
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => {
+                setCreateSubDialogOpen(false);
+                resetSubCategoryForm();
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Create
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Sub-category Dialog */}
       <Dialog open={editSubDialogOpen} onOpenChange={setEditSubDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -1674,6 +1907,76 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               </Button>
               <Button type="submit">
                 {editingSubCategory ? 'Update' : 'Create'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Sub-sub-category Dialog */}
+      <Dialog open={createSubSubDialogOpen} onOpenChange={setCreateSubSubDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Create Sub-sub-category
+            </DialogTitle>
+            <DialogDescription>
+              Add a new sub-sub-category to {selectedParentSubCategory?.label || 'the selected sub-category'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateSubSubCategory();
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="subSubName">Name *</Label>
+              <Input
+                id="subSubName"
+                value={subSubCategoryForm.name}
+                onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Fiber"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subSubValue">Value *</Label>
+              <Input
+                id="subSubValue"
+                value={subSubCategoryForm.value}
+                onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                placeholder="e.g., fiber"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subSubLabel">Label *</Label>
+              <Input
+                id="subSubLabel"
+                value={subSubCategoryForm.label}
+                onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, label: e.target.value }))}
+                placeholder="e.g., Fiber"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subSubDescription">Description</Label>
+              <Textarea
+                id="subSubDescription"
+                value={subSubCategoryForm.description}
+                onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of the sub-sub-category"
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => {
+                setCreateSubSubDialogOpen(false);
+                resetSubSubCategoryForm();
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Create
               </Button>
             </DialogFooter>
           </form>
