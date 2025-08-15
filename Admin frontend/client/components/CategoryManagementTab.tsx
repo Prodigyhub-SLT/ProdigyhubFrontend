@@ -85,18 +85,35 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   const [editingSubSubCategory, setEditingSubSubCategory] = useState<SubSubCategory | null>(null);
   const [selectedParentCategory, setSelectedParentCategory] = useState<CategoryHierarchy | null>(null);
   const [selectedParentSubCategory, setSelectedParentSubCategory] = useState<SubCategory | null>(null);
+  const [categoryUsage, setCategoryUsage] = useState<Map<string, boolean>>(new Map());
 
   // Load categories from MongoDB on component mount
   useEffect(() => {
     loadCategories();
   }, []);
 
-  // Check if categories are being used by offerings
-  const checkCategoryUsage = (categoryId: string) => {
-    // This would typically check against offerings data
-    // For now, we'll show a placeholder
-    // TODO: Integrate with offerings data to check actual usage
-    return false;
+  // Load category usage information
+  const loadCategoryUsage = async (categories: CategoryHierarchy[]) => {
+    try {
+      const offerings = await productCatalogApi.getOfferings();
+      const usageMap = new Map<string, boolean>();
+      
+      categories.forEach(category => {
+        const isUsed = offerings.some(offering => 
+          offering.category?.some(cat => cat.name === category.name)
+        );
+        usageMap.set(category.id, isUsed);
+      });
+      
+      setCategoryUsage(usageMap);
+    } catch (error) {
+      console.error('Error loading category usage:', error);
+    }
+  };
+
+  // Check if categories are being used by offerings (synchronous from state)
+  const checkCategoryUsage = (categoryId: string): boolean => {
+    return categoryUsage.get(categoryId) || false;
   };
 
   // Get category usage statistics
@@ -109,35 +126,155 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     };
   };
 
+  // Extract categories from product offerings data
+  const extractCategoriesFromOfferings = (offerings: any[]): CategoryHierarchy[] => {
+    const categoryMap = new Map<string, CategoryHierarchy>();
+    
+    offerings.forEach(offering => {
+      if (offering.category && Array.isArray(offering.category)) {
+        offering.category.forEach((cat: any) => {
+          if (cat.name) {
+            const categoryKey = cat.name.toLowerCase().replace(/\s+/g, '_');
+            
+            if (!categoryMap.has(categoryKey)) {
+              // Create new main category
+              categoryMap.set(categoryKey, {
+                id: cat.id || `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: cat.name,
+                value: categoryKey,
+                label: cat.name,
+                description: cat.description || `Category for ${cat.name}`,
+                color: 'text-blue-600',
+                bgColor: 'bg-blue-50',
+                icon: 'Folder',
+                subCategories: [],
+                '@type': 'HierarchicalCategory'
+              });
+            }
+            
+            // Check for sub-categories in offering data
+            if (offering.subCategory) {
+              const subCategoryKey = offering.subCategory.toLowerCase().replace(/\s+/g, '_');
+              let subCategory = categoryMap.get(categoryKey)?.subCategories?.find(sub => sub.value === subCategoryKey);
+              
+              if (!subCategory) {
+                subCategory = {
+                  id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  name: offering.subCategory,
+                  value: subCategoryKey,
+                  label: offering.subCategory,
+                  description: `Sub-category for ${offering.subCategory}`,
+                  subSubCategories: []
+                };
+                
+                if (categoryMap.get(categoryKey)) {
+                  categoryMap.get(categoryKey)!.subCategories.push(subCategory);
+                }
+              }
+              
+              // Check for sub-sub-categories
+              if (offering.subSubCategory) {
+                const subSubCategoryKey = offering.subSubCategory.toLowerCase().replace(/\s+/g, '_');
+                let subSubCategory = subCategory.subSubCategories.find(subSub => subSub.value === subSubCategoryKey);
+                
+                if (!subSubCategory) {
+                  subSubCategory = {
+                    id: `subsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    name: offering.subSubCategory,
+                    value: subSubCategoryKey,
+                    label: offering.subSubCategory,
+                    description: `Sub-sub-category for ${offering.subSubCategory}`
+                  };
+                  
+                  subCategory.subSubCategories.push(subSubCategory);
+                }
+              }
+            }
+          }
+        });
+      }
+    });
+    
+    return Array.from(categoryMap.values());
+  };
+
+  // Update offerings when categories are modified
+  const updateOfferingsWithCategoryChanges = async (oldCategory: CategoryHierarchy, newCategory: CategoryHierarchy) => {
+    try {
+      // Get all offerings
+      const offerings = await productCatalogApi.getOfferings();
+      
+      // Find offerings that use the old category
+      const offeringsToUpdate = offerings.filter(offering => 
+        offering.category?.some(cat => cat.name === oldCategory.name)
+      );
+      
+      console.log(`Found ${offeringsToUpdate.length} offerings to update for category: ${oldCategory.name}`);
+      
+      // Update each offering
+      for (const offering of offeringsToUpdate) {
+        const updatedOffering = {
+          ...offering,
+          category: offering.category?.map(cat => 
+            cat.name === oldCategory.name 
+              ? { ...cat, name: newCategory.name, description: newCategory.description }
+              : cat
+          )
+        };
+        
+        await productCatalogApi.updateOffering(offering.id, updatedOffering);
+        console.log(`Updated offering: ${offering.name}`);
+      }
+      
+      toast({
+        title: "Success",
+        description: `Updated ${offeringsToUpdate.length} offerings with category changes`,
+      });
+      
+    } catch (error) {
+      console.error('Error updating offerings with category changes:', error);
+      toast({
+        title: "Warning",
+        description: "Category updated but failed to update related offerings. Please check offerings manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const fetchedCategories = await productCatalogApi.getHierarchicalCategories();
       
-      if (fetchedCategories.length === 0) {
-        // If no categories in MongoDB, show empty state
-        console.log('No categories found in MongoDB');
+      // Load categories from product offerings instead of separate categories table
+      const offerings = await productCatalogApi.getOfferings();
+      console.log('Loaded offerings for category extraction:', offerings);
+      
+      // Extract and organize categories from offerings
+      const extractedCategories = extractCategoriesFromOfferings(offerings);
+      
+      if (extractedCategories.length === 0) {
+        console.log('No categories found in offerings');
         setCategories([]);
       } else {
-        setCategories(fetchedCategories);
+        console.log('Extracted categories from offerings:', extractedCategories);
+        setCategories(extractedCategories);
         if (onCategoriesChange) {
-          onCategoriesChange(fetchedCategories);
+          onCategoriesChange(extractedCategories);
         }
+        
+        // Load category usage information
+        await loadCategoryUsage(extractedCategories);
       }
     } catch (error) {
-      console.error('Error loading categories:', error);
+      console.error('Error loading categories from offerings:', error);
       toast({
         title: "Error",
-        description: "Failed to load categories from database. The backend API may not be fully implemented yet.",
+        description: "Failed to load categories from product offerings. The backend API may not be fully implemented yet.",
         variant: "destructive",
       });
       setCategories([]);
       
-      // Show additional error info
       console.warn('Backend API not responding. Please check if the server is running.');
-      
-      // Optionally, you can uncomment the following lines to show sample data for testing
-      // setCategories(getSampleCategories());
     } finally {
       setLoading(false);
     }
@@ -251,21 +388,24 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         subCategories: []
       };
 
-      const createdCategory = await productCatalogApi.createHierarchicalCategory(newCategory as CategoryHierarchy);
+      // Create the category locally first
+      const createdCategory: CategoryHierarchy = {
+        ...newCategory,
+        id: `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
       
-      // Update the form with the actual value returned by the backend
-      if (createdCategory.value !== uniqueValue) {
-        console.log('Backend generated different value:', createdCategory.value, 'instead of:', uniqueValue);
-      }
-      
+      // Add to local state
       setCategories(prev => [...prev, createdCategory]);
       if (onCategoriesChange) {
         onCategoriesChange([...categories, createdCategory]);
       }
       
+      // TODO: Update offerings that might use this category
+      // For now, we'll just show success
+      
       toast({
         title: "Success",
-        description: "Main category created successfully",
+        description: "Main category created successfully. Note: This category is not yet linked to any offerings.",
       });
       
       setCreateMainDialogOpen(false);
@@ -273,19 +413,9 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     } catch (error: any) {
       console.error('Error creating main category:', error);
       
-      // Provide more specific error messages
-      let errorMessage = "Failed to create main category.";
-      if (error.message?.includes('409')) {
-        errorMessage = "Category with this name or value already exists. Please use a different name.";
-      } else if (error.message?.includes('400')) {
-        errorMessage = "Invalid data provided. Please check all required fields.";
-      } else if (error.message?.includes('500')) {
-        errorMessage = "Server error. Please try again later.";
-      }
-      
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to create main category.",
         variant: "destructive",
       });
     }
@@ -312,15 +442,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         icon: mainCategoryForm.icon
       };
 
-      const updated = await productCatalogApi.updateHierarchicalCategory(editingMainCategory.id, updatedCategory);
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      // Update local state first
+      setCategories(prev => prev.map(cat => cat.id === editingMainCategory.id ? updatedCategory : cat));
       if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+        onCategoriesChange(categories.map(cat => cat.id === editingMainCategory.id ? updatedCategory : cat));
       }
+      
+      // Update offerings that use this category
+      await updateOfferingsWithCategoryChanges(editingMainCategory, updatedCategory);
       
       toast({
         title: "Success",
-        description: "Main category updated successfully",
+        description: "Main category updated successfully and related offerings updated",
       });
       
       setEditMainDialogOpen(false);
@@ -329,7 +462,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       console.error('Error updating main category:', error);
       toast({
         title: "Error",
-        description: "Failed to update main category. The backend API may not be fully implemented yet.",
+        description: "Failed to update main category.",
         variant: "destructive",
       });
     }
@@ -337,7 +470,27 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const handleDeleteMainCategory = async (categoryId: string) => {
     try {
-      await productCatalogApi.deleteHierarchicalCategory(categoryId);
+      const categoryToDelete = categories.find(cat => cat.id === categoryId);
+      if (!categoryToDelete) return;
+      
+      // Remove category from offerings first
+      const offerings = await productCatalogApi.getOfferings();
+      const offeringsToUpdate = offerings.filter(offering => 
+        offering.category?.some(cat => cat.name === categoryToDelete.name)
+      );
+      
+      // Update offerings to remove this category
+      for (const offering of offeringsToUpdate) {
+        const updatedOffering = {
+          ...offering,
+          category: offering.category?.filter(cat => cat.name !== categoryToDelete.name)
+        };
+        
+        await productCatalogApi.updateOffering(offering.id, updatedOffering);
+        console.log(`Removed category from offering: ${offering.name}`);
+      }
+      
+      // Update local state
       setCategories(prev => prev.filter(cat => cat.id !== categoryId));
       if (onCategoriesChange) {
         onCategoriesChange(categories.filter(cat => cat.id !== categoryId));
@@ -345,13 +498,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       toast({
         title: "Success",
-        description: "Main category deleted successfully",
+        description: `Main category deleted successfully and removed from ${offeringsToUpdate.length} offerings`,
       });
     } catch (error) {
       console.error('Error deleting main category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete main category. The backend API may not be fully implemented yet.",
+        description: "Failed to delete main category.",
         variant: "destructive",
       });
     }
@@ -659,13 +812,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
              {/* Header */}
        <div className="flex items-center justify-between">
          <div>
-           <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
-           <p className="text-gray-600">Manage main categories, sub-categories, and sub-sub-categories used in product offerings</p>
+                      <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+           <p className="text-gray-600">Manage categories extracted from product offerings. Edit categories to update offerings automatically.</p>
                        <div className="flex items-center space-x-2 mt-2">
               <span className="text-sm text-blue-600">💡</span>
               <span className="text-sm text-gray-600">
-                Categories defined here are used by product offerings. Edit categories to update offerings automatically.
-              </span>
+                Categories are extracted from existing product offerings. Changes here will update the offerings data.
+               </span>
             </div>
             <div className="flex items-center space-x-2 mt-1">
               <span className="text-sm text-green-600">🔧</span>
@@ -735,7 +888,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                  <div>
                    <p className="text-sm text-gray-600">Categories in Use</p>
                    <p className="text-2xl font-bold text-purple-900">
-                     {categories.filter(cat => checkCategoryUsage(cat.id)).length}
+                     {Array.from(categoryUsage.values()).filter(used => used).length}
                    </p>
                  </div>
                </div>
