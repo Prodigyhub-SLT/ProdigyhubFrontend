@@ -222,7 +222,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleCreateMainCategory = async () => {
-    if (!mainCategoryForm.name || !mainCategoryForm.value || !mainCategoryForm.label) {
+    if (!mainCategoryForm.name || !mainCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -232,9 +232,17 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
 
     try {
+      // Generate a unique value if not provided or if it might conflict
+      let uniqueValue = mainCategoryForm.value;
+      if (!uniqueValue || categories.some(cat => cat.value === uniqueValue)) {
+        // Generate a unique value based on name with timestamp
+        const timestamp = Date.now();
+        uniqueValue = `${mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_')}_${timestamp}`;
+      }
+
       const newCategory: Omit<CategoryHierarchy, 'id'> = {
         name: mainCategoryForm.name,
-        value: mainCategoryForm.value,
+        value: uniqueValue,
         label: mainCategoryForm.label,
         description: mainCategoryForm.description,
         color: mainCategoryForm.color,
@@ -636,12 +644,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
          <div>
            <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
            <p className="text-gray-600">Manage main categories, sub-categories, and sub-sub-categories used in product offerings</p>
-           <div className="flex items-center space-x-2 mt-2">
-             <span className="text-sm text-blue-600">💡</span>
-             <span className="text-sm text-gray-600">
-               Categories defined here are used by product offerings. Edit categories to update offerings automatically.
-             </span>
-           </div>
+                       <div className="flex items-center space-x-2 mt-2">
+              <span className="text-sm text-blue-600">💡</span>
+              <span className="text-sm text-gray-600">
+                Categories defined here are used by product offerings. Edit categories to update offerings automatically.
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className="text-sm text-green-600">🔧</span>
+              <span className="text-sm text-gray-600">
+                Value fields are auto-generated to ensure uniqueness. Use the "Auto" button or leave empty for automatic generation.
+              </span>
+            </div>
            {categories.length === 0 && !loading && (
              <p className="text-sm text-amber-600 mt-1">
                ⚠️ Backend API may not be running. Categories will be loaded when the server is available.
@@ -971,14 +985,29 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mainValue">Value *</Label>
-              <Input
-                id="mainValue"
-                value={mainCategoryForm.value}
-                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, value: e.target.value }))}
-                placeholder="e.g., broadband"
-                required
-              />
+              <Label htmlFor="mainValue">Value (optional - auto-generated if not provided)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="mainValue"
+                  value={mainCategoryForm.value}
+                  onChange={(e) => setMainCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="e.g., broadband (leave empty for auto-generation)"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const timestamp = Date.now();
+                    const generatedValue = `${mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_')}_${timestamp}`;
+                    setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  }}
+                  disabled={!mainCategoryForm.name}
+                  title="Auto-generate unique value"
+                >
+                  Auto
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="mainLabel">Label *</Label>
@@ -1099,14 +1128,29 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mainValue">Value *</Label>
-              <Input
-                id="mainValue"
-                value={mainCategoryForm.value}
-                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, value: e.target.value }))}
-                placeholder="e.g., broadband"
-                required
-              />
+              <Label htmlFor="mainValue">Value (optional - auto-generated if not provided)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="mainValue"
+                  value={mainCategoryForm.value}
+                  onChange={(e) => setMainCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="e.g., broadband (leave empty for auto-generation)"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const timestamp = Date.now();
+                    const generatedValue = `${mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_')}_${timestamp}`;
+                    setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  }}
+                  disabled={!mainCategoryForm.name}
+                  title="Auto-generate unique value"
+                >
+                  Auto
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="mainLabel">Label *</Label>
