@@ -82,6 +82,7 @@ export interface Category {
 // Hierarchical Category Structure for frontend category management
 export interface SubSubCategory {
   id: string;
+  name: string;
   value: string;
   label: string;
   description?: string;
@@ -89,6 +90,7 @@ export interface SubSubCategory {
 
 export interface SubCategory {
   id: string;
+  name: string;
   value: string;
   label: string;
   description?: string;
@@ -97,6 +99,7 @@ export interface SubCategory {
 
 export interface CategoryHierarchy {
   id: string;
+  name: string;
   value: string;
   label: string;
   description?: string;

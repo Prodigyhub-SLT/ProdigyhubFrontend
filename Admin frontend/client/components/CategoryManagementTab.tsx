@@ -54,6 +54,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   
   // Form states
   const [mainCategoryForm, setMainCategoryForm] = useState({
+    name: '',
     value: '',
     label: '',
     description: '',
@@ -63,6 +64,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   });
   
   const [subCategoryForm, setSubCategoryForm] = useState({
+    name: '',
     value: '',
     label: '',
     description: '',
@@ -70,6 +72,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   });
   
   const [subSubCategoryForm, setSubSubCategoryForm] = useState({
+    name: '',
     value: '',
     label: '',
     description: '',
@@ -166,6 +169,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const resetMainCategoryForm = () => {
     setMainCategoryForm({
+      name: '',
       value: '',
       label: '',
       description: '',
@@ -178,6 +182,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const resetSubCategoryForm = () => {
     setSubCategoryForm({
+      name: '',
       value: '',
       label: '',
       description: '',
@@ -188,6 +193,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const resetSubSubCategoryForm = () => {
     setSubSubCategoryForm({
+      name: '',
       value: '',
       label: '',
       description: '',
@@ -198,7 +204,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleCreateMainCategory = async () => {
-    if (!mainCategoryForm.value || !mainCategoryForm.label) {
+    if (!mainCategoryForm.name || !mainCategoryForm.value || !mainCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -209,6 +215,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
     try {
       const newCategory: Omit<CategoryHierarchy, 'id'> = {
+        name: mainCategoryForm.name,
         value: mainCategoryForm.value,
         label: mainCategoryForm.label,
         description: mainCategoryForm.description,
@@ -242,7 +249,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleEditMainCategory = async () => {
-    if (!editingMainCategory || !mainCategoryForm.value || !mainCategoryForm.label) {
+    if (!editingMainCategory || !mainCategoryForm.name || !mainCategoryForm.value || !mainCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -308,7 +315,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleCreateSubCategory = async () => {
-    if (!selectedParentCategory || !subCategoryForm.value || !subCategoryForm.label) {
+    if (!selectedParentCategory || !subCategoryForm.name || !subCategoryForm.value || !subCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -319,6 +326,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
     try {
       const newSubCategory: Omit<SubCategory, 'id'> = {
+        name: subCategoryForm.name,
         value: subCategoryForm.value,
         label: subCategoryForm.label,
         description: subCategoryForm.description,
@@ -349,7 +357,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleEditSubCategory = async () => {
-    if (!editingSubCategory || !selectedParentCategory || !subCategoryForm.value || !subCategoryForm.label) {
+    if (!editingSubCategory || !selectedParentCategory || !subCategoryForm.name || !subCategoryForm.value || !subCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -418,7 +426,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleCreateSubSubCategory = async () => {
-    if (!selectedParentCategory || !selectedParentSubCategory || !subSubCategoryForm.value || !subSubCategoryForm.label) {
+    if (!selectedParentCategory || !selectedParentSubCategory || !subSubCategoryForm.name || !subSubCategoryForm.value || !subSubCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -429,6 +437,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
     try {
       const newSubSubCategory: Omit<SubSubCategory, 'id'> = {
+        name: subSubCategoryForm.name,
         value: subSubCategoryForm.value,
         label: subSubCategoryForm.label,
         description: subSubCategoryForm.description
@@ -458,7 +467,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleEditSubSubCategory = async () => {
-    if (!editingSubSubCategory || !selectedParentCategory || !subSubCategoryForm.value || !subSubCategoryForm.label) {
+    if (!editingSubSubCategory || !selectedParentCategory || !subSubCategoryForm.name || !subSubCategoryForm.value || !subSubCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -535,6 +544,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   const openEditMainCategory = (category: CategoryHierarchy) => {
     setEditingMainCategory(category);
     setMainCategoryForm({
+      name: category.name || category.label || '',
       value: category.value,
       label: category.label,
       description: category.description || '',
@@ -549,6 +559,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setEditingSubCategory(subCategory);
     setSelectedParentCategory(parentCategory);
     setSubCategoryForm({
+      name: subCategory.name || subCategory.label || '',
       value: subCategory.value,
       label: subCategory.label,
       description: subCategory.description || '',
@@ -562,6 +573,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setSelectedParentCategory(parentCategory);
     setSelectedParentSubCategory(parentSubCategory);
     setSubSubCategoryForm({
+      name: subSubCategory.name || subSubCategory.label || '',
       value: subSubCategory.value,
       label: subSubCategory.label,
       description: subSubCategory.description || '',
@@ -575,6 +587,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setEditingSubCategory(null); // Clear editing state
     setSelectedParentCategory(parentCategory);
     setSubCategoryForm({
+      name: '',
       value: '',
       label: '',
       description: '',
@@ -588,6 +601,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setSelectedParentCategory(parentCategory);
     setSelectedParentSubCategory(parentSubCategory);
     setSubSubCategoryForm({
+      name: '',
       value: '',
       label: '',
       description: '',
@@ -829,6 +843,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             handleCreateMainCategory();
           }} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="mainName">Name *</Label>
+              <Input
+                id="mainName"
+                value={mainCategoryForm.name}
+                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Broadband"
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="mainValue">Value *</Label>
               <Input
                 id="mainValue"
@@ -946,6 +970,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             e.preventDefault();
             handleEditMainCategory();
           }} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mainName">Name *</Label>
+              <Input
+                id="mainName"
+                value={mainCategoryForm.name}
+                onChange={(e) => setMainCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Broadband"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="mainValue">Value *</Label>
               <Input
@@ -1069,6 +1103,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             }
           }} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="subName">Name *</Label>
+              <Input
+                id="subName"
+                value={subCategoryForm.name}
+                onChange={(e) => setSubCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Connection Type"
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="subValue">Value *</Label>
               <Input
                 id="subValue"
@@ -1133,6 +1177,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             }
           }} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="subSubName">Name *</Label>
+              <Input
+                id="subSubName"
+                value={subSubCategoryForm.name}
+                onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Fiber"
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="subSubValue">Value *</Label>
               <Input
                 id="subSubValue"
@@ -1185,6 +1239,7 @@ function getSampleCategories(): CategoryHierarchy[] {
   return [
     {
       id: '1',
+      name: 'Broadband',
       value: 'broadband',
       label: 'Broadband',
       description: 'Internet connectivity services',
@@ -1194,18 +1249,21 @@ function getSampleCategories(): CategoryHierarchy[] {
       subCategories: [
         {
           id: '1-1',
+          name: 'Connection Type',
           value: 'connection_type',
           label: 'Connection Type',
           description: 'Type of internet connection',
           subSubCategories: [
             {
               id: '1-1-1',
+              name: 'Fiber',
               value: 'fiber',
               label: 'Fiber',
               description: 'Fiber optic connection'
             },
             {
               id: '1-1-2',
+              name: 'Cable',
               value: 'cable',
               label: 'Cable',
               description: 'Cable internet connection'
@@ -1216,6 +1274,7 @@ function getSampleCategories(): CategoryHierarchy[] {
     },
     {
       id: '2',
+      name: 'Mobile',
       value: 'mobile',
       label: 'Mobile',
       description: 'Mobile phone services',
@@ -1225,18 +1284,21 @@ function getSampleCategories(): CategoryHierarchy[] {
       subCategories: [
         {
           id: '2-1',
+          name: 'Plan Type',
           value: 'plan_type',
           label: 'Plan Type',
           description: 'Type of mobile plan',
           subSubCategories: [
             {
               id: '2-1-1',
+              name: 'Prepaid',
               value: 'prepaid',
               label: 'Prepaid',
               description: 'Prepaid mobile plans'
             },
             {
               id: '2-1-2',
+              name: 'Postpaid',
               value: 'postpaid',
               label: 'Postpaid',
               description: 'Postpaid mobile plans'
