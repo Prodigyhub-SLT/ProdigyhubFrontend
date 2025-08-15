@@ -11,24 +11,18 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  FolderTree, 
   FolderOpen, 
   Folder,
-  Settings,
-  Smartphone,
   Wifi,
-  Building,
   Building2,
   Cloud,
-  Package,
   Tv,
   Phone,
   Gamepad2,
   Globe,
   Gift,
   ChevronDown,
-  ChevronRight,
-  AlertCircle
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { productCatalogApi } from '@/lib/api';
@@ -87,7 +81,6 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   const [editingSubSubCategory, setEditingSubSubCategory] = useState<SubSubCategory | null>(null);
   const [selectedParentCategory, setSelectedParentCategory] = useState<CategoryHierarchy | null>(null);
   const [selectedParentSubCategory, setSelectedParentSubCategory] = useState<SubCategory | null>(null);
-  const [categoryUsage, setCategoryUsage] = useState<Map<string, boolean>>(new Map());
 
   // Load categories from MongoDB on component mount
   useEffect(() => {
@@ -129,39 +122,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     initializeDefaultCategories();
   }, []);
 
-  // Load category usage information
-  const loadCategoryUsage = async (categories: CategoryHierarchy[]) => {
-    try {
-      const offerings = await productCatalogApi.getOfferings();
-      const usageMap = new Map<string, boolean>();
-      
-      categories.forEach(category => {
-        const isUsed = offerings.some(offering => 
-          offering.category?.some(cat => cat.name === category.name)
-        );
-        usageMap.set(category.id, isUsed);
-      });
-      
-      setCategoryUsage(usageMap);
-    } catch (error) {
-      console.error('Error loading category usage:', error);
-    }
-  };
 
-  // Check if categories are being used by offerings (synchronous from state)
-  const checkCategoryUsage = (categoryId: string): boolean => {
-    return categoryUsage.get(categoryId) || false;
-  };
-
-  // Get category usage statistics
-  const getCategoryUsageStats = () => {
-    // TODO: Integrate with offerings data to get actual usage statistics
-    return {
-      totalOfferings: 0,
-      categoriesInUse: 0,
-      mostUsedCategory: null
-    };
-  };
 
   // Load categories from MongoDB hierarchical category API
   const loadCategories = async () => {
@@ -181,9 +142,6 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         if (onCategoriesChange) {
           onCategoriesChange(hierarchicalCategories);
         }
-        
-        // Load category usage information
-        await loadCategoryUsage(hierarchicalCategories);
       }
     } catch (error) {
       console.error('Error loading hierarchical categories from MongoDB:', error);
@@ -203,18 +161,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   // Icon mapping
   const iconMap: { [key: string]: React.ComponentType<any> } = {
     Wifi,
-    Settings,
-    Smartphone,
     Globe,
-    Package,
     Tv,
     Phone,
     Gamepad2,
     Gift,
     Folder,
     FolderOpen,
-    FolderTree,
-    Building,
     Building2,
     Cloud
   };
@@ -516,54 +469,25 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
   const handleDeleteMainCategory = async (categoryId: string) => {
     try {
-      const categoryToDelete = categories.find(cat => cat.id === categoryId);
-      if (!categoryToDelete) return;
-      
-      // Remove category from offerings first
-      const offerings = await productCatalogApi.getOfferings();
-      const offeringsToUpdate = offerings.filter(offering => 
-        offering.category?.some(cat => cat.name === categoryToDelete.name)
-      );
-      
-      // Update offerings to remove this category
-      for (const offering of offeringsToUpdate) {
-        const updatedOffering = {
-          ...offering,
-          category: offering.category?.filter(cat => cat.name !== categoryToDelete.name)
-        };
-        
-        await productCatalogApi.updateOffering(offering.id, updatedOffering);
-        console.log(`Removed category from offering: ${offering.name}`);
-      }
-      
       // Delete from MongoDB
-      try {
-        await productCatalogApi.deleteHierarchicalCategory(categoryId);
-        console.log(`Main category deleted from MongoDB: ${categoryId}`);
-        
-        // Update local state
-        setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-        if (onCategoriesChange) {
-          onCategoriesChange(categories.filter(cat => cat.id !== categoryId));
-        }
-        
-        toast({
-          title: "Success",
-          description: `Main category deleted successfully from MongoDB and removed from ${offeringsToUpdate.length} offerings`,
-        });
-      } catch (error: any) {
-        console.error('Error deleting main category from MongoDB:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete main category from MongoDB. Resource might not exist.",
-          variant: "destructive",
-        });
+      await productCatalogApi.deleteHierarchicalCategory(categoryId);
+      console.log(`Main category deleted from MongoDB: ${categoryId}`);
+      
+      // Update local state
+      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+      if (onCategoriesChange) {
+        onCategoriesChange(categories.filter(cat => cat.id !== categoryId));
       }
-    } catch (error) {
-      console.error('Error deleting main category:', error);
+      
+      toast({
+        title: "Success",
+        description: "Main category deleted successfully from MongoDB.",
+      });
+    } catch (error: any) {
+      console.error('Error deleting main category from MongoDB:', error);
       toast({
         title: "Error",
-        description: "Failed to delete main category.",
+        description: "Failed to delete main category from MongoDB. Resource might not exist.",
         variant: "destructive",
       });
     }
@@ -907,24 +831,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   <div>
                        <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
             <p className="text-gray-600">Manage the complete SLT hierarchical category structure stored in MongoDB. This includes all categories used in the "Create New Offering" flow: Broadband, Business, Mobile, Cloud Service, Product, PEOTV, Telephone, Gaming & Cloud, IDD, and Promotions.</p>
-           <div className="flex items-center space-x-2 mt-2">
-              <span className="text-sm text-blue-600">💡</span>
-              <span className="text-sm text-gray-600">
-                Categories are stored in MongoDB and can be used in product offerings. Changes here are automatically saved to the database.
-               </span>
-            </div>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-sm text-green-600">🔧</span>
-              <span className="text-sm text-gray-600">
-                Value fields are auto-generated to ensure uniqueness. Use the "Auto" button or leave empty for automatic generation.
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-sm text-orange-600">⚠️</span>
-              <span className="text-sm text-gray-600">
-                If you get a "Resource already exists" error, try using a different name or leave the value field empty.
-              </span>
-            </div>
+           
                          <div className="flex items-center space-x-2 mt-1">
                <span className="text-sm text-blue-600">📁</span>
                <span className="text-sm text-gray-600">
@@ -981,85 +888,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         </div>
       </div>
 
-             {/* Category Usage Statistics */}
-       {categories.length > 0 && (
-         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-           <h3 className="text-lg font-semibold text-blue-900 mb-3">📊 Category Usage Overview</h3>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <div className="bg-white rounded-lg p-4 border border-blue-200">
-               <div className="flex items-center space-x-2">
-                 <Package className="w-5 h-5 text-blue-600" />
-                 <div>
-                   <p className="text-sm text-gray-600">Total Categories</p>
-                   <p className="text-2xl font-bold text-blue-900">{categories.length}</p>
-                 </div>
-               </div>
-             </div>
-             <div className="bg-white rounded-lg p-4 border border-blue-200">
-               <div className="flex items-center space-x-2">
-                 <FolderTree className="w-5 h-5 text-green-600" />
-                 <div>
-                   <p className="text-sm text-gray-600">Total Sub-categories</p>
-                   <p className="text-2xl font-bold text-green-900">
-                     {categories.reduce((total, cat) => total + (cat.subCategories?.length || 0), 0)}
-                   </p>
-                 </div>
-               </div>
-             </div>
-             <div className="bg-white rounded-lg p-4 border border-blue-200">
-               <div className="flex items-center space-x-2">
-                 <Settings className="w-5 h-5 text-purple-600" />
-                 <div>
-                   <p className="text-sm text-gray-600">Categories in Use</p>
-                   <p className="text-2xl font-bold text-purple-900">
-                     {Array.from(categoryUsage.values()).filter(used => used).length}
-                   </p>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
-       )}
-
-       {/* Commonly Used Categories in Offerings */}
-       {categories.length > 0 && (
-         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-           <h3 className="text-lg font-semibold text-blue-900 mb-3">📊 Categories Used in Offerings</h3>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-             {categories.map((category) => (
-               <div key={category.id} className="bg-white rounded-md p-3 border border-blue-200">
-                 <div className="flex items-center justify-between mb-2">
-                   <div className="flex items-center space-x-2">
-                     {React.createElement(getIconComponent(category.icon), { 
-                       className: `w-4 h-4 ${category.color}` 
-                     })}
-                     <span className="font-medium text-sm">{category.label}</span>
-                   </div>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={() => openEditMainCategory(category)}
-                     className="h-6 w-6 p-0"
-                   >
-                     <Edit className="w-3 h-3" />
-                   </Button>
-                 </div>
-                 <p className="text-xs text-gray-600 mb-2">{category.description}</p>
-                 <div className="flex items-center justify-between text-xs">
-                   <span className="text-blue-600">
-                     {category.subCategories?.length || 0} sub-categories
-                   </span>
-                   {checkCategoryUsage(category.id) && (
-                     <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                       Active in Offerings
-                     </Badge>
-                   )}
-                 </div>
-               </div>
-             ))}
-           </div>
-         </div>
-       )}
+             
 
        {/* Hierarchy Summary */}
        {categories.length > 0 && (
@@ -1095,22 +924,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                <div className="text-sm text-purple-700">Total Items</div>
              </div>
            </div>
-                       <div className="mt-3 text-center">
-              <p className="text-sm text-indigo-700">
-                💡 <strong>Tip:</strong> This shows the complete SLT category structure used in the "Create New Offering" flow. Click arrow buttons (▶️) to expand categories and see all levels. Use edit buttons (✏️) to modify any category level.
-              </p>
-             <div className="mt-2 flex justify-center space-x-4 text-xs text-indigo-600">
-               <span>
-                 🔵 <strong>{expandedCategories.size}</strong> main categories expanded
-               </span>
-               <span>
-                 🟢 <strong>{expandedSubCategories.size}</strong> sub-categories expanded
-               </span>
-               <span>
-                 📊 <strong>{categories.length}</strong> total main categories
-               </span>
-             </div>
-           </div>
+                                               <div className="mt-3 text-center">
+               <p className="text-sm text-indigo-700">
+                 💡 <strong>Tip:</strong> This shows the complete SLT category structure used in the "Create New Offering" flow. Click arrow buttons (▶️) to expand categories and see all levels. Use edit buttons (✏️) to modify any category level.
+               </p>
+            </div>
          </div>
        )}
 
@@ -1178,11 +996,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                        <Badge variant="outline" className="text-xs">
                          {category.subCategories?.length || 0} sub-categories
                        </Badge>
-                       {checkCategoryUsage(category.id) && (
-                         <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                           Used in Offerings
-                         </Badge>
-                       )}
+                       
                        <Button
                          variant="outline"
                          size="sm"
@@ -1196,8 +1010,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                          size="sm"
                          onClick={() => handleDeleteMainCategory(category.id)}
                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                         disabled={checkCategoryUsage(category.id)}
-                         title={checkCategoryUsage(category.id) ? "Cannot delete category used by offerings" : "Delete category"}
+                                                   disabled={false}
+                          title="Delete category"
                        >
                          <Trash2 className="w-4 h-4" />
                        </Button>
@@ -1254,11 +1068,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                                   <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
                                     {subCategory.subSubCategories?.length || 0} sub-sub-categories
                                   </Badge>
-                                  {checkCategoryUsage(subCategory.id) && (
-                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                                      Used
-                                    </Badge>
-                                  )}
+                                  
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -1273,8 +1083,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                                     size="sm"
                                     onClick={() => handleDeleteSubCategory(category.id, subCategory.id)}
                                     className="h-6 w-6 p-0 text-red-600 hover:text-red-700 border-red-300"
-                                    disabled={checkCategoryUsage(subCategory.id)}
-                                    title={checkCategoryUsage(subCategory.id) ? "Cannot delete sub-category used by offerings" : "Delete sub-category"}
+                                                                         disabled={false}
+                                     title="Delete sub-category"
                                   >
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
