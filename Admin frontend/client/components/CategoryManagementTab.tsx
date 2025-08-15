@@ -33,6 +33,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { productCatalogApi } from '@/lib/api';
 import { CategoryHierarchy, SubCategory, SubSubCategory } from '../../shared/product-order-types';
+import { SLT_CATEGORIES, getSubCategories, getSubSubCategories } from './types/SLTTypes';
 
 interface CategoryManagementTabProps {
   onCategoriesChange?: (categories: CategoryHierarchy[]) => void;
@@ -230,152 +231,40 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Helper function to generate temporary IDs
       const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      const defaultCategories: CategoryHierarchy[] = [
-        {
+      // Convert SLT_CATEGORIES to CategoryHierarchy format for MongoDB
+      const defaultCategories: CategoryHierarchy[] = SLT_CATEGORIES.map(sltCategory => {
+        const subCategories: SubCategory[] = (sltCategory.subCategories || []).map(sltSub => {
+          const subSubCategories: SubSubCategory[] = (sltSub.subSubCategories || []).map(sltSubSub => ({
+            id: generateTempId(),
+            name: sltSubSub.value.toLowerCase().replace(/\s+/g, '_'),
+            value: sltSubSub.value,
+            label: sltSubSub.label,
+            description: sltSubSub.description
+          }));
+          
+          return {
+            id: generateTempId(),
+            name: sltSub.value.toLowerCase().replace(/\s+/g, '_'),
+            value: sltSub.value,
+            label: sltSub.label,
+            description: sltSub.description,
+            subSubCategories
+          };
+        });
+        
+        return {
           id: generateTempId(),
-          name: 'broadband',
-          value: 'broadband',
-          label: 'Broadband',
-          description: 'Fiber, ADSL, and wireless internet services',
-          color: 'text-orange-600',
-          bgColor: 'bg-orange-50',
-          icon: 'Wifi',
-          subCategories: [
-            {
-              id: generateTempId(),
-              name: 'connection_type',
-              value: 'connection_type',
-              label: 'Connection Type',
-              description: 'Type of internet connection',
-              subSubCategories: [
-                {
-                  id: generateTempId(),
-                  name: 'fiber',
-                  value: 'fiber',
-                  label: 'Fiber',
-                  description: 'Fiber optic connection'
-                },
-                {
-                  id: generateTempId(),
-                  name: 'adsl',
-                  value: 'adsl',
-                  label: 'ADSL',
-                  description: 'ADSL connection'
-                }
-              ]
-            }
-          ],
+          name: sltCategory.value.toLowerCase().replace(/\s+/g, '_'),
+          value: sltCategory.value,
+          label: sltCategory.label,
+          description: sltCategory.description,
+          color: sltCategory.color,
+          bgColor: `bg-${sltCategory.color.replace('text-', '').replace('-500', '-50').replace('-600', '-50')}`,
+          icon: sltCategory.icon,
+          subCategories,
           '@type': 'HierarchicalCategory'
-        },
-        {
-          id: generateTempId(),
-          name: 'mobile',
-          value: 'mobile',
-          label: 'Mobile',
-          description: 'Mobile data plans and voice services',
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-50',
-          icon: 'Smartphone',
-          subCategories: [
-            {
-              id: generateTempId(),
-              name: 'plan_type',
-              value: 'plan_type',
-              label: 'Plan Type',
-              description: 'Type of mobile plan',
-              subSubCategories: [
-                {
-                  id: generateTempId(),
-                  name: 'prepaid',
-                  value: 'prepaid',
-                  label: 'Prepaid',
-                  description: 'Prepaid mobile plan'
-                },
-                {
-                  id: generateTempId(),
-                  name: 'postpaid',
-                  value: 'postpaid',
-                  label: 'Postpaid',
-                  description: 'Postpaid mobile plan'
-                }
-              ]
-            }
-          ],
-          '@type': 'HierarchicalCategory'
-        },
-        {
-          id: generateTempId(),
-          name: 'business',
-          value: 'business',
-          label: 'Business',
-          description: 'Enterprise solutions and dedicated services',
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          icon: 'Building2',
-          subCategories: [
-            {
-              id: generateTempId(),
-              name: 'service_type',
-              value: 'service_type',
-              label: 'Service Type',
-              description: 'Type of business service',
-              subSubCategories: [
-                {
-                  id: generateTempId(),
-                  name: 'dedicated',
-                  value: 'dedicated',
-                  label: 'Dedicated',
-                  description: 'Dedicated business service'
-                },
-                {
-                  id: generateTempId(),
-                  name: 'shared',
-                  value: 'shared',
-                  label: 'Shared',
-                  description: 'Shared business service'
-                }
-              ]
-            }
-          ],
-          '@type': 'HierarchicalCategory'
-        },
-        {
-          id: generateTempId(),
-          name: 'cloud_service',
-          value: 'cloud_service',
-          label: 'Cloud Service',
-          description: 'Cloud hosting, storage, and computing services',
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          icon: 'Globe',
-          subCategories: [
-            {
-              id: generateTempId(),
-              name: 'service_category',
-              value: 'service_category',
-              label: 'Service Category',
-              description: 'Category of cloud service',
-              subSubCategories: [
-                {
-                  id: generateTempId(),
-                  name: 'hosting',
-                  value: 'hosting',
-                  label: 'Hosting',
-                  description: 'Cloud hosting service'
-                },
-                {
-                  id: generateTempId(),
-                  name: 'storage',
-                  value: 'storage',
-                  label: 'Storage',
-                  description: 'Cloud storage service'
-                }
-              ]
-            }
-          ],
-          '@type': 'HierarchicalCategory'
-        }
-      ];
+        };
+      });
       
       // Save each default category to MongoDB
       for (const category of defaultCategories) {
@@ -390,17 +279,17 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Reload categories from MongoDB
       await loadCategories();
       
-      toast({
-        title: "Success",
-        description: "Default categories loaded to MongoDB successfully!",
-      });
+             toast({
+         title: "Success",
+         description: "Complete SLT category structure loaded to MongoDB successfully! This includes all categories used in the 'Create New Offering' flow.",
+       });
     } catch (error) {
       console.error('Error loading default categories to MongoDB:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load default categories to MongoDB.",
-        variant: "destructive",
-      });
+             toast({
+         title: "Error",
+         description: "Failed to load complete SLT category structure to MongoDB.",
+         variant: "destructive",
+       });
     } finally {
       setLoading(false);
     }
@@ -1016,8 +905,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
              {/* Header */}
        <div className="flex items-center justify-between">
                   <div>
-           <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
-           <p className="text-gray-600">Manage hierarchical categories stored in MongoDB. Create, edit, and delete main categories, sub-categories, and sub-sub-categories.</p>
+                       <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+            <p className="text-gray-600">Manage the complete SLT hierarchical category structure stored in MongoDB. This includes all categories used in the "Create New Offering" flow: Broadband, Business, Mobile, Cloud Service, Product, PEOTV, Telephone, Gaming & Cloud, IDD, and Promotions.</p>
            <div className="flex items-center space-x-2 mt-2">
               <span className="text-sm text-blue-600">💡</span>
               <span className="text-sm text-gray-600">
@@ -1036,12 +925,12 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                 If you get a "Resource already exists" error, try using a different name or leave the value field empty.
               </span>
             </div>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-sm text-blue-600">📁</span>
-              <span className="text-sm text-gray-600">
-                <strong>Hierarchical Editing:</strong> Click the arrow buttons to expand categories and see/edit sub-categories and sub-sub-categories. All changes are automatically saved to MongoDB.
-              </span>
-            </div>
+                         <div className="flex items-center space-x-2 mt-1">
+               <span className="text-sm text-blue-600">📁</span>
+               <span className="text-sm text-gray-600">
+                 <strong>Complete SLT Structure:</strong> This tab now shows the exact same hierarchical categories used in the "Create New Offering" flow. Click arrow buttons to expand and see all sub-categories and sub-sub-categories.
+               </span>
+             </div>
             <div className="flex items-center space-x-2 mt-1">
               <span className="text-sm text-green-600">✏️</span>
               <span className="text-sm text-gray-600">
@@ -1058,14 +947,14 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
           <Button onClick={loadCategories} variant="outline" disabled={loading}>
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
-          <Button 
-            onClick={loadDefaultCategoriesToMongoDB} 
-            variant="outline" 
-            className="text-green-600 border-green-600 hover:bg-green-50"
-            title="Load default categories (Broadband, Mobile, Business, Cloud Service) to MongoDB"
-          >
-            Load Default Categories
-          </Button>
+                     <Button 
+             onClick={loadDefaultCategoriesToMongoDB} 
+             variant="outline" 
+             className="text-green-600 border-green-600 hover:bg-green-50"
+             title="Load complete SLT category structure (Broadband, Business, Mobile, Cloud Service, Product, PEOTV, Telephone, Gaming & Cloud, IDD, Promotions) to MongoDB"
+           >
+             Load Complete SLT Categories
+           </Button>
           <Button 
             onClick={loadSampleDataToMongoDB} 
             variant="outline" 
@@ -1206,10 +1095,10 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                <div className="text-sm text-purple-700">Total Items</div>
              </div>
            </div>
-           <div className="mt-3 text-center">
-             <p className="text-sm text-indigo-700">
-               💡 <strong>Tip:</strong> Click the arrow buttons (▶️) to expand categories and see all levels. Use edit buttons (✏️) to modify any category level.
-             </p>
+                       <div className="mt-3 text-center">
+              <p className="text-sm text-indigo-700">
+                💡 <strong>Tip:</strong> This shows the complete SLT category structure used in the "Create New Offering" flow. Click arrow buttons (▶️) to expand categories and see all levels. Use edit buttons (✏️) to modify any category level.
+              </p>
              <div className="mt-2 flex justify-center space-x-4 text-xs text-indigo-600">
                <span>
                  🔵 <strong>{expandedCategories.size}</strong> main categories expanded
@@ -1235,23 +1124,23 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             </div>
           </div>
         ) : categories.length === 0 ? (
-          <div className="text-center p-8">
-            <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found in MongoDB</h3>
-            <p className="text-gray-600 mb-4">Add a main category to get started with your hierarchical category management.</p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Create First Category
-              </Button>
-              <Button onClick={loadSampleDataToMongoDB} variant="outline" className="text-amber-600 border-amber-600">
-                Load Sample Data
-              </Button>
-              <Button onClick={loadCategories} variant="outline">
-                Retry Load
-              </Button>
-            </div>
-          </div>
+                     <div className="text-center p-8">
+             <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+             <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found in MongoDB</h3>
+             <p className="text-gray-600 mb-4">Load the complete SLT category structure to get started with your hierarchical category management. This will include all categories used in the "Create New Offering" flow.</p>
+             <div className="flex gap-2 justify-center">
+               <Button onClick={loadDefaultCategoriesToMongoDB} className="bg-green-600 hover:bg-green-700">
+                 <Plus className="w-4 h-4 mr-2" />
+                 Load Complete SLT Categories
+               </Button>
+               <Button onClick={loadSampleDataToMongoDB} variant="outline" className="text-amber-600 border-amber-600">
+                 Load Sample Data
+               </Button>
+               <Button onClick={loadCategories} variant="outline">
+                 Retry Load
+               </Button>
+             </div>
+           </div>
         ) : (
           categories.map((category) => {
             const IconComponent = getIconComponent(category.icon);
@@ -2062,76 +1951,39 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
 // Sample data for testing when backend is not available
 function getSampleCategories(): CategoryHierarchy[] {
-  return [
-    {
-      id: '1',
-      name: 'Broadband',
-      value: 'broadband',
-      label: 'Broadband',
-      description: 'Internet connectivity services',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      icon: 'Wifi',
-      subCategories: [
-        {
-          id: '1-1',
-          name: 'Connection Type',
-          value: 'connection_type',
-          label: 'Connection Type',
-          description: 'Type of internet connection',
-          subSubCategories: [
-            {
-              id: '1-1-1',
-              name: 'Fiber',
-              value: 'fiber',
-              label: 'Fiber',
-              description: 'Fiber optic connection'
-            },
-            {
-              id: '1-1-2',
-              name: 'Cable',
-              value: 'cable',
-              label: 'Cable',
-              description: 'Cable internet connection'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Mobile',
-      value: 'mobile',
-      label: 'Mobile',
-      description: 'Mobile phone services',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      icon: 'Smartphone',
-      subCategories: [
-        {
-          id: '2-1',
-          name: 'Plan Type',
-          value: 'plan_type',
-          label: 'Plan Type',
-          description: 'Type of mobile plan',
-          subSubCategories: [
-            {
-              id: '2-1-1',
-              name: 'Prepaid',
-              value: 'prepaid',
-              label: 'Prepaid',
-              description: 'Prepaid mobile plans'
-            },
-            {
-              id: '2-1-2',
-              name: 'Postpaid',
-              value: 'postpaid',
-              label: 'Postpaid',
-              description: 'Postpaid mobile plans'
-            }
-          ]
-        }
-      ]
-    }
-  ];
+  // Use the first few categories from SLT_CATEGORIES as sample data
+  const sampleSLTCategories = SLT_CATEGORIES.slice(0, 3); // Take first 3 categories
+  
+  return sampleSLTCategories.map((sltCategory, index) => {
+    const subCategories: SubCategory[] = (sltCategory.subCategories || []).map((sltSub, subIndex) => {
+      const subSubCategories: SubSubCategory[] = (sltSub.subSubCategories || []).map((sltSubSub, subSubIndex) => ({
+        id: `${index + 1}-${subIndex + 1}-${subSubIndex + 1}`,
+        name: sltSubSub.value.toLowerCase().replace(/\s+/g, '_'),
+        value: sltSubSub.value,
+        label: sltSubSub.label,
+        description: sltSubSub.description
+      }));
+      
+      return {
+        id: `${index + 1}-${subIndex + 1}`,
+        name: sltSub.value.toLowerCase().replace(/\s+/g, '_'),
+        value: sltSub.value,
+        label: sltSub.label,
+        description: sltSub.description,
+        subSubCategories
+      };
+    });
+    
+    return {
+      id: `${index + 1}`,
+      name: sltCategory.value.toLowerCase().replace(/\s+/g, '_'),
+      value: sltCategory.value,
+      label: sltCategory.label,
+      description: sltCategory.description,
+      color: sltCategory.color,
+      bgColor: `bg-${sltCategory.color.replace('text-', '').replace('-500', '-50').replace('-600', '-50')}`,
+      icon: sltCategory.icon,
+      subCategories
+    };
+  });
 }
