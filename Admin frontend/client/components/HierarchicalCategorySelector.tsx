@@ -114,46 +114,72 @@ export default function HierarchicalCategorySelector({
     <div className="space-y-6">
       <Label className="text-base font-medium">Select Product Category *</Label>
       
+      {/* Debug Info */}
+      <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+        <p>Categories loaded: {categories.length}</p>
+        <p>Selected category: {selectedCategory || 'None'}</p>
+        <p>Selected sub-category: {selectedSubCategory || 'None'}</p>
+        <p>Selected sub-sub-category: {selectedSubSubCategory || 'None'}</p>
+      </div>
+      
       {/* Main Categories */}
       <div className="space-y-4">
         <Label className="text-sm font-medium text-gray-700">Main Category</Label>
-        <div className="grid grid-cols-1 gap-3">
-          {categories.map((category) => {
-            const IconComponent = iconMap[category.icon as keyof typeof iconMap] || Package;
-            const isSelected = selectedCategory === category.value;
-            
-            return (
-              <Card 
-                key={category.value}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  isSelected
-                    ? 'ring-2 ring-blue-500 bg-blue-50' 
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => handleCategoryChange(category.value)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      isSelected 
-                        ? 'bg-blue-100' 
-                        : 'bg-gray-100'
-                    }`}>
-                      <IconComponent className={`w-5 h-5 ${category.color}`} />
+        
+        {categories.length === 0 ? (
+          <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+            <div className="text-gray-500 mb-2">
+              <Package className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-sm font-medium">No categories available</p>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Categories need to be loaded from the Categories Tab first.
+            </p>
+            <div className="text-xs text-gray-400">
+              <p>• Go to the <strong>Categories Tab</strong></p>
+              <p>• Click <strong>"Load Complete SLT Categories"</strong></p>
+              <p>• Or create your own categories</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {categories.map((category) => {
+              const IconComponent = iconMap[category.icon as keyof typeof iconMap] || Package;
+              const isSelected = selectedCategory === category.value;
+              
+              return (
+                <Card 
+                  key={category.value}
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    isSelected
+                      ? 'ring-2 ring-blue-500 bg-blue-50' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleCategoryChange(category.value)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        isSelected 
+                          ? 'bg-blue-100' 
+                          : 'bg-gray-100'
+                      }`}>
+                        <IconComponent className={`w-5 h-5 ${category.color}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{category.label}</h3>
+                        <p className="text-sm text-gray-500">{category.description}</p>
+                      </div>
+                      {isSelected && (
+                        <CheckCircle className="w-5 h-5 text-blue-500" />
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{category.label}</h3>
-                      <p className="text-sm text-gray-500">{category.description}</p>
-                    </div>
-                    {isSelected && (
-                      <CheckCircle className="w-5 h-5 text-blue-500" />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* For Broadband: Multiple Sub-Categories */}

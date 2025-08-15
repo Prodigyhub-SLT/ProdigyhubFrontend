@@ -34,7 +34,7 @@ import { useMongoOfferingsLogic, MongoProductOffering, CustomAttribute } from ".
 import { useMongoSpecsLogic, MongoProductSpec, SpecCharacteristic } from "../hooks/useMongoSpecsLogic";
 import { EnhancedPricesTab } from "../components/EnhancedPricesTab";
 import { CategoryManagementTab } from "../components/CategoryManagementTab";
-import { CategoryHierarchy } from "../../shared/product-order-types";
+import { CategoryHierarchy, SubCategory, SubSubCategory } from "../../shared/product-order-types";
 
 import type { 
   Category, 
@@ -79,6 +79,90 @@ export default function ProductCatalogDashboard() {
 
   // MongoDB categories state for dynamic category management
   const [mongoCategories, setMongoCategories] = useState<CategoryHierarchy[]>([]);
+
+  // Load categories automatically when component mounts
+  useEffect(() => {
+    const loadInitialCategories = async () => {
+      try {
+        const existingCategories = await productCatalogApi.getHierarchicalCategories();
+        if (existingCategories.length === 0) {
+          console.log('No categories found in MongoDB, initializing with default categories...');
+          // Load default categories automatically
+          const defaultCategories = await loadDefaultCategories();
+          setMongoCategories(defaultCategories);
+        } else {
+          console.log('Loaded existing categories from MongoDB:', existingCategories);
+          setMongoCategories(existingCategories);
+        }
+      } catch (error) {
+        console.error('Error loading initial categories:', error);
+        // If API fails, try to load default categories
+        const defaultCategories = await loadDefaultCategories();
+        setMongoCategories(defaultCategories);
+      }
+    };
+
+    loadInitialCategories();
+  }, []);
+
+  // Helper function to load default categories
+  const loadDefaultCategories = async (): Promise<CategoryHierarchy[]> => {
+    try {
+      // Import SLT categories and convert them
+      const { SLT_CATEGORIES } = await import('../components/types/SLTTypes');
+      
+      const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const defaultCategories: CategoryHierarchy[] = SLT_CATEGORIES.map(sltCategory => {
+        const subCategories: SubCategory[] = (sltCategory.subCategories || []).map(sltSub => {
+          const subSubCategories: SubSubCategory[] = (sltSub.subSubCategories || []).map(sltSubSub => ({
+            id: generateTempId(),
+            name: sltSubSub.value.toLowerCase().replace(/\s+/g, '_'),
+            value: sltSubSub.value,
+            label: sltSubSub.label,
+            description: sltSubSub.description
+          }));
+          
+          return {
+            id: generateTempId(),
+            name: sltSub.value.toLowerCase().replace(/\s+/g, '_'),
+            value: sltSub.value,
+            label: sltSub.label,
+            description: sltSub.description,
+            subSubCategories
+          };
+        });
+        
+        return {
+          id: generateTempId(),
+          name: sltCategory.value.toLowerCase().replace(/\s+/g, '_'),
+          value: sltCategory.value,
+          label: sltCategory.label,
+          description: sltCategory.description,
+          color: sltCategory.color,
+          bgColor: `bg-${sltCategory.color.replace('text-', '').replace('-500', '-50').replace('-600', '-50')}`,
+          icon: sltCategory.icon,
+          subCategories,
+          '@type': 'HierarchicalCategory'
+        };
+      });
+
+      // Try to save to MongoDB
+      for (const category of defaultCategories) {
+        try {
+          await productCatalogApi.createHierarchicalCategory(category);
+          console.log(`Default category saved to MongoDB: ${category.name}`);
+        } catch (error) {
+          console.warn(`Failed to save default category ${category.name}:`, error);
+        }
+      }
+
+      return defaultCategories;
+    } catch (error) {
+      console.error('Error loading default categories:', error);
+      return [];
+    }
+  };
 
   // MongoDB Offerings Logic
   const {
