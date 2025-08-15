@@ -252,6 +252,12 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       };
 
       const createdCategory = await productCatalogApi.createHierarchicalCategory(newCategory as CategoryHierarchy);
+      
+      // Update the form with the actual value returned by the backend
+      if (createdCategory.value !== uniqueValue) {
+        console.log('Backend generated different value:', createdCategory.value, 'instead of:', uniqueValue);
+      }
+      
       setCategories(prev => [...prev, createdCategory]);
       if (onCategoriesChange) {
         onCategoriesChange([...categories, createdCategory]);
@@ -264,11 +270,22 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       
       setCreateMainDialogOpen(false);
       resetMainCategoryForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating main category:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to create main category.";
+      if (error.message?.includes('409')) {
+        errorMessage = "Category with this name or value already exists. Please use a different name.";
+      } else if (error.message?.includes('400')) {
+        errorMessage = "Invalid data provided. Please check all required fields.";
+      } else if (error.message?.includes('500')) {
+        errorMessage = "Server error. Please try again later.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create main category. The backend API may not be fully implemented yet.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -654,6 +671,12 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               <span className="text-sm text-green-600">🔧</span>
               <span className="text-sm text-gray-600">
                 Value fields are auto-generated to ensure uniqueness. Use the "Auto" button or leave empty for automatic generation.
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className="text-sm text-orange-600">⚠️</span>
+              <span className="text-sm text-gray-600">
+                If you get a "Resource already exists" error, try using a different name or leave the value field empty.
               </span>
             </div>
            {categories.length === 0 && !loading && (

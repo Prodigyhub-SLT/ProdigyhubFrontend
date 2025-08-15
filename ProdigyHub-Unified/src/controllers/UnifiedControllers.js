@@ -216,7 +216,18 @@ class TMF620Controller {
       
       // Set defaults for optional fields
       if (!categoryData.value) {
-        categoryData.value = categoryData.name.toLowerCase().replace(/\s+/g, '_');
+        // Generate a unique value by checking existing categories
+        let baseValue = categoryData.name.toLowerCase().replace(/\s+/g, '_');
+        let uniqueValue = baseValue;
+        let counter = 1;
+        
+        // Check if value already exists and generate a unique one
+        while (await HierarchicalCategory.findOne({ value: uniqueValue })) {
+          uniqueValue = `${baseValue}_${counter}`;
+          counter++;
+        }
+        
+        categoryData.value = uniqueValue;
       }
       if (!categoryData.label) {
         categoryData.label = categoryData.name;

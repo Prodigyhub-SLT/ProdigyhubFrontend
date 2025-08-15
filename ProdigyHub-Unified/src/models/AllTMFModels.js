@@ -31,7 +31,7 @@ const CategorySchema = new mongoose.Schema({
 const HierarchicalCategorySchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
   name: { type: String, required: true },
-  value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
+  value: { type: String, required: false, unique: true, sparse: true },
   label: { type: String, required: false, default: function() { return this.name || 'Unnamed Category'; } },
   description: { type: String, default: '' },
   color: { type: String, required: false, default: 'text-blue-600' },
@@ -40,13 +40,13 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   subCategories: [{
     id: { type: String, unique: true, required: true, default: uuidv4 },
     name: { type: String, required: true },
-    value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
+    value: { type: String, required: false, unique: true, sparse: true },
     label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Category'; } },
     description: { type: String, default: '' },
     subSubCategories: [{
       id: { type: String, unique: true, required: true, default: uuidv4 },
       name: { type: String, required: true },
-      value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
+      value: { type: String, required: false, unique: true, sparse: true },
       label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Sub-Category'; } },
       description: { type: String, default: '' }
     }]
@@ -56,6 +56,38 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   timestamps: true,
   collection: 'hierarchical_categories'
 });
+
+// Pre-save hook to ensure unique values
+HierarchicalCategorySchema.pre('save', async function(next) {
+  if (this.isModified('value') && this.value) {
+    // Check if value already exists
+    const existing = await this.constructor.findOne({ 
+      value: this.value, 
+      _id: { $ne: this._id } 
+    });
+    
+    if (existing) {
+      // Generate a unique value
+      let baseValue = this.value;
+      let uniqueValue = baseValue;
+      let counter = 1;
+      
+      while (await this.constructor.findOne({ 
+        value: uniqueValue, 
+        _id: { $ne: this._id } 
+      })) {
+        uniqueValue = `${baseValue}_${counter}`;
+        counter++;
+      }
+      
+      this.value = uniqueValue;
+    }
+  }
+  next();
+});
+
+// Create compound index for value uniqueness
+HierarchicalCategorySchema.index({ value: 1 }, { unique: true, sparse: true });
 
 const ProductSpecificationSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
