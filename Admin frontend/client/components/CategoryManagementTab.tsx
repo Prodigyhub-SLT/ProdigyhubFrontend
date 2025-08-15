@@ -248,40 +248,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
   };
 
-  // Load sample data to MongoDB for testing
-  const loadSampleDataToMongoDB = async () => {
-    try {
-      setLoading(true);
-      const sampleCategories = getSampleCategories();
-      
-      // Save each sample category to MongoDB
-      for (const category of sampleCategories) {
-        try {
-          await productCatalogApi.createHierarchicalCategory(category);
-          console.log(`Sample category saved to MongoDB: ${category.name}`);
-        } catch (error) {
-          console.warn(`Failed to save sample category ${category.name}:`, error);
-        }
-      }
-      
-      // Reload categories from MongoDB
-      await loadCategories();
-      
-      toast({
-        title: "Success",
-        description: "Sample data loaded to MongoDB successfully.",
-      });
-    } catch (error) {
-      console.error('Error loading sample data to MongoDB:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load sample data to MongoDB.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const toggleCategoryExpansion = (categoryValue: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -862,14 +829,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
            >
              Load Complete SLT Categories
            </Button>
-          <Button 
-            onClick={loadSampleDataToMongoDB} 
-            variant="outline" 
-            className="text-amber-600 border-amber-600 hover:bg-amber-50"
-            title="Load sample data to MongoDB for testing"
-          >
-            Load Sample Data
-          </Button>
+          
           <Button 
             onClick={() => {
               setExpandedCategories(new Set());
@@ -890,47 +850,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
 
              
 
-       {/* Hierarchy Summary */}
-       {categories.length > 0 && (
-         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
-           <h3 className="text-lg font-semibold text-indigo-900 mb-3">🏗️ Category Hierarchy Overview</h3>
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
-               <div className="text-2xl font-bold text-indigo-600">{categories.length}</div>
-               <div className="text-sm text-indigo-700">Main Categories</div>
-             </div>
-             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
-               <div className="text-2xl font-bold text-blue-600">
-                 {categories.reduce((total, cat) => total + (cat.subCategories?.length || 0), 0)}
-               </div>
-               <div className="text-sm text-blue-700">Sub-categories</div>
-             </div>
-             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
-               <div className="text-2xl font-bold text-green-600">
-                 {categories.reduce((total, cat) => 
-                   total + (cat.subCategories?.reduce((subTotal, sub) => 
-                     subTotal + (sub.subSubCategories?.length || 0), 0) || 0), 0)
-                 }
-               </div>
-               <div className="text-sm text-green-700">Sub-sub-categories</div>
-             </div>
-             <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
-               <div className="text-2xl font-bold text-purple-600">
-                 {categories.reduce((total, cat) => 
-                   total + (cat.subCategories?.reduce((subTotal, sub) => 
-                     subTotal + (sub.subSubCategories?.length || 0), 0) || 0) + (cat.subCategories?.length || 0), 0)
-                 }
-               </div>
-               <div className="text-sm text-purple-700">Total Items</div>
-             </div>
-           </div>
-                                               <div className="mt-3 text-center">
-               <p className="text-sm text-indigo-700">
-                 💡 <strong>Tip:</strong> This shows the complete SLT category structure used in the "Create New Offering" flow. Click arrow buttons (▶️) to expand categories and see all levels. Use edit buttons (✏️) to modify any category level.
-               </p>
-            </div>
-         </div>
-       )}
+       
 
        {/* Categories List */}
        <div className="space-y-4">
@@ -951,9 +871,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                  <Plus className="w-4 h-4 mr-2" />
                  Load Complete SLT Categories
                </Button>
-               <Button onClick={loadSampleDataToMongoDB} variant="outline" className="text-amber-600 border-amber-600">
-                 Load Sample Data
-               </Button>
+               
                <Button onClick={loadCategories} variant="outline">
                  Retry Load
                </Button>
@@ -1759,41 +1677,4 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   );
 }
 
-// Sample data for testing when backend is not available
-function getSampleCategories(): CategoryHierarchy[] {
-  // Use the first few categories from SLT_CATEGORIES as sample data
-  const sampleSLTCategories = SLT_CATEGORIES.slice(0, 3); // Take first 3 categories
-  
-  return sampleSLTCategories.map((sltCategory, index) => {
-    const subCategories: SubCategory[] = (sltCategory.subCategories || []).map((sltSub, subIndex) => {
-      const subSubCategories: SubSubCategory[] = (sltSub.subSubCategories || []).map((sltSubSub, subSubIndex) => ({
-        id: `${index + 1}-${subIndex + 1}-${subSubIndex + 1}`,
-        name: sltSubSub.value.toLowerCase().replace(/\s+/g, '_'),
-        value: sltSubSub.value,
-        label: sltSubSub.label,
-        description: sltSubSub.description
-      }));
-      
-      return {
-        id: `${index + 1}-${subIndex + 1}`,
-        name: sltSub.value.toLowerCase().replace(/\s+/g, '_'),
-        value: sltSub.value,
-        label: sltSub.label,
-        description: sltSub.description,
-        subSubCategories
-      };
-    });
-    
-    return {
-      id: `${index + 1}`,
-      name: sltCategory.value.toLowerCase().replace(/\s+/g, '_'),
-      value: sltCategory.value,
-      label: sltCategory.label,
-      description: sltCategory.description,
-      color: sltCategory.color,
-      bgColor: `bg-${sltCategory.color.replace('text-', '').replace('-500', '-50').replace('-600', '-50')}`,
-      icon: sltCategory.icon,
-      subCategories
-    };
-  });
-}
+
