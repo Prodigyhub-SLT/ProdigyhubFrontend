@@ -158,6 +158,46 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
   };
 
+  // Clear all existing categories from MongoDB (for testing/reset purposes)
+  const clearAllCategories = async () => {
+    try {
+      setLoading(true);
+      
+      // Delete all existing categories
+      for (const category of categories) {
+        try {
+          await productCatalogApi.deleteHierarchicalCategory(category.id);
+          console.log(`Deleted category: ${category.name}`);
+        } catch (error) {
+          console.warn(`Failed to delete category ${category.name}:`, error);
+        }
+      }
+      
+      // Clear local state
+      setCategories([]);
+      if (onCategoriesChange) {
+        onCategoriesChange([]);
+      }
+      
+      toast({
+        title: "Success",
+        description: "All categories cleared from MongoDB.",
+      });
+      
+      // Reload categories
+      await loadCategories();
+    } catch (error) {
+      console.error('Error clearing categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear categories from MongoDB.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Icon mapping
   const iconMap: { [key: string]: React.ComponentType<any> } = {
     Wifi,
@@ -222,8 +262,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Save each default category to MongoDB
       for (const category of defaultCategories) {
         try {
-          await productCatalogApi.createHierarchicalCategory(category);
-          console.log(`Default category saved to MongoDB: ${category.name}`);
+          // Check if category already exists
+          const existingCategories = await productCatalogApi.getHierarchicalCategories();
+          const exists = existingCategories.some(existing => 
+            existing.value === category.value || existing.name === category.name
+          );
+          
+          if (!exists) {
+            await productCatalogApi.createHierarchicalCategory(category);
+            console.log(`Default category saved to MongoDB: ${category.name}`);
+          } else {
+            console.log(`Category already exists, skipping: ${category.name}`);
+          }
         } catch (error) {
           console.warn(`Failed to save default category ${category.name}:`, error);
         }
@@ -232,23 +282,40 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Reload categories from MongoDB
       await loadCategories();
       
-             toast({
-         title: "Success",
-         description: "Complete SLT category structure loaded to MongoDB successfully! This includes all categories used in the 'Create New Offering' flow.",
-       });
+      toast({
+        title: "Success",
+        description: "Complete SLT category structure loaded to MongoDB successfully! This includes all categories used in the 'Create New Offering' flow.",
+      });
     } catch (error) {
       console.error('Error loading default categories to MongoDB:', error);
-             toast({
-         title: "Error",
-         description: "Failed to load complete SLT category structure to MongoDB.",
-         variant: "destructive",
-       });
+      toast({
+        title: "Error",
+        description: "Failed to load complete SLT category structure to MongoDB.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  // Check if a category value already exists
+  const checkCategoryValueExists = (value: string): boolean => {
+    return categories.some(cat => cat.value === value);
+  };
 
+  // Generate a truly unique value for a category
+  const generateUniqueValue = (baseName: string, existingValue?: string): string => {
+    let baseValue = existingValue || baseName.toLowerCase().replace(/\s+/g, '_');
+    let uniqueValue = baseValue;
+    let counter = 1;
+    
+    while (checkCategoryValueExists(uniqueValue)) {
+      uniqueValue = `${baseValue}_${counter}`;
+      counter++;
+    }
+    
+    return uniqueValue;
+  };
 
   const toggleCategoryExpansion = (categoryValue: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -319,13 +386,15 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     try {
       // Generate a unique value if not provided or if it might conflict
       let uniqueValue = mainCategoryForm.value;
-      if (!uniqueValue || categories.some(cat => cat.value === uniqueValue)) {
-        // Generate a unique value based on name with timestamp
-        const timestamp = Date.now();
-        uniqueValue = `${mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_')}_${timestamp}`;
+      if (!uniqueValue) {
+        uniqueValue = generateUniqueValue(mainCategoryForm.name);
+      } else if (checkCategoryValueExists(uniqueValue)) {
+        // If the provided value conflicts, generate a new one
+        uniqueValue = generateUniqueValue(mainCategoryForm.name, uniqueValue);
       }
 
-      const newCategory: Omit<CategoryHierarchy, 'id'> = {
+      const newCategory: CategoryHierarchy = {
+        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: mainCategoryForm.name,
         value: uniqueValue,
         label: mainCategoryForm.label,
@@ -336,37 +405,54 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         subCategories: []
       };
 
-      // Create the category locally first
-      const createdCategory: CategoryHierarchy = {
-        ...newCategory,
-        id: `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
-      
-      // Add to local state
-      setCategories(prev => [...prev, createdCategory]);
-      if (onCategoriesChange) {
-        onCategoriesChange([...categories, createdCategory]);
+      // Save to MongoDB first
+      try {
+        console.log('Attempting to create hierarchical category:', newCategory);
+        const savedCategory = await productCatalogApi.createHierarchicalCategory(newCategory);
+        console.log('Main category saved to MongoDB:', savedCategory);
+        
+        // Add to local state
+        setCategories(prev => [...prev, savedCategory]);
+        if (onCategoriesChange) {
+          onCategoriesChange([...categories, savedCategory]);
+        }
+        
+        toast({
+          title: "Success",
+          description: "Main category created successfully and saved to MongoDB.",
+        });
+        
+        setCreateMainDialogOpen(false);
+        resetMainCategoryForm();
+      } catch (error: any) {
+        console.error('Error saving main category to MongoDB:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          response: error.response
+        });
+        
+        // Handle specific MongoDB errors
+        if (error.message && error.message.includes('409')) {
+          toast({
+            title: "Conflict Error",
+            description: "A category with this name or value already exists. Please use a different name or value.",
+            variant: "destructive",
+          });
+        } else if (error.message && error.message.includes('duplicate key')) {
+          toast({
+            title: "Duplicate Error",
+            description: "A category with this value already exists. Please use a different value.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: `Failed to save main category to MongoDB: ${error.message}`,
+            variant: "destructive",
+          });
+        }
       }
-      
-             // Save to MongoDB
-       try {
-         const savedCategory = await productCatalogApi.createHierarchicalCategory(createdCategory);
-         console.log('Main category saved to MongoDB:', savedCategory);
-         toast({
-           title: "Success",
-           description: "Main category created successfully and saved to MongoDB.",
-         });
-       } catch (error: any) {
-         console.error('Error saving main category to MongoDB:', error);
-         toast({
-           title: "Error",
-           description: "Failed to save main category to MongoDB. Resource might already exist.",
-           variant: "destructive",
-         });
-       }
-      
-      setCreateMainDialogOpen(false);
-      resetMainCategoryForm();
     } catch (error: any) {
       console.error('Error creating main category:', error);
       
@@ -461,7 +547,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleCreateSubCategory = async () => {
-    if (!selectedParentCategory || !subCategoryForm.name || !subCategoryForm.value || !subCategoryForm.label) {
+    if (!selectedParentCategory || !subCategoryForm.name || !subCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -471,41 +557,65 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
 
     try {
-      // Generate a temporary ID for the new sub-category
-      const tempId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      // Generate a unique value if not provided
+      let uniqueValue = subCategoryForm.value;
+      if (!uniqueValue) {
+        uniqueValue = generateUniqueValue(subCategoryForm.name);
+      } else if (checkCategoryValueExists(uniqueValue)) {
+        // If the provided value conflicts, generate a new one
+        uniqueValue = generateUniqueValue(subCategoryForm.name, uniqueValue);
+      }
+
       const newSubCategory: SubCategory = {
-        id: tempId,
+        id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: subCategoryForm.name,
-        value: subCategoryForm.value,
+        value: uniqueValue,
         label: subCategoryForm.label,
         description: subCategoryForm.description,
         subSubCategories: []
       };
 
       // Save to MongoDB
-      const updated = await productCatalogApi.addSubCategory(selectedParentCategory.id, newSubCategory);
-      console.log('Sub-category saved to MongoDB:', updated);
-      
-      // Update local state
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      try {
+        const updated = await productCatalogApi.addSubCategory(selectedParentCategory.id, newSubCategory);
+        console.log('Sub-category saved to MongoDB:', updated);
+        
+        // Update local state
+        setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+        if (onCategoriesChange) {
+          onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+        }
+        
+        toast({
+          title: "Success",
+          description: "Sub-category created successfully and saved to MongoDB.",
+        });
+        
+        setCreateSubDialogOpen(false);
+        resetSubCategoryForm();
+        setSelectedParentCategory(null);
+      } catch (error: any) {
+        console.error('Error creating sub-category:', error);
+        
+        if (error.message && error.message.includes('409')) {
+          toast({
+            title: "Conflict Error",
+            description: "A sub-category with this name or value already exists. Please use a different name or value.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to create sub-category in MongoDB. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
-      
-      toast({
-        title: "Success",
-        description: "Sub-category created successfully and saved to MongoDB.",
-      });
-      
-      setCreateSubDialogOpen(false);
-      resetSubCategoryForm();
-      setSelectedParentCategory(null);
     } catch (error) {
       console.error('Error creating sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to create sub-category in MongoDB. Resource might already exist.",
+        description: "Failed to create sub-category.",
         variant: "destructive",
       });
     }
@@ -589,7 +699,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   const handleCreateSubSubCategory = async () => {
-    if (!selectedParentCategory || !selectedParentSubCategory || !subSubCategoryForm.name || !subSubCategoryForm.value || !subSubCategoryForm.label) {
+    if (!selectedParentCategory || !selectedParentSubCategory || !subSubCategoryForm.name || !subSubCategoryForm.label) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -599,40 +709,64 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
 
     try {
-      // Generate a temporary ID for the new sub-sub-category
-      const tempId = `subsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      // Generate a unique value if not provided
+      let uniqueValue = subSubCategoryForm.value;
+      if (!uniqueValue) {
+        uniqueValue = generateUniqueValue(subSubCategoryForm.name);
+      } else if (checkCategoryValueExists(uniqueValue)) {
+        // If the provided value conflicts, generate a new one
+        uniqueValue = generateUniqueValue(subSubCategoryForm.name, uniqueValue);
+      }
+
       const newSubSubCategory: SubSubCategory = {
-        id: tempId,
+        id: `subsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: subSubCategoryForm.name,
-        value: subSubCategoryForm.value,
+        value: uniqueValue,
         label: subSubCategoryForm.label,
         description: subSubCategoryForm.description
       };
 
       // Save to MongoDB
-      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory.id, newSubSubCategory);
-      console.log('Sub-sub-category saved to MongoDB:', updated);
-      
-      // Update local state
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+      try {
+        const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory.id, selectedParentSubCategory.id, newSubSubCategory);
+        console.log('Sub-sub-category saved to MongoDB:', updated);
+        
+        // Update local state
+        setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+        if (onCategoriesChange) {
+          onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+        }
+        
+        toast({
+          title: "Success",
+          description: "Sub-sub-category created successfully and saved to MongoDB.",
+        });
+        
+        setCreateSubSubDialogOpen(false);
+        resetSubSubCategoryForm();
+        setSelectedParentSubCategory(null);
+      } catch (error: any) {
+        console.error('Error creating sub-sub-category:', error);
+        
+        if (error.message && error.message.includes('409')) {
+          toast({
+            title: "Conflict Error",
+            description: "A sub-sub-category with this name or value already exists. Please use a different name or value.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to create sub-sub-category in MongoDB. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
-      
-      toast({
-        title: "Success",
-        description: "Sub-sub-category created successfully and saved to MongoDB.",
-      });
-      
-      setCreateSubSubDialogOpen(false);
-      resetSubSubCategoryForm();
-      setSelectedParentSubCategory(null);
     } catch (error) {
       console.error('Error creating sub-sub-category:', error);
       toast({
         title: "Error",
-        description: "Failed to create sub-sub-category in MongoDB. Resource might already exist.",
+        description: "Failed to create sub-sub-category.",
         variant: "destructive",
       });
     }
@@ -657,7 +791,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       };
 
       // Save to MongoDB
-      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory.id, updatedSubSubCategory);
+      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory.id, selectedParentSubCategory.id, updatedSubSubCategory);
       console.log('Sub-sub-category updated in MongoDB:', updated);
       
       // Update local state
@@ -686,7 +820,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   const handleDeleteSubSubCategory = async (parentCategoryId: string, parentSubCategoryId: string, subSubCategoryId: string) => {
     try {
       // Delete from MongoDB
-      await productCatalogApi.deleteSubSubCategory(parentCategoryId, subSubCategoryId);
+      await productCatalogApi.deleteSubSubCategory(parentCategoryId, parentSubCategoryId, subSubCategoryId);
       console.log(`Sub-sub-category deleted from MongoDB: ${subSubCategoryId}`);
       
       // Update local state
@@ -794,28 +928,48 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   return (
     <div className="space-y-6">
              {/* Header */}
-       <div className="flex items-center justify-between">
-                  <div>
-                       <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
-            
-           {categories.length === 0 && !loading && (
-             <p className="text-sm text-amber-600 mt-1">
-               ⚠️ MongoDB connection may not be available. Categories will be loaded when the database is accessible.
-             </p>
-           )}
-         </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+          
+          {categories.length === 0 && !loading && (
+            <p className="text-sm text-amber-600 mt-1">
+              ⚠️ MongoDB connection may not be available. Categories will be loaded when the database is accessible.
+            </p>
+          )}
+          
+          {categories.length > 0 && (
+            <p className="text-sm text-blue-600 mt-1">
+              ✅ {categories.length} categories loaded from MongoDB. You can now create, edit, and manage categories.
+            </p>
+          )}
+          
+          <p className="text-sm text-gray-600 mt-1">
+            💡 Tip: If you encounter "Resource already exists" errors, try using the "Clear All Categories" button first, then reload the default SLT categories.
+          </p>
+        </div>
         <div className="flex gap-2">
           <Button onClick={loadCategories} variant="outline" disabled={loading}>
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
-                     <Button 
-             onClick={loadDefaultCategoriesToMongoDB} 
-             variant="outline" 
-             className="text-green-600 border-green-600 hover:bg-green-50"
-             title="Load complete SLT category structure (Broadband, Business, Mobile, Cloud Service, Product, PEOTV, Telephone, Gaming & Cloud, IDD, Promotions) to MongoDB"
-           >
-             Load Complete SLT Categories
-           </Button>
+          <Button 
+            onClick={loadDefaultCategoriesToMongoDB} 
+            variant="outline" 
+            className="text-green-600 border-green-600 hover:bg-green-50"
+            title="Load complete SLT category structure (Broadband, Business, Mobile, Cloud Service, Product, PEOTV, Telephone, Gaming & Cloud, IDD, Promotions) to MongoDB"
+          >
+            Load Complete SLT Categories
+          </Button>
+          
+          <Button 
+            onClick={clearAllCategories} 
+            variant="outline" 
+            className="text-red-600 border-red-600 hover:bg-red-50"
+            title="Clear all existing categories from MongoDB (for testing/reset purposes)"
+            disabled={categories.length === 0}
+          >
+            Clear All Categories
+          </Button>
           
           <Button 
             onClick={() => {
@@ -1126,8 +1280,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const timestamp = Date.now();
-                    const generatedValue = `${mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_')}_${timestamp}`;
+                    const generatedValue = generateUniqueValue(mainCategoryForm.name);
                     setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
                   }}
                   disabled={!mainCategoryForm.name}
@@ -1136,6 +1289,9 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   Auto
                 </Button>
               </div>
+              <p className="text-xs text-gray-500">
+                The value field is used as a unique identifier. If left empty, a unique value will be automatically generated.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="mainLabel">Label *</Label>
@@ -1269,8 +1425,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const timestamp = Date.now();
-                    const generatedValue = `${mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_')}_${timestamp}`;
+                    const generatedValue = generateUniqueValue(mainCategoryForm.name);
                     setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
                   }}
                   disabled={!mainCategoryForm.name}
@@ -1279,6 +1434,9 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   Auto
                 </Button>
               </div>
+              <p className="text-xs text-gray-500">
+                The value field is used as a unique identifier. If left empty, a unique value will be automatically generated.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="mainLabel">Label *</Label>
@@ -1399,14 +1557,31 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="subValue">Value *</Label>
-              <Input
-                id="subValue"
-                value={subCategoryForm.value}
-                onChange={(e) => setSubCategoryForm(prev => ({ ...prev, value: e.target.value }))}
-                placeholder="e.g., connection_type"
-                required
-              />
+              <Label htmlFor="subValue">Value (optional - auto-generated if not provided)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="subValue"
+                  value={subCategoryForm.value}
+                  onChange={(e) => setSubCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="e.g., connection_type (leave empty for auto-generation)"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const generatedValue = generateUniqueValue(subCategoryForm.name);
+                    setSubCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  }}
+                  disabled={!subCategoryForm.name}
+                  title="Auto-generate unique value"
+                >
+                  Auto
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                The value field is used as a unique identifier. If left empty, a unique value will be automatically generated.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="subLabel">Label *</Label>
@@ -1543,14 +1718,31 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="subSubValue">Value *</Label>
-              <Input
-                id="subSubValue"
-                value={subSubCategoryForm.value}
-                onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, value: e.target.value }))}
-                placeholder="e.g., fiber"
-                required
-              />
+              <Label htmlFor="subSubValue">Value (optional - auto-generated if not provided)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="subSubValue"
+                  value={subSubCategoryForm.value}
+                  onChange={(e) => setSubSubCategoryForm(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="e.g., fiber (leave empty for auto-generation)"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const generatedValue = generateUniqueValue(subSubCategoryForm.name);
+                    setSubSubCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  }}
+                  disabled={!subSubCategoryForm.name}
+                  title="Auto-generate unique value"
+                >
+                  Auto
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                The value field is used as a unique identifier. If left empty, a unique value will be automatically generated.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="subSubLabel">Label *</Label>
