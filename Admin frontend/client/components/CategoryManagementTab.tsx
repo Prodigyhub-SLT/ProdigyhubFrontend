@@ -298,12 +298,38 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
   };
 
-  // Check if a category value already exists
+  // Check if a category value already exists in local state
   const checkCategoryValueExists = (value: string): boolean => {
     return categories.some(cat => cat.value === value);
   };
 
-  // Generate a truly unique value for a category
+  // Check if a category value already exists in MongoDB
+  const checkCategoryValueExistsInMongoDB = async (value: string): Promise<boolean> => {
+    try {
+      const existingCategories = await productCatalogApi.getHierarchicalCategories();
+      return existingCategories.some(cat => cat.value === value);
+    } catch (error) {
+      console.warn('Could not check MongoDB for existing values, falling back to local check');
+      return checkCategoryValueExists(value);
+    }
+  };
+
+  // Generate a truly unique value for a category by checking MongoDB
+  const generateUniqueValueFromMongoDB = async (baseName: string, existingValue?: string): Promise<string> => {
+    let baseValue = existingValue || baseName.toLowerCase().replace(/\s+/g, '_');
+    let uniqueValue = baseValue;
+    let counter = 1;
+    
+    // Check against MongoDB first
+    while (await checkCategoryValueExistsInMongoDB(uniqueValue)) {
+      uniqueValue = `${baseValue}_${counter}`;
+      counter++;
+    }
+    
+    return uniqueValue;
+  };
+
+  // Generate a truly unique value for a category (local fallback)
   const generateUniqueValue = (baseName: string, existingValue?: string): string => {
     let baseValue = existingValue || baseName.toLowerCase().replace(/\s+/g, '_');
     let uniqueValue = baseValue;
@@ -373,6 +399,63 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setEditingSubSubCategory(null);
   };
 
+  // Debug function to check what's causing conflicts
+  const debugCategoryConflicts = async (categoryName: string, categoryValue: string) => {
+    try {
+      const existingCategories = await productCatalogApi.getHierarchicalCategories();
+      const nameConflict = existingCategories.find(cat => cat.name === categoryName);
+      const valueConflict = existingCategories.find(cat => cat.value === categoryValue);
+      
+      console.log('=== Category Conflict Debug ===');
+      console.log('Attempting to create:', { name: categoryName, value: categoryValue });
+      console.log('Existing categories with same name:', nameConflict);
+      console.log('Existing categories with same value:', valueConflict);
+      console.log('Total existing categories:', existingCategories.length);
+      console.log('================================');
+      
+      return { nameConflict, valueConflict };
+    } catch (error) {
+      console.error('Error debugging conflicts:', error);
+      return { nameConflict: null, valueConflict: null };
+    }
+  };
+
+  // Create a category with retry mechanism for conflicts
+  const createCategoryWithRetry = async (category: CategoryHierarchy, maxRetries: number = 3): Promise<CategoryHierarchy> => {
+    let attempts = 0;
+    let currentCategory = { ...category };
+    
+    while (attempts < maxRetries) {
+      try {
+        console.log(`Attempt ${attempts + 1} to create category:`, currentCategory);
+        
+        // Debug conflicts before attempting to create
+        if (attempts === 0) {
+          await debugCategoryConflicts(currentCategory.name, currentCategory.value);
+        }
+        
+        const savedCategory = await productCatalogApi.createHierarchicalCategory(currentCategory);
+        console.log('Category created successfully:', savedCategory);
+        return savedCategory;
+      } catch (error: any) {
+        attempts++;
+        console.warn(`Attempt ${attempts} failed:`, error.message);
+        
+        if (error.message && error.message.includes('409') && attempts < maxRetries) {
+          // Generate a new unique value and retry
+          const newValue = await generateUniqueValueFromMongoDB(category.name, `${category.name}_retry_${attempts}`);
+          currentCategory = { ...currentCategory, value: newValue };
+          console.log(`Retrying with new value: ${newValue}`);
+        } else {
+          // Either not a conflict error or max retries reached
+          throw error;
+        }
+      }
+    }
+    
+    throw new Error(`Failed to create category after ${maxRetries} attempts`);
+  };
+
   const handleCreateMainCategory = async () => {
     if (!mainCategoryForm.name || !mainCategoryForm.label) {
       toast({
@@ -387,10 +470,14 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Generate a unique value if not provided or if it might conflict
       let uniqueValue = mainCategoryForm.value;
       if (!uniqueValue) {
-        uniqueValue = generateUniqueValue(mainCategoryForm.name);
-      } else if (checkCategoryValueExists(uniqueValue)) {
-        // If the provided value conflicts, generate a new one
-        uniqueValue = generateUniqueValue(mainCategoryForm.name, uniqueValue);
+        uniqueValue = await generateUniqueValueFromMongoDB(mainCategoryForm.name);
+      } else {
+        // Check if the provided value conflicts in MongoDB
+        const exists = await checkCategoryValueExistsInMongoDB(uniqueValue);
+        if (exists) {
+          // If the provided value conflicts, generate a new one
+          uniqueValue = await generateUniqueValueFromMongoDB(mainCategoryForm.name, uniqueValue);
+        }
       }
 
       const newCategory: CategoryHierarchy = {
@@ -408,7 +495,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Save to MongoDB first
       try {
         console.log('Attempting to create hierarchical category:', newCategory);
-        const savedCategory = await productCatalogApi.createHierarchicalCategory(newCategory);
+        const savedCategory = await createCategoryWithRetry(newCategory);
         console.log('Main category saved to MongoDB:', savedCategory);
         
         // Add to local state
@@ -436,13 +523,13 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         if (error.message && error.message.includes('409')) {
           toast({
             title: "Conflict Error",
-            description: "A category with this name or value already exists. Please use a different name or value.",
+            description: "A category with this name or value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
             variant: "destructive",
           });
         } else if (error.message && error.message.includes('duplicate key')) {
           toast({
             title: "Duplicate Error",
-            description: "A category with this value already exists. Please use a different value.",
+            description: "A category with this value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
             variant: "destructive",
           });
         } else {
@@ -560,10 +647,14 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Generate a unique value if not provided
       let uniqueValue = subCategoryForm.value;
       if (!uniqueValue) {
-        uniqueValue = generateUniqueValue(subCategoryForm.name);
-      } else if (checkCategoryValueExists(uniqueValue)) {
-        // If the provided value conflicts, generate a new one
-        uniqueValue = generateUniqueValue(subCategoryForm.name, uniqueValue);
+        uniqueValue = await generateUniqueValueFromMongoDB(subCategoryForm.name);
+      } else {
+        // Check if the provided value conflicts in MongoDB
+        const exists = await checkCategoryValueExistsInMongoDB(uniqueValue);
+        if (exists) {
+          // If the provided value conflicts, generate a new one
+          uniqueValue = await generateUniqueValueFromMongoDB(subCategoryForm.name, uniqueValue);
+        }
       }
 
       const newSubCategory: SubCategory = {
@@ -600,7 +691,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         if (error.message && error.message.includes('409')) {
           toast({
             title: "Conflict Error",
-            description: "A sub-category with this name or value already exists. Please use a different name or value.",
+            description: "A sub-category with this name or value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
             variant: "destructive",
           });
         } else {
@@ -712,10 +803,14 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Generate a unique value if not provided
       let uniqueValue = subSubCategoryForm.value;
       if (!uniqueValue) {
-        uniqueValue = generateUniqueValue(subSubCategoryForm.name);
-      } else if (checkCategoryValueExists(uniqueValue)) {
-        // If the provided value conflicts, generate a new one
-        uniqueValue = generateUniqueValue(subSubCategoryForm.name, uniqueValue);
+        uniqueValue = await generateUniqueValueFromMongoDB(subSubCategoryForm.name);
+      } else {
+        // Check if the provided value conflicts in MongoDB
+        const exists = await checkCategoryValueExistsInMongoDB(uniqueValue);
+        if (exists) {
+          // If the provided value conflicts, generate a new one
+          uniqueValue = await generateUniqueValueFromMongoDB(subSubCategoryForm.name, uniqueValue);
+        }
       }
 
       const newSubSubCategory: SubSubCategory = {
@@ -751,7 +846,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         if (error.message && error.message.includes('409')) {
           toast({
             title: "Conflict Error",
-            description: "A sub-sub-category with this name or value already exists. Please use a different name or value.",
+            description: "A sub-sub-category with this name or value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
             variant: "destructive",
           });
         } else {
@@ -947,6 +1042,10 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
           <p className="text-sm text-gray-600 mt-1">
             💡 Tip: If you encounter "Resource already exists" errors, try using the "Clear All Categories" button first, then reload the default SLT categories.
           </p>
+          
+          <p className="text-sm text-gray-600 mt-1">
+            🔍 Debug: Use the "Debug Database" button to see what's currently in your database and identify potential conflicts.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={loadCategories} variant="outline" disabled={loading}>
@@ -969,6 +1068,37 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             disabled={categories.length === 0}
           >
             Clear All Categories
+          </Button>
+          
+          <Button 
+            onClick={async () => {
+              try {
+                const existingCategories = await productCatalogApi.getHierarchicalCategories();
+                console.log('=== Database Contents ===');
+                console.log('Total categories:', existingCategories.length);
+                existingCategories.forEach((cat, index) => {
+                  console.log(`${index + 1}. Name: "${cat.name}", Value: "${cat.value}", ID: ${cat.id}`);
+                });
+                console.log('========================');
+                
+                toast({
+                  title: "Debug Info",
+                  description: `Database contents logged to console. Found ${existingCategories.length} categories.`,
+                });
+              } catch (error) {
+                console.error('Error getting database contents:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to get database contents.",
+                  variant: "destructive",
+                });
+              }
+            }} 
+            variant="outline" 
+            className="text-purple-600 border-purple-600 hover:bg-purple-50"
+            title="Log database contents to console for debugging"
+          >
+            Debug Database
           </Button>
           
           <Button 
@@ -1279,9 +1409,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const generatedValue = generateUniqueValue(mainCategoryForm.name);
-                    setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  onClick={async () => {
+                    try {
+                      const generatedValue = await generateUniqueValueFromMongoDB(mainCategoryForm.name);
+                      setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                    } catch (error) {
+                      console.error('Error generating unique value:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to generate unique value. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                   disabled={!mainCategoryForm.name}
                   title="Auto-generate unique value"
@@ -1424,9 +1563,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const generatedValue = generateUniqueValue(mainCategoryForm.name);
-                    setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  onClick={async () => {
+                    try {
+                      const generatedValue = await generateUniqueValueFromMongoDB(mainCategoryForm.name);
+                      setMainCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                    } catch (error) {
+                      console.error('Error generating unique value:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to generate unique value. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                   disabled={!mainCategoryForm.name}
                   title="Auto-generate unique value"
@@ -1569,9 +1717,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const generatedValue = generateUniqueValue(subCategoryForm.name);
-                    setSubCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  onClick={async () => {
+                    try {
+                      const generatedValue = await generateUniqueValueFromMongoDB(subCategoryForm.name);
+                      setSubCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                    } catch (error) {
+                      console.error('Error generating unique value:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to generate unique value. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                   disabled={!subCategoryForm.name}
                   title="Auto-generate unique value"
@@ -1730,9 +1887,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const generatedValue = generateUniqueValue(subSubCategoryForm.name);
-                    setSubSubCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                  onClick={async () => {
+                    try {
+                      const generatedValue = await generateUniqueValueFromMongoDB(subSubCategoryForm.name);
+                      setSubSubCategoryForm(prev => ({ ...prev, value: generatedValue }));
+                    } catch (error) {
+                      console.error('Error generating unique value:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to generate unique value. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                   disabled={!subSubCategoryForm.name}
                   title="Auto-generate unique value"
