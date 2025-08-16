@@ -221,14 +221,22 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     try {
       setLoading(true);
       
-      // Helper function to generate temporary IDs
-      const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // First, clear any existing categories to avoid conflicts
+      const existingCategories = await productCatalogApi.getHierarchicalCategories();
+      for (const category of existingCategories) {
+        try {
+          await productCatalogApi.deleteHierarchicalCategory(category.id);
+          console.log(`Cleared existing category: ${category.name}`);
+        } catch (error) {
+          console.warn(`Failed to clear category ${category.name}:`, error);
+        }
+      }
       
       // Convert SLT_CATEGORIES to CategoryHierarchy format for MongoDB
       const defaultCategories: CategoryHierarchy[] = SLT_CATEGORIES.map(sltCategory => {
         const subCategories: SubCategory[] = (sltCategory.subCategories || []).map(sltSub => {
           const subSubCategories: SubSubCategory[] = (sltSub.subSubCategories || []).map(sltSubSub => ({
-            id: generateTempId(),
+            id: `subsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             name: sltSubSub.value.toLowerCase().replace(/\s+/g, '_'),
             value: sltSubSub.value,
             label: sltSubSub.label,
@@ -236,7 +244,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
           }));
           
           return {
-            id: generateTempId(),
+            id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             name: sltSub.value.toLowerCase().replace(/\s+/g, '_'),
             value: sltSub.value,
             label: sltSub.label,
@@ -246,7 +254,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         });
         
         return {
-          id: generateTempId(),
+          id: `main_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           name: sltCategory.value.toLowerCase().replace(/\s+/g, '_'),
           value: sltCategory.value,
           label: sltCategory.label,
@@ -262,18 +270,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       // Save each default category to MongoDB
       for (const category of defaultCategories) {
         try {
-          // Check if category already exists
-          const existingCategories = await productCatalogApi.getHierarchicalCategories();
-          const exists = existingCategories.some(existing => 
-            existing.value === category.value || existing.name === category.name
-          );
-          
-          if (!exists) {
-            await productCatalogApi.createHierarchicalCategory(category);
-            console.log(`Default category saved to MongoDB: ${category.name}`);
-          } else {
-            console.log(`Category already exists, skipping: ${category.name}`);
-          }
+          const savedCategory = await productCatalogApi.createHierarchicalCategory(category);
+          console.log(`Default category saved to MongoDB: ${category.name}`);
         } catch (error) {
           console.warn(`Failed to save default category ${category.name}:`, error);
         }
@@ -399,62 +397,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     setEditingSubSubCategory(null);
   };
 
-  // Debug function to check what's causing conflicts
-  const debugCategoryConflicts = async (categoryName: string, categoryValue: string) => {
-    try {
-      const existingCategories = await productCatalogApi.getHierarchicalCategories();
-      const nameConflict = existingCategories.find(cat => cat.name === categoryName);
-      const valueConflict = existingCategories.find(cat => cat.value === categoryValue);
-      
-      console.log('=== Category Conflict Debug ===');
-      console.log('Attempting to create:', { name: categoryName, value: categoryValue });
-      console.log('Existing categories with same name:', nameConflict);
-      console.log('Existing categories with same value:', valueConflict);
-      console.log('Total existing categories:', existingCategories.length);
-      console.log('================================');
-      
-      return { nameConflict, valueConflict };
-    } catch (error) {
-      console.error('Error debugging conflicts:', error);
-      return { nameConflict: null, valueConflict: null };
-    }
-  };
 
-  // Create a category with retry mechanism for conflicts
-  const createCategoryWithRetry = async (category: CategoryHierarchy, maxRetries: number = 3): Promise<CategoryHierarchy> => {
-    let attempts = 0;
-    let currentCategory = { ...category };
-    
-    while (attempts < maxRetries) {
-      try {
-        console.log(`Attempt ${attempts + 1} to create category:`, currentCategory);
-        
-        // Debug conflicts before attempting to create
-        if (attempts === 0) {
-          await debugCategoryConflicts(currentCategory.name, currentCategory.value);
-        }
-        
-        const savedCategory = await productCatalogApi.createHierarchicalCategory(currentCategory);
-        console.log('Category created successfully:', savedCategory);
-        return savedCategory;
-      } catch (error: any) {
-        attempts++;
-        console.warn(`Attempt ${attempts} failed:`, error.message);
-        
-        if (error.message && error.message.includes('409') && attempts < maxRetries) {
-          // Generate a new unique value and retry
-          const newValue = await generateUniqueValueFromMongoDB(category.name, `${category.name}_retry_${attempts}`);
-          currentCategory = { ...currentCategory, value: newValue };
-          console.log(`Retrying with new value: ${newValue}`);
-        } else {
-          // Either not a conflict error or max retries reached
-          throw error;
-        }
-      }
-    }
-    
-    throw new Error(`Failed to create category after ${maxRetries} attempts`);
-  };
 
   const handleCreateMainCategory = async () => {
     if (!mainCategoryForm.name || !mainCategoryForm.label) {
@@ -467,7 +410,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     }
 
     try {
-      // Generate a unique value if not provided or if it might conflict
+      // Generate a unique value if not provided
       let uniqueValue = mainCategoryForm.value;
       if (!uniqueValue) {
         uniqueValue = await generateUniqueValueFromMongoDB(mainCategoryForm.name);
@@ -481,7 +424,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       }
 
       const newCategory: CategoryHierarchy = {
-        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `main_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: mainCategoryForm.name,
         value: uniqueValue,
         label: mainCategoryForm.label,
@@ -492,10 +435,10 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         subCategories: []
       };
 
-      // Save to MongoDB first
+      // Save to MongoDB
       try {
         console.log('Attempting to create hierarchical category:', newCategory);
-        const savedCategory = await createCategoryWithRetry(newCategory);
+        const savedCategory = await productCatalogApi.createHierarchicalCategory(newCategory);
         console.log('Main category saved to MongoDB:', savedCategory);
         
         // Add to local state
@@ -513,23 +456,18 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         resetMainCategoryForm();
       } catch (error: any) {
         console.error('Error saving main category to MongoDB:', error);
-        console.error('Error details:', {
-          message: error.message,
-          status: error.status,
-          response: error.response
-        });
         
         // Handle specific MongoDB errors
         if (error.message && error.message.includes('409')) {
           toast({
             title: "Conflict Error",
-            description: "A category with this name or value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
+            description: "A category with this name or value already exists. Please use a different name or value.",
             variant: "destructive",
           });
         } else if (error.message && error.message.includes('duplicate key')) {
           toast({
             title: "Duplicate Error",
-            description: "A category with this value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
+            description: "A category with this value already exists. Please use a different value.",
             variant: "destructive",
           });
         } else {
@@ -691,7 +629,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         if (error.message && error.message.includes('409')) {
           toast({
             title: "Conflict Error",
-            description: "A sub-category with this name or value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
+            description: "A sub-category with this name or value already exists. Please use a different name or value.",
             variant: "destructive",
           });
         } else {
@@ -846,7 +784,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         if (error.message && error.message.includes('409')) {
           toast({
             title: "Conflict Error",
-            description: "A sub-sub-category with this name or value already exists. Try using 'Clear All Categories' then 'Load Complete SLT Categories', or use the 'Debug Database' button to see what's in your database.",
+            description: "A sub-sub-category with this name or value already exists. Please use a different name or value.",
             variant: "destructive",
           });
         } else {
@@ -1043,9 +981,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             💡 Tip: If you encounter "Resource already exists" errors, try using the "Clear All Categories" button first, then reload the default SLT categories.
           </p>
           
-          <p className="text-sm text-gray-600 mt-1">
-            🔍 Debug: Use the "Debug Database" button to see what's currently in your database and identify potential conflicts.
-          </p>
+
         </div>
         <div className="flex gap-2">
           <Button onClick={loadCategories} variant="outline" disabled={loading}>
@@ -1070,36 +1006,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             Clear All Categories
           </Button>
           
-          <Button 
-            onClick={async () => {
-              try {
-                const existingCategories = await productCatalogApi.getHierarchicalCategories();
-                console.log('=== Database Contents ===');
-                console.log('Total categories:', existingCategories.length);
-                existingCategories.forEach((cat, index) => {
-                  console.log(`${index + 1}. Name: "${cat.name}", Value: "${cat.value}", ID: ${cat.id}`);
-                });
-                console.log('========================');
-                
-                toast({
-                  title: "Debug Info",
-                  description: `Database contents logged to console. Found ${existingCategories.length} categories.`,
-                });
-              } catch (error) {
-                console.error('Error getting database contents:', error);
-                toast({
-                  title: "Error",
-                  description: "Failed to get database contents.",
-                  variant: "destructive",
-                });
-              }
-            }} 
-            variant="outline" 
-            className="text-purple-600 border-purple-600 hover:bg-purple-50"
-            title="Log database contents to console for debugging"
-          >
-            Debug Database
-          </Button>
+
           
           <Button 
             onClick={() => {
