@@ -80,8 +80,9 @@ export interface Category {
 }
 
 // Hierarchical Category Structure for frontend category management
+// Updated to match the new MongoDB schema with categoryId, subCategoryId, subSubCategoryId
 export interface SubSubCategory {
-  id: string;
+  subSubCategoryId: string;
   name: string;
   value: string;
   label: string;
@@ -89,7 +90,7 @@ export interface SubSubCategory {
 }
 
 export interface SubCategory {
-  id: string;
+  subCategoryId: string;
   name: string;
   value: string;
   label: string;
@@ -98,7 +99,7 @@ export interface SubCategory {
 }
 
 export interface CategoryHierarchy {
-  id: string;
+  categoryId: string;
   name: string;
   value: string;
   label: string;

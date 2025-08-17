@@ -186,7 +186,7 @@ class TMF620Controller {
       const { id } = req.params;
       const { fields } = req.query;
       
-      const query = buildQuery(HierarchicalCategory, { id }, fields);
+      const query = buildQuery(HierarchicalCategory, { categoryId: id }, fields);
       const category = await query;
       
       if (!category) {
@@ -254,7 +254,7 @@ class TMF620Controller {
       const updates = { ...req.body, lastUpdate: new Date() };
       
       const category = await HierarchicalCategory.findOneAndUpdate(
-        { id },
+        { categoryId: id },
         { $set: updates },
         { new: true, runValidators: true }
       );
@@ -273,7 +273,7 @@ class TMF620Controller {
     try {
       const { id } = req.params;
       
-      const category = await HierarchicalCategory.findOneAndDelete({ id });
+      const category = await HierarchicalCategory.findOneAndDelete({ categoryId: id });
       
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });

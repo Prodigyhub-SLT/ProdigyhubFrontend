@@ -28,9 +28,11 @@ const CategorySchema = new mongoose.Schema({
 });
 
 // New Hierarchical Category Schema for the frontend category management
+// Using a completely new collection to avoid conflicts with existing data
 const HierarchicalCategorySchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true, default: uuidv4 },
-  name: { type: String, required: true, unique: true }, // Ensure unique names at main category level
+  // Use _id as the primary key instead of custom id to avoid conflicts
+  categoryId: { type: String, unique: true, required: true, default: uuidv4 },
+  name: { type: String, required: true },
   value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
   label: { type: String, required: false, default: function() { return this.name || 'Unnamed Category'; } },
   description: { type: String, default: '' },
@@ -38,13 +40,13 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   bgColor: { type: String, required: false, default: 'bg-blue-50' },
   icon: { type: String, required: false, default: 'Folder' },
   subCategories: [{
-    id: { type: String, unique: true, required: true, default: uuidv4 },
+    subCategoryId: { type: String, unique: true, required: true, default: uuidv4 },
     name: { type: String, required: true },
     value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
     label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Category'; } },
     description: { type: String, default: '' },
     subSubCategories: [{
-      id: { type: String, unique: true, required: true, default: uuidv4 },
+      subSubCategoryId: { type: String, unique: true, required: true, default: uuidv4 },
       name: { type: String, required: true },
       value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
       label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Sub-Category'; } },
@@ -54,11 +56,12 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   '@type': { type: String, default: 'HierarchicalCategory' }
 }, {
   timestamps: true,
-  collection: 'hierarchical_categories'
+  collection: 'new_hierarchical_categories' // Completely new collection name
 });
 
-// Add compound index to ensure unique names within the same parent context
-HierarchicalCategorySchema.index({ name: 1 }, { unique: true });
+// Add indexes for better performance
+HierarchicalCategorySchema.index({ categoryId: 1 }, { unique: true });
+HierarchicalCategorySchema.index({ name: 1 }); // Remove unique constraint to allow same names in different contexts
 
 const ProductSpecificationSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },

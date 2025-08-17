@@ -224,7 +224,7 @@ class ApiClient {
   }
 
   async updateSubCategory(categoryId: string, subCategory: SubCategory): Promise<CategoryHierarchy> {
-    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategory.id}`, {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategory.subCategoryId}`, {
       method: 'PATCH',
       body: JSON.stringify(subCategory),
     });
@@ -245,7 +245,7 @@ class ApiClient {
   }
 
   async updateSubSubCategory(categoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
-    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory/${subSubCategory.id}`, {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory/${subSubCategory.subSubCategoryId}`, {
       method: 'PATCH',
       body: JSON.stringify(subSubCategory),
     });

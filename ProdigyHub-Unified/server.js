@@ -378,7 +378,7 @@ class TMF620Controller {
       const { id } = req.params;
       const { fields } = req.query;
       
-      let query = HierarchicalCategory.findOne({ id });
+      let query = HierarchicalCategory.findOne({ categoryId: id });
       
       if (fields) {
         const fieldList = fields.split(',').map(f => f.trim()).join(' ');
@@ -454,7 +454,7 @@ class TMF620Controller {
       const updates = { ...req.body, lastUpdate: new Date() };
       
       const category = await HierarchicalCategory.findOneAndUpdate(
-        { id },
+        { categoryId: id },
         { $set: updates },
         { new: true, runValidators: true }
       );
@@ -474,7 +474,7 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { id } = req.params;
       
-      const category = await HierarchicalCategory.findOneAndDelete({ id });
+      const category = await HierarchicalCategory.findOneAndDelete({ categoryId: id });
       
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
@@ -491,7 +491,7 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { categoryId } = req.params;
       
-      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      const category = await HierarchicalCategory.findOne({ categoryId: categoryId });
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
@@ -523,7 +523,7 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { categoryId, subCategoryId } = req.params;
       
-      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      const category = await HierarchicalCategory.findOne({ categoryId: categoryId });
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
@@ -547,12 +547,12 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { categoryId, subCategoryId } = req.params;
       
-      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      const category = await HierarchicalCategory.findOne({ categoryId: categoryId });
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
       
-      category.subCategories = category.subCategories.filter(sub => sub.id !== subCategoryId);
+      category.subCategories = category.subCategories.filter(sub => sub.subCategoryId !== subCategoryId);
       await category.save();
       
       res.status(204).send();
@@ -566,7 +566,7 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { categoryId, subCategoryId } = req.params;
       
-      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      const category = await HierarchicalCategory.findOne({ categoryId: categoryId });
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
@@ -603,7 +603,7 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { categoryId, subCategoryId, subSubCategoryId } = req.params;
       
-      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      const category = await HierarchicalCategory.findOne({ categoryId: categoryId });
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
@@ -632,7 +632,7 @@ class TMF620Controller {
       const { HierarchicalCategory } = require('./src/models/AllTMFModels');
       const { categoryId, subCategoryId, subSubCategoryId } = req.params;
       
-      const category = await HierarchicalCategory.findOne({ id: categoryId });
+      const category = await HierarchicalCategory.findOne({ categoryId: categoryId });
       if (!category) {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
@@ -642,7 +642,7 @@ class TMF620Controller {
         return res.status(404).json({ error: 'Sub-category not found' });
       }
       
-      subCategory.subSubCategories = subCategory.subSubCategories.filter(subSub => subSub.id !== subSubCategoryId);
+      subCategory.subSubCategories = subCategory.subSubCategories.filter(subSub => subSub.subSubCategoryId !== subSubCategoryId);
       await category.save();
       
       res.status(204).send();

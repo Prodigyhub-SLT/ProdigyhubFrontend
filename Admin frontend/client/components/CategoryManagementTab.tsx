@@ -138,22 +138,22 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   };
 
   // Expansion toggles
-  const toggleCategoryExpansion = (categoryValue: string) => {
+  const toggleCategoryExpansion = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryValue)) {
-      newExpanded.delete(categoryValue);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
     } else {
-      newExpanded.add(categoryValue);
+      newExpanded.add(categoryId);
     }
     setExpandedCategories(newExpanded);
   };
 
-  const toggleSubCategoryExpansion = (subCategoryValue: string) => {
+  const toggleSubCategoryExpansion = (subCategoryId: string) => {
     const newExpanded = new Set(expandedSubCategories);
-    if (newExpanded.has(subCategoryValue)) {
-      newExpanded.delete(subCategoryValue);
+    if (newExpanded.has(subCategoryId)) {
+      newExpanded.delete(subCategoryId);
     } else {
-      newExpanded.add(subCategoryValue);
+      newExpanded.add(subCategoryId);
     }
     setExpandedSubCategories(newExpanded);
   };
@@ -206,11 +206,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return false;
     }
     
-    // Check for duplicate names
-    const existingCategory = categories.find(cat => 
-      cat.name.toLowerCase() === mainCategoryForm.name.toLowerCase() && 
-      (!editingMainCategory || cat.id !== editingMainCategory.id)
-    );
+         // Check for duplicate names
+     const existingCategory = categories.find(cat => 
+       cat.name.toLowerCase() === mainCategoryForm.name.toLowerCase() && 
+       (!editingMainCategory || cat.categoryId !== editingMainCategory.categoryId)
+     );
     
     if (existingCategory) {
       toast({
@@ -243,11 +243,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return false;
     }
     
-    // Check for duplicate names within the same parent
-    const existingSubCategory = selectedParentCategory.subCategories?.find(sub => 
-      sub.name.toLowerCase() === subCategoryForm.name.toLowerCase() && 
-      (!editingSubCategory || sub.id !== editingSubCategory.id)
-    );
+         // Check for duplicate names within the same parent
+     const existingSubCategory = selectedParentCategory.subCategories?.find(sub => 
+       sub.name.toLowerCase() === subCategoryForm.name.toLowerCase() && 
+       (!editingSubCategory || sub.subCategoryId !== editingSubCategory.subCategoryId)
+     );
     
     if (existingSubCategory) {
       toast({
@@ -280,11 +280,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       return false;
     }
     
-    // Check for duplicate names within the same sub-category
-    const existingSubSubCategory = selectedParentSubCategory.subSubCategories?.find(subSub => 
-      subSub.name.toLowerCase() === subSubCategoryForm.name.toLowerCase() && 
-      (!editingSubSubCategory || subSub.id !== editingSubSubCategory.id)
-    );
+         // Check for duplicate names within the same sub-category
+     const existingSubSubCategory = selectedParentSubCategory.subSubCategories?.find(subSub => 
+       subSub.name.toLowerCase() === subSubCategoryForm.name.toLowerCase() && 
+       (!editingSubSubCategory || subSub.subSubCategoryId !== editingSubSubCategory.subSubCategoryId)
+     );
     
     if (existingSubSubCategory) {
       toast({
@@ -303,16 +303,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!validateMainCategoryForm()) return;
 
     try {
-      const newCategory: Omit<CategoryHierarchy, 'id'> = {
-        name: mainCategoryForm.name.trim(),
-        value: mainCategoryForm.value.trim() || mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_'),
-        label: mainCategoryForm.label.trim() || mainCategoryForm.name.trim(),
-        description: mainCategoryForm.description.trim(),
-        color: mainCategoryForm.color,
-        bgColor: mainCategoryForm.bgColor,
-        icon: mainCategoryForm.icon,
-        subCategories: []
-      };
+             const newCategory: Omit<CategoryHierarchy, 'categoryId'> = {
+         name: mainCategoryForm.name.trim(),
+         value: mainCategoryForm.value.trim() || mainCategoryForm.name.toLowerCase().replace(/\s+/g, '_'),
+         label: mainCategoryForm.label.trim() || mainCategoryForm.name.trim(),
+         description: mainCategoryForm.description.trim(),
+         color: mainCategoryForm.color,
+         bgColor: mainCategoryForm.bgColor,
+         icon: mainCategoryForm.icon,
+         subCategories: []
+       };
 
       const createdCategory = await productCatalogApi.createHierarchicalCategory(newCategory as CategoryHierarchy);
       setCategories(prev => [...prev, createdCategory]);
@@ -356,11 +356,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         icon: mainCategoryForm.icon
       };
 
-      const updated = await productCatalogApi.updateHierarchicalCategory(editingMainCategory.id, updatedCategory);
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
-      }
+             const updated = await productCatalogApi.updateHierarchicalCategory(editingMainCategory.categoryId, updatedCategory);
+       setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
+       if (onCategoriesChange) {
+         onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
+       }
       
       toast({
         title: "Success",
@@ -402,11 +402,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'main') return;
 
     try {
-      await productCatalogApi.deleteHierarchicalCategory(itemToDelete.category.id);
-      setCategories(prev => prev.filter(cat => cat.id !== itemToDelete.category.id));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.filter(cat => cat.id !== itemToDelete.category.id));
-      }
+             await productCatalogApi.deleteHierarchicalCategory(itemToDelete.category.categoryId);
+       setCategories(prev => prev.filter(cat => cat.categoryId !== itemToDelete.category.categoryId));
+       if (onCategoriesChange) {
+         onCategoriesChange(categories.filter(cat => cat.categoryId !== itemToDelete.category.categoryId));
+       }
       
       toast({
         title: "Success",
@@ -430,19 +430,19 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!validateSubCategoryForm()) return;
 
     try {
-      const newSubCategory: Omit<SubCategory, 'id'> = {
-        name: subCategoryForm.name.trim(),
-        value: subCategoryForm.value.trim() || subCategoryForm.name.toLowerCase().replace(/\s+/g, '_'),
-        label: subCategoryForm.label.trim() || subCategoryForm.name.trim(),
-        description: subCategoryForm.description.trim(),
-        subSubCategories: []
-      };
+             const newSubCategory: Omit<SubCategory, 'subCategoryId'> = {
+         name: subCategoryForm.name.trim(),
+         value: subCategoryForm.value.trim() || subCategoryForm.name.toLowerCase().replace(/\s+/g, '_'),
+         label: subCategoryForm.label.trim() || subCategoryForm.name.trim(),
+         description: subCategoryForm.description.trim(),
+         subSubCategories: []
+       };
 
-      const updated = await productCatalogApi.addSubCategory(selectedParentCategory!.id, newSubCategory as SubCategory);
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
-      }
+             const updated = await productCatalogApi.addSubCategory(selectedParentCategory!.categoryId, newSubCategory as SubCategory);
+       setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
+       if (onCategoriesChange) {
+         onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
+       }
       
       toast({
         title: "Success",
@@ -477,11 +477,11 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subCategoryForm.description.trim()
       };
 
-      const updated = await productCatalogApi.updateSubCategory(selectedParentCategory!.id, updatedSubCategory);
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
-      }
+             const updated = await productCatalogApi.updateSubCategory(selectedParentCategory!.categoryId, updatedSubCategory);
+       setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
+       if (onCategoriesChange) {
+         onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
+       }
       
       toast({
         title: "Success",
@@ -523,15 +523,15 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'sub' || !itemToDelete.subCategory) return;
 
     try {
-      await productCatalogApi.deleteSubCategory(itemToDelete.category.id, itemToDelete.subCategory.id);
-      setCategories(prev => prev.map(cat => cat.id === itemToDelete.category.id ? {
+      await productCatalogApi.deleteSubCategory(itemToDelete.category.categoryId, itemToDelete.subCategory.subCategoryId);
+      setCategories(prev => prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
         ...cat,
-        subCategories: cat.subCategories?.filter(sub => sub.id !== itemToDelete.subCategory!.id) || []
+        subCategories: cat.subCategories?.filter(sub => sub.subCategoryId !== itemToDelete.subCategory!.subCategoryId) || []
       } : cat));
       if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === itemToDelete.category.id ? {
+        onCategoriesChange(categories.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
           ...cat,
-          subCategories: cat.subCategories?.filter(sub => sub.id !== itemToDelete.subCategory!.id) || []
+          subCategories: cat.subCategories?.filter(sub => sub.subCategoryId !== itemToDelete.subCategory!.subCategoryId) || []
         } : cat));
       }
       
@@ -557,17 +557,17 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!validateSubSubCategoryForm()) return;
 
     try {
-      const newSubSubCategory: Omit<SubSubCategory, 'id'> = {
+      const newSubSubCategory: Omit<SubSubCategory, 'subSubCategoryId'> = {
         name: subSubCategoryForm.name.trim(),
         value: subSubCategoryForm.value.trim() || subSubCategoryForm.name.toLowerCase().replace(/\s+/g, '_'),
         label: subSubCategoryForm.label.trim() || subSubCategoryForm.name.trim(),
         description: subSubCategoryForm.description.trim()
       };
 
-      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory!.id, newSubSubCategory as SubSubCategory);
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory!.categoryId, newSubSubCategory as SubSubCategory);
+      setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
       if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+        onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
       }
       
       toast({
@@ -603,10 +603,10 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subSubCategoryForm.description.trim()
       };
 
-      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory!.id, updatedSubSubCategory);
-      setCategories(prev => prev.map(cat => cat.id === updated.id ? updated : cat));
+      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory!.categoryId, updatedSubSubCategory);
+      setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
       if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === updated.id ? updated : cat));
+        onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
       }
       
       toast({
@@ -639,20 +639,20 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'subsub' || !itemToDelete.subCategory || !itemToDelete.subSubCategory) return;
 
     try {
-      await productCatalogApi.deleteSubSubCategory(itemToDelete.category.id, itemToDelete.subSubCategory.id);
-      setCategories(prev => prev.map(cat => cat.id === itemToDelete.category.id ? {
+      await productCatalogApi.deleteSubSubCategory(itemToDelete.category.categoryId, itemToDelete.subSubCategory.subSubCategoryId);
+      setCategories(prev => prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
         ...cat,
-        subCategories: cat.subCategories?.map(sub => sub.id === itemToDelete.subCategory!.id ? {
+        subCategories: cat.subCategories?.map(sub => sub.subCategoryId === itemToDelete.subCategory!.subCategoryId ? {
           ...sub,
-          subSubCategories: sub.subSubCategories?.filter(subSub => subSub.id !== itemToDelete.subSubCategory!.id) || []
+          subSubCategories: sub.subSubCategories?.filter(subSub => subSub.subSubCategoryId !== itemToDelete.subSubCategory!.subSubCategoryId) || []
         } : sub) || []
       } : cat));
       if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.id === itemToDelete.category.id ? {
+        onCategoriesChange(categories.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
           ...cat,
-          subCategories: cat.subCategories?.map(sub => sub.id === itemToDelete.subCategory!.id ? {
+          subCategories: cat.subCategories?.map(sub => sub.subCategoryId === itemToDelete.subCategory!.subCategoryId ? {
             ...sub,
-            subSubCategories: sub.subSubCategories?.filter(subSub => subSub.id !== itemToDelete.subSubCategory!.id) || []
+            subSubCategories: sub.subSubCategories?.filter(subSub => subSub.subSubCategoryId !== itemToDelete.subSubCategory!.subSubCategoryId) || []
           } : sub) || []
         } : cat));
       }
@@ -697,7 +697,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       value: subCategory.value,
       label: subCategory.label,
       description: subCategory.description || '',
-      parentCategory: parentCategory.id
+      parentCategory: parentCategory.categoryId
     });
     setEditSubDialogOpen(true);
   };
@@ -711,8 +711,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       value: subSubCategory.value,
       label: subSubCategory.label,
       description: subSubCategory.description || '',
-      parentCategory: parentCategory.id,
-      parentSubCategory: parentSubCategory.id
+      parentCategory: parentCategory.categoryId,
+      parentSubCategory: parentSubCategory.subCategoryId
     });
     setEditSubSubDialogOpen(true);
   };
@@ -725,7 +725,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       value: '',
       label: '',
       description: '',
-      parentCategory: parentCategory.id
+      parentCategory: parentCategory.categoryId
     });
     setCreateSubDialogOpen(true);
   };
@@ -739,8 +739,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
       value: '',
       label: '',
       description: '',
-      parentCategory: parentCategory.id,
-      parentSubCategory: parentSubCategory.id
+      parentCategory: parentCategory.categoryId,
+      parentSubCategory: parentSubCategory.subCategoryId
     });
     setCreateSubSubDialogOpen(true);
   };
@@ -828,20 +828,20 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
           </div>
         ) : (
           categories.map((category) => {
-            const IconComponent = getIconComponent(category.icon);
-            const isExpanded = expandedCategories.has(category.id);
-             
-            return (
-              <Card key={category.id} className="border border-gray-200">
+                         const IconComponent = getIconComponent(category.icon);
+             const isExpanded = expandedCategories.has(category.categoryId);
+              
+             return (
+               <Card key={category.categoryId} className="border border-gray-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleCategoryExpansion(category.id)}
-                        className="p-1 h-8 w-8"
-                      >
+                                             <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => toggleCategoryExpansion(category.categoryId)}
+                         className="p-1 h-8 w-8"
+                       >
                         {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                       </Button>
                       <IconComponent className={`w-5 h-5 ${category.color}`} />
@@ -879,19 +879,19 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   <CardContent className="pt-0">
                     <div className="ml-8 space-y-3">
                       {/* Sub-categories */}
-                      {category.subCategories?.map((subCategory) => {
-                        const isSubExpanded = expandedSubCategories.has(subCategory.id);
-                        
-                        return (
-                          <div key={subCategory.id} className="border-l-2 border-gray-200 pl-4">
+                                             {category.subCategories?.map((subCategory) => {
+                         const isSubExpanded = expandedSubCategories.has(subCategory.subCategoryId);
+                         
+                         return (
+                           <div key={subCategory.subCategoryId} className="border-l-2 border-gray-200 pl-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleSubCategoryExpansion(subCategory.id)}
-                                  className="p-1 h-6 w-6"
-                                >
+                                                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => toggleSubCategoryExpansion(subCategory.subCategoryId)}
+                                   className="p-1 h-6 w-6"
+                                 >
                                   {isSubExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                                 </Button>
                                 <FolderOpen className="w-4 h-4 text-gray-500" />
@@ -925,8 +925,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                             {isSubExpanded && (
                               <div className="ml-6 mt-2 space-y-2">
                                 {/* Sub-sub-categories */}
-                                {subCategory.subSubCategories?.map((subSubCategory) => (
-                                  <div key={subSubCategory.id} className="flex items-center justify-between border-l border-gray-200 pl-3">
+                                                                 {subCategory.subSubCategories?.map((subSubCategory) => (
+                                   <div key={subSubCategory.subSubCategoryId} className="flex items-center justify-between border-l border-gray-200 pl-3">
                                     <div className="flex items-center space-x-2">
                                       <Folder className="w-3 h-3 text-gray-400" />
                                       <span className="text-sm">{subSubCategory.label}</span>
