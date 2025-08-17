@@ -237,22 +237,22 @@ class ApiClient {
   }
 
   // Sub-sub-category operations
-  async addSubSubCategory(categoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
-    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory`, {
+  async addSubSubCategory(categoryId: string, subCategoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategoryId}/subSubCategory`, {
       method: 'POST',
       body: JSON.stringify(subSubCategory),
     });
   }
 
-  async updateSubSubCategory(categoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
-    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory/${subSubCategory.subSubCategoryId}`, {
+  async updateSubSubCategory(categoryId: string, subCategoryId: string, subSubCategory: SubSubCategory): Promise<CategoryHierarchy> {
+    return await this.request<CategoryHierarchy>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategoryId}/subSubCategory/${subSubCategory.subSubCategoryId}`, {
       method: 'PATCH',
       body: JSON.stringify(subSubCategory),
     });
   }
 
-  async deleteSubSubCategory(categoryId: string, subSubCategoryId: string): Promise<void> {
-    await this.request<void>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subSubCategory/${subSubCategoryId}`, {
+  async deleteSubSubCategory(categoryId: string, subCategoryId: string, subSubCategoryId: string): Promise<void> {
+    await this.request<void>(`/productCatalogManagement/v5/hierarchicalCategory/${categoryId}/subCategory/${subCategoryId}/subSubCategory/${subSubCategoryId}`, {
       method: 'DELETE',
     });
   }
@@ -570,9 +570,9 @@ export const productCatalogApi = {
   addSubCategory: (categoryId: string, subCategory: SubCategory) => api.addSubCategory(categoryId, subCategory),
   updateSubCategory: (categoryId: string, subCategory: SubCategory) => api.updateSubCategory(categoryId, subCategory),
   deleteSubCategory: (categoryId: string, subCategoryId: string) => api.deleteSubCategory(categoryId, subCategoryId),
-  addSubSubCategory: (categoryId: string, subSubCategory: SubSubCategory) => api.addSubSubCategory(categoryId, subSubCategory),
-  updateSubSubCategory: (categoryId: string, subSubCategory: SubSubCategory) => api.updateSubSubCategory(categoryId, subSubCategory),
-  deleteSubSubCategory: (categoryId: string, subSubCategoryId: string) => api.deleteSubSubCategory(categoryId, subSubCategoryId),
+  addSubSubCategory: (categoryId: string, subCategoryId: string, subSubCategory: SubSubCategory) => api.addSubSubCategory(categoryId, subCategoryId, subSubCategory),
+  updateSubSubCategory: (categoryId: string, subCategoryId: string, subSubCategory: SubSubCategory) => api.updateSubSubCategory(categoryId, subCategoryId, subSubCategory),
+  deleteSubSubCategory: (categoryId: string, subCategoryId: string, subSubCategoryId: string) => api.deleteSubSubCategory(categoryId, subCategoryId, subSubCategoryId),
   getSpecifications: (params?: QueryParams) => api.getSpecifications(params),
   createSpecification: (spec: CreateSpecificationForm) => api.createSpecification(spec),
   updateSpecification: (id: string, updates: Partial<ProductSpecification>) => api.updateSpecification(id, updates),

@@ -564,7 +564,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subSubCategoryForm.description.trim()
       };
 
-      const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory!.categoryId, newSubSubCategory as SubSubCategory);
+              const updated = await productCatalogApi.addSubSubCategory(selectedParentCategory!.categoryId, selectedParentSubCategory!.subCategoryId, newSubSubCategory as SubSubCategory);
       setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
       if (onCategoriesChange) {
         onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
@@ -603,7 +603,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
         description: subSubCategoryForm.description.trim()
       };
 
-      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory!.categoryId, updatedSubSubCategory);
+      const updated = await productCatalogApi.updateSubSubCategory(selectedParentCategory!.categoryId, selectedParentSubCategory!.subCategoryId, updatedSubSubCategory);
       setCategories(prev => prev.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
       if (onCategoriesChange) {
         onCategoriesChange(categories.map(cat => cat.categoryId === updated.categoryId ? updated : cat));
@@ -639,7 +639,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'subsub' || !itemToDelete.subCategory || !itemToDelete.subSubCategory) return;
 
     try {
-      await productCatalogApi.deleteSubSubCategory(itemToDelete.category.categoryId, itemToDelete.subSubCategory.subSubCategoryId);
+      await productCatalogApi.deleteSubSubCategory(itemToDelete.category.categoryId, itemToDelete.subCategory!.subCategoryId, itemToDelete.subSubCategory.subSubCategoryId);
       setCategories(prev => prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
         ...cat,
         subCategories: cat.subCategories?.map(sub => sub.subCategoryId === itemToDelete.subCategory!.subCategoryId ? {
