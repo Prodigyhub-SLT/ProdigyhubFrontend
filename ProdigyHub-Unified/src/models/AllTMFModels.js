@@ -30,7 +30,7 @@ const CategorySchema = new mongoose.Schema({
 // New Hierarchical Category Schema for the frontend category management
 const HierarchicalCategorySchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true }, // Ensure unique names at main category level
   value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
   label: { type: String, required: false, default: function() { return this.name || 'Unnamed Category'; } },
   description: { type: String, default: '' },
@@ -56,6 +56,9 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   timestamps: true,
   collection: 'hierarchical_categories'
 });
+
+// Add compound index to ensure unique names within the same parent context
+HierarchicalCategorySchema.index({ name: 1 }, { unique: true });
 
 const ProductSpecificationSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
