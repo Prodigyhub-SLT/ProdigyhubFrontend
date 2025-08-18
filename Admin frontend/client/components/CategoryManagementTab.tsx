@@ -432,11 +432,21 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'main') return;
 
     try {
-             await productCatalogApi.deleteHierarchicalCategory(itemToDelete.category.categoryId);
-       setCategories(prev => prev.filter(cat => cat.categoryId !== itemToDelete.category.categoryId));
-       if (onCategoriesChange) {
-         onCategoriesChange(categories.filter(cat => cat.categoryId !== itemToDelete.category.categoryId));
-       }
+      console.log('Deleting main category:', itemToDelete.category.categoryId);
+      await productCatalogApi.deleteHierarchicalCategory(itemToDelete.category.categoryId);
+      
+      // Update local state
+      setCategories(prev => {
+        const updated = prev.filter(cat => cat.categoryId !== itemToDelete.category.categoryId);
+        console.log('Updated categories after deletion:', updated);
+        return updated;
+      });
+      
+      // Update parent component if callback exists
+      if (onCategoriesChange) {
+        const updatedCategories = categories.filter(cat => cat.categoryId !== itemToDelete.category.categoryId);
+        onCategoriesChange(updatedCategories);
+      }
       
       toast({
         title: "Success",
@@ -553,16 +563,26 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'sub' || !itemToDelete.subCategory) return;
 
     try {
+      console.log('Deleting sub-category:', itemToDelete.subCategory.subCategoryId);
       await productCatalogApi.deleteSubCategory(itemToDelete.category.categoryId, itemToDelete.subCategory.subCategoryId);
-      setCategories(prev => prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
-        ...cat,
-        subCategories: cat.subCategories?.filter(sub => sub.subCategoryId !== itemToDelete.subCategory!.subCategoryId) || []
-      } : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
+      
+      // Update local state
+      setCategories(prev => {
+        const updated = prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
           ...cat,
           subCategories: cat.subCategories?.filter(sub => sub.subCategoryId !== itemToDelete.subCategory!.subCategoryId) || []
-        } : cat));
+        } : cat);
+        console.log('Updated categories after sub-category deletion:', updated);
+        return updated;
+      });
+      
+      // Update parent component if callback exists
+      if (onCategoriesChange) {
+        const updatedCategories = categories.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
+          ...cat,
+          subCategories: cat.subCategories?.filter(sub => sub.subCategoryId !== itemToDelete.subCategory!.subCategoryId) || []
+        } : cat);
+        onCategoriesChange(updatedCategories);
       }
       
       toast({
@@ -669,22 +689,32 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
     if (!itemToDelete || itemToDelete.type !== 'subsub' || !itemToDelete.subCategory || !itemToDelete.subSubCategory) return;
 
     try {
+      console.log('Deleting sub-sub-category:', itemToDelete.subSubCategory.subSubCategoryId);
       await productCatalogApi.deleteSubSubCategory(itemToDelete.category.categoryId, itemToDelete.subCategory!.subCategoryId, itemToDelete.subSubCategory.subSubCategoryId);
-      setCategories(prev => prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
-        ...cat,
-        subCategories: cat.subCategories?.map(sub => sub.subCategoryId === itemToDelete.subCategory!.subCategoryId ? {
-          ...sub,
-          subSubCategories: sub.subSubCategories?.filter(subSub => subSub.subSubCategoryId !== itemToDelete.subSubCategory!.subSubCategoryId) || []
-        } : sub) || []
-      } : cat));
-      if (onCategoriesChange) {
-        onCategoriesChange(categories.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
+      
+      // Update local state
+      setCategories(prev => {
+        const updated = prev.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
           ...cat,
           subCategories: cat.subCategories?.map(sub => sub.subCategoryId === itemToDelete.subCategory!.subCategoryId ? {
             ...sub,
             subSubCategories: sub.subSubCategories?.filter(subSub => subSub.subSubCategoryId !== itemToDelete.subSubCategory!.subSubCategoryId) || []
           } : sub) || []
-        } : cat));
+        } : cat);
+        console.log('Updated categories after sub-sub-category deletion:', updated);
+        return updated;
+      });
+      
+      // Update parent component if callback exists
+      if (onCategoriesChange) {
+        const updatedCategories = categories.map(cat => cat.categoryId === itemToDelete.category.categoryId ? {
+          ...cat,
+          subCategories: cat.subCategories?.map(sub => sub.subCategoryId === itemToDelete.subCategory!.subCategoryId ? {
+            ...sub,
+            subSubCategories: sub.subSubCategories?.filter(subSub => subSub.subSubCategoryId !== itemToDelete.subSubCategory!.subSubCategoryId) || []
+          } : sub) || []
+        } : cat);
+        onCategoriesChange(updatedCategories);
       }
       
       toast({
