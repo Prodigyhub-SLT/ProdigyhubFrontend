@@ -528,7 +528,8 @@ class TMF620Controller {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
       
-      const subCategory = category.subCategories.id(subCategoryId);
+      // Find sub-category by string ID instead of using .id() method
+      const subCategory = category.subCategories.find(sub => sub.subCategoryId === subCategoryId);
       if (!subCategory) {
         return res.status(404).json({ error: 'Sub-category not found' });
       }
@@ -571,7 +572,8 @@ class TMF620Controller {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
       
-      const subCategory = category.subCategories.id(subCategoryId);
+      // Find sub-category by string ID instead of using .id() method
+      const subCategory = category.subCategories.find(sub => sub.subCategoryId === subCategoryId);
       if (!subCategory) {
         return res.status(404).json({ error: 'Sub-category not found' });
       }
@@ -608,12 +610,14 @@ class TMF620Controller {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
       
-      const subCategory = category.subCategories.id(subCategoryId);
+      // Find sub-category by string ID instead of using .id() method
+      const subCategory = category.subCategories.find(sub => sub.subCategoryId === subCategoryId);
       if (!subCategory) {
         return res.status(404).json({ error: 'Sub-category not found' });
       }
       
-      const subSubCategory = subCategory.subSubCategories.id(subSubCategoryId);
+      // Find sub-sub-category by string ID instead of using .id() method
+      const subSubCategory = subCategory.subSubCategories.find(subSub => subSub.subSubCategoryId === subSubCategoryId);
       if (!subSubCategory) {
         return res.status(404).json({ error: 'Sub-sub-category not found' });
       }
@@ -637,7 +641,8 @@ class TMF620Controller {
         return res.status(404).json({ error: 'Hierarchical category not found' });
       }
       
-      const subCategory = category.subCategories.id(subCategoryId);
+      // Find sub-category by string ID instead of using .id() method
+      const subCategory = category.subCategories.find(sub => sub.subCategoryId === subCategoryId);
       if (!subCategory) {
         return res.status(404).json({ error: 'Sub-category not found' });
       }
