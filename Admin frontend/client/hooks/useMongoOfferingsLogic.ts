@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { productCatalogApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { CategoryHierarchy, SubCategory, SubSubCategory } from "../shared/product-order-types";
 
 export interface CustomAttribute {
   id: string;
@@ -20,6 +21,14 @@ export interface MongoProductOffering {
   subSubCategory?: string;
   // NEW: For Broadband offerings - multiple sub-category selections
   broadbandSelections?: SubCategorySelection[];
+  // NEW: Hierarchical category structure
+  hierarchicalCategory?: {
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
+  };
   lifecycleStatus: 'Active' | 'Draft' | 'Retired';
   isBundle: boolean;
   isSellable: boolean;
@@ -62,6 +71,13 @@ export const useMongoOfferingsLogic = () => {
     subCategory: string;
     subSubCategory: string;
     broadbandSelections?: SubCategorySelection[];
+    hierarchicalCategory?: {
+      mainCategory: CategoryHierarchy;
+      subCategories: Array<{
+        subCategory: SubCategory;
+        subSubCategories: SubSubCategory[];
+      }>;
+    };
     description: string;
     customAttributes: CustomAttribute[];
     isBundle: boolean;
@@ -1059,6 +1075,7 @@ export const useMongoOfferingsLogic = () => {
       subCategory: offering.subCategory || '',
       subSubCategory: offering.subSubCategory || '',
       broadbandSelections: offering.broadbandSelections || [], // Deep copy
+      hierarchicalCategory: offering.hierarchicalCategory, // Include hierarchical category
       description: offering.description,
       customAttributes: [...offering.customAttributes], // Deep copy
       isBundle: offering.isBundle,
@@ -1099,14 +1116,47 @@ export const useMongoOfferingsLogic = () => {
     }));
   };
 
-  const handleCategoryChange = (category: string, subCategory: string = '', subSubCategory: string = '') => {
-    const defaultAttributes = getCategoryDefaultAttributes(category, subCategory, subSubCategory);
+  const handleCategoryChange = (selection: {
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
+  }) => {
+    // Create a comprehensive category description that includes all selected sub-categories
+    let categoryDescription = selection.mainCategory.name || selection.mainCategory.label;
+    
+    if (selection.subCategories.length > 0) {
+      const subCategoryDescriptions = selection.subCategories.map(item => {
+        let desc = item.subCategory.name || item.subCategory.label;
+        if (item.subSubCategories.length > 0) {
+          const subSubDescriptions = item.subSubCategories.map(subSub => 
+            subSub.name || subSub.label
+          ).join(', ');
+          desc += ` (${subSubDescriptions})`;
+        }
+        return desc;
+      }).join(' + ');
+      
+      categoryDescription += ` - ${subCategoryDescriptions}`;
+    }
+    
+    // For backward compatibility, also set the individual fields
+    const firstSubCategory = selection.subCategories[0];
+    const firstSubSubCategory = firstSubCategory?.subSubCategories[0];
+    
+    const defaultAttributes = getCategoryDefaultAttributes(
+      categoryDescription, 
+      firstSubCategory?.name || firstSubCategory?.label || '', 
+      firstSubSubCategory?.name || firstSubSubCategory?.label || ''
+    );
     
     setFormData(prev => ({
       ...prev,
-      category,
-      subCategory,
-      subSubCategory,
+      category: categoryDescription,
+      subCategory: firstSubCategory?.name || firstSubCategory?.label || '',
+      subSubCategory: firstSubSubCategory?.name || firstSubSubCategory?.label || '',
+      hierarchicalCategory: selection,
       customAttributes: defaultAttributes
     }));
   };

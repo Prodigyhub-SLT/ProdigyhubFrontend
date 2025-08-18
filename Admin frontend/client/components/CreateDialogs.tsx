@@ -22,6 +22,7 @@ import {
 import { CATEGORIES, CategoryIcons } from "./CategoryConfig";
 import { MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
 import { HierarchicalCategorySelector } from "./HierarchicalCategorySelector";
+import { CategoryHierarchy, SubCategory, SubSubCategory } from "../../shared/product-order-types";
 
 interface SubCategorySelection {
   subCategory: string;
@@ -40,6 +41,13 @@ interface CreateDialogsProps {
     category: string;
     subCategory: string;
     subSubCategory: string;
+    hierarchicalCategory?: {
+      mainCategory: CategoryHierarchy;
+      subCategories: Array<{
+        subCategory: SubCategory;
+        subSubCategories: SubSubCategory[];
+      }>;
+    };
     broadbandSelections?: SubCategorySelection[];
     description: string;
     customAttributes: CustomAttribute[];
@@ -64,7 +72,13 @@ interface CreateDialogsProps {
   handleCreate: (formData: FormData) => void;
   createMongoOffering: () => Promise<void>; // Make this async
   updateMongoOffering: () => Promise<void>; // Make this async
-  handleCategoryChange: (category: string, subCategory: string, subSubCategory: string) => void;
+  handleCategoryChange: (selection: {
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
+  }) => void;
   handleBroadbandSelectionsChange?: (selections: SubCategorySelection[]) => void;
   addCustomAttribute: () => void;
   updateCustomAttribute: (id: string, field: keyof CustomAttribute, value: any) => void;
@@ -180,12 +194,11 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           
           {/* Hierarchical Category Selector */}
           <HierarchicalCategorySelector
-            selectedCategory={formData.category}
-            selectedSubCategory={formData.subCategory}
-            selectedSubSubCategory={formData.subSubCategory}
             onCategorySelect={handleCategoryChange}
-            broadbandSelections={formData.broadbandSelections}
-            onBroadbandSelectionsChange={handleBroadbandSelectionsChange}
+            selectedCategory={formData.hierarchicalCategory}
+            showSubCategories={true}
+            showSubSubCategories={true}
+            className="mt-2"
           />
           
           <div className="space-y-4">
