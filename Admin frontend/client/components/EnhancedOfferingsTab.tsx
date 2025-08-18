@@ -233,24 +233,13 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                   {offering.description || 'No description available'}
                 </p>
                 
-                {/* Hierarchical Category Details */}
-                {offering.hierarchicalCategory && offering.hierarchicalCategory.subCategories.length > 0 && (
-                  <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded border">
-                    <div className="font-medium mb-1">Category Details:</div>
-                    {offering.hierarchicalCategory.subCategories.map((item, index) => (
-                      <div key={index} className="ml-2">
-                        • {item.subCategory.name || item.subCategory.label}
-                        {item.subSubCategories.length > 0 && (
-                          <span className="text-gray-500">
-                            {' '}({item.subSubCategories.map(subSub => 
-                              subSub.name || subSub.label
-                            ).join(', ')})
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                                 {/* Category Description */}
+                 {offering.categoryDescription && (
+                   <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded border">
+                     <div className="font-medium mb-1">Category Details:</div>
+                     <div className="text-gray-700">{offering.categoryDescription}</div>
+                   </div>
+                 )}
                 
                 {/* Custom Attributes */}
                 {offering.customAttributes && Array.isArray(offering.customAttributes) && offering.customAttributes.length > 0 && (

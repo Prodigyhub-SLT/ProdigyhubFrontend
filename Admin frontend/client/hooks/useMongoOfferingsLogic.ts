@@ -17,6 +17,7 @@ export interface MongoProductOffering {
   name: string;
   description: string;
   category: string;
+  categoryDescription?: string;
   subCategory?: string;
   subSubCategory?: string;
   // NEW: For Broadband offerings - multiple sub-category selections
@@ -68,6 +69,7 @@ export const useMongoOfferingsLogic = () => {
     name: string;
     lifecycleStatus: 'Active' | 'Draft' | 'Retired';
     category: string;
+    categoryDescription: string;
     subCategory: string;
     subSubCategory: string;
     broadbandSelections?: SubCategorySelection[];
@@ -93,6 +95,7 @@ export const useMongoOfferingsLogic = () => {
     name: '',
     lifecycleStatus: 'Active',
     category: '',
+    categoryDescription: '',
     subCategory: '',
     subSubCategory: '',
     broadbandSelections: [],
@@ -163,6 +166,7 @@ export const useMongoOfferingsLogic = () => {
               return 'Other';
             }
           })(),
+          categoryDescription: (offering as any).categoryDescription || '', // Extract category description
           subCategory: (() => {
             if (typeof (offering as any).subCategory === 'string') {
               return (offering as any).subCategory;
@@ -180,12 +184,13 @@ export const useMongoOfferingsLogic = () => {
             } else if (Array.isArray((offering as any).subSubCategory) && (offering as any).subSubCategory[0]) {
               return (offering as any).subSubCategory[0].name || (offering as any).subSubCategory[0].id || 'Other';
             } else if ((offering as any).subSubCategory && typeof (offering as any).subSubCategory === 'object') {
-              return ((offering as any).subSubCategory as any).name || ((offering as any).subSubCategory as any).id || 'Other';
+              return ((offering as any).subSubCategory as any).name || ((offering as any).subSubCategory[0] as any).id || 'Other';
             } else {
               return undefined;
             }
           })(),
           broadbandSelections: (offering as any).broadbandSelections || [], // Extract broadband selections
+          hierarchicalCategory: (offering as any).hierarchicalCategory, // Extract hierarchical category
           lifecycleStatus: offering.lifecycleStatus as 'Active' | 'Draft' | 'Retired',
           isBundle: offering.isBundle || false,
           isSellable: offering.isSellable !== false,
@@ -569,9 +574,11 @@ export const useMongoOfferingsLogic = () => {
         name: formData.name.trim(),
         description: formData.description.trim(),
         category: formData.category,
+        categoryDescription: formData.categoryDescription,
         subCategory: formData.subCategory,
         subSubCategory: formData.subSubCategory,
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
+        hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
         lifecycleStatus: formData.lifecycleStatus,
         isBundle: formData.isBundle,
         isSellable: formData.isSellable,
@@ -827,6 +834,7 @@ export const useMongoOfferingsLogic = () => {
           deposit: Number(formData.pricing.deposit),
         },
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
+        hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
         updatedAt: new Date().toISOString(),
         
         '@type': 'ProductOffering'
@@ -863,9 +871,11 @@ export const useMongoOfferingsLogic = () => {
         name: formData.name,
         description: formData.description,
         category: formData.category,
+        categoryDescription: formData.categoryDescription,
         subCategory: formData.subCategory,
         subSubCategory: formData.subSubCategory,
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
+        hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
         lifecycleStatus: formData.lifecycleStatus,
         isBundle: formData.isBundle,
         isSellable: formData.isSellable,
@@ -1072,6 +1082,7 @@ export const useMongoOfferingsLogic = () => {
       name: offering.name,
       lifecycleStatus: offering.lifecycleStatus,
       category: offering.category,
+      categoryDescription: offering.categoryDescription || '',
       subCategory: offering.subCategory || '',
       subSubCategory: offering.subSubCategory || '',
       broadbandSelections: offering.broadbandSelections || [], // Deep copy
@@ -1153,7 +1164,8 @@ export const useMongoOfferingsLogic = () => {
     
     setFormData(prev => ({
       ...prev,
-      category: categoryDescription,
+      category: selection.mainCategory.name || selection.mainCategory.label || '',
+      categoryDescription: categoryDescription,
       subCategory: firstSubCategory?.name || firstSubCategory?.label || '',
       subSubCategory: firstSubSubCategory?.name || firstSubSubCategory?.label || '',
       hierarchicalCategory: selection,
