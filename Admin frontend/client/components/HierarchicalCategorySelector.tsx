@@ -25,14 +25,14 @@ import { CategoryHierarchy, SubCategory, SubSubCategory } from '../../shared/pro
 
 interface HierarchicalCategorySelectorProps {
   onCategorySelect: (selection: {
-    mainCategory: CategoryHierarchy;
-    subCategory?: SubCategory;
-    subSubCategory?: SubSubCategory;
+    mainCategory: any;
+    subCategory?: any;
+    subSubCategory?: any;
   }) => void;
   selectedCategory?: {
-    mainCategory: CategoryHierarchy;
-    subCategory?: SubCategory;
-    subSubCategory?: SubSubCategory;
+    mainCategory: any;
+    subCategory?: any;
+    subSubCategory?: any;
   };
   showSubCategories?: boolean;
   showSubSubCategories?: boolean;
@@ -62,6 +62,7 @@ export function HierarchicalCategorySelector({
 }: HierarchicalCategorySelectorProps) {
   const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
 
@@ -72,10 +73,42 @@ export function HierarchicalCategorySelector({
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const categoriesData = await productCatalogApi.getHierarchicalCategories();
-      setCategories(categoriesData);
+      setError(null);
+      const response = await productCatalogApi.getHierarchicalCategories();
+      
+      // Handle the API response structure - categories might be wrapped in a 'value' array
+      let categoriesData = response;
+      if (response && typeof response === 'object' && 'value' in response && Array.isArray(response.value)) {
+        categoriesData = response.value;
+      }
+      
+      // Ensure all categories have required properties
+      const validatedCategories = categoriesData.filter(category => {
+        if (!category || typeof category !== 'object') return false;
+        
+        // Check if category has a unique identifier (either categoryId or _id)
+        const hasId = category.categoryId || (category as any)._id;
+        if (!hasId) {
+          console.warn('Category missing ID:', category);
+          return false;
+        }
+        
+        return true;
+      }).map(category => ({
+        ...category,
+        // Ensure categoryId exists
+        categoryId: category.categoryId || (category as any)._id,
+        // Ensure subCategories is an array
+        subCategories: Array.isArray(category.subCategories) ? category.subCategories : [],
+        // Ensure icon exists
+        icon: category.icon || 'Folder'
+      }));
+      
+      setCategories(validatedCategories);
+      console.log('Loaded categories:', validatedCategories);
     } catch (error) {
       console.error('Error loading categories:', error);
+      setError('Failed to load categories. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -106,19 +139,31 @@ export function HierarchicalCategorySelector({
   };
 
   const handleCategorySelect = (category: CategoryHierarchy) => {
+    if (!category || !category.categoryId) {
+      console.warn('Invalid category selected:', category);
+      return;
+    }
     onCategorySelect({ mainCategory: category });
   };
 
   const handleSubCategorySelect = (mainCategory: CategoryHierarchy, subCategory: SubCategory) => {
+    if (!mainCategory || !mainCategory.categoryId || !subCategory || !subCategory.subCategoryId) {
+      console.warn('Invalid sub-category selection:', { mainCategory, subCategory });
+      return;
+    }
     onCategorySelect({ mainCategory, subCategory });
   };
 
   const handleSubSubCategorySelect = (mainCategory: CategoryHierarchy, subCategory: SubCategory, subSubCategory: SubSubCategory) => {
+    if (!mainCategory || !mainCategory.categoryId || !subCategory || !subCategory.subCategoryId || !subSubCategory || !subSubCategory.subSubCategoryId) {
+      console.warn('Invalid sub-sub-category selection:', { mainCategory, subCategory, subSubCategory });
+      return;
+    }
     onCategorySelect({ mainCategory, subCategory, subSubCategory });
   };
 
   const isCategorySelected = (category: CategoryHierarchy) => {
-    return selectedCategory?.mainCategory.categoryId === category.categoryId;
+    return selectedCategory?.mainCategory?.categoryId === category.categoryId;
   };
 
   const isSubCategorySelected = (subCategory: SubCategory) => {
@@ -138,9 +183,33 @@ export function HierarchicalCategorySelector({
     );
   }
 
+  if (error) {
+    return (
+      <div className={`p-4 text-center ${className}`}>
+        <div className="text-red-500 mb-2">{error}</div>
+        <Button onClick={loadCategories} variant="outline" size="sm">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  if (!categories || categories.length === 0) {
+    return (
+      <div className={`p-4 text-center text-muted-foreground ${className}`}>
+        No categories found. Please create some categories first.
+      </div>
+    );
+  }
+
   return (
     <div className={`space-y-2 ${className}`}>
       {categories.map((category) => {
+        if (!category || !category.categoryId) {
+          console.warn('Skipping invalid category:', category);
+          return null;
+        }
+
         const IconComponent = categoryIcons[category.icon] || Folder;
         const isExpanded = expandedCategories.has(category.categoryId);
         const isSelected = isCategorySelected(category);
@@ -155,12 +224,12 @@ export function HierarchicalCategorySelector({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded ${category.bgColor}`}>
-                    <IconComponent className={`w-4 h-4 ${category.color}`} />
+                  <div className={`flex items-center justify-center w-8 h-8 rounded ${category.bgColor || 'bg-gray-100'}`}>
+                    <IconComponent className={`w-4 h-4 ${category.color || 'text-gray-600'}`} />
                   </div>
                   <div>
-                    <div className="font-medium">{category.name}</div>
-                    <div className="text-xs text-muted-foreground">{category.description}</div>
+                    <div className="font-medium">{category.name || 'Unnamed Category'}</div>
+                    <div className="text-xs text-muted-foreground">{category.description || 'No description'}</div>
                   </div>
                 </div>
                 {showSubCategories && category.subCategories && category.subCategories.length > 0 && (
@@ -186,6 +255,11 @@ export function HierarchicalCategorySelector({
             {showSubCategories && isExpanded && category.subCategories && category.subCategories.length > 0 && (
               <div className="border-t bg-muted/30">
                 {category.subCategories.map((subCategory) => {
+                  if (!subCategory || !subCategory.subCategoryId) {
+                    console.warn('Skipping invalid sub-category:', subCategory);
+                    return null;
+                  }
+
                   const isSubExpanded = expandedSubCategories.has(subCategory.subCategoryId);
                   const isSubSelected = isSubCategorySelected(subCategory);
                   
@@ -201,11 +275,11 @@ export function HierarchicalCategorySelector({
                           <div className="flex items-center space-x-3">
                             <Folder className="w-4 h-4 text-muted-foreground" />
                             <div>
-                              <div className="font-medium text-sm">{subCategory.name}</div>
-                              <div className="text-xs text-muted-foreground">{subCategory.description}</div>
+                              <div className="font-medium text-sm">{subCategory.name || 'Unnamed Sub-Category'}</div>
+                              <div className="text-xs text-muted-foreground">{subCategory.description || 'No description'}</div>
                             </div>
                           </div>
-                          {showSubSubCategories && subCategory.subSubCategories && subCategory.subSubCategories.length > 0 && (
+                          {showSubSubCategories && subCategory.subSubCategories && Array.isArray(subCategory.subSubCategories) && subCategory.subSubCategories.length > 0 && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -225,9 +299,14 @@ export function HierarchicalCategorySelector({
                       </div>
 
                       {/* Sub-sub-categories */}
-                      {showSubSubCategories && isSubExpanded && subCategory.subSubCategories && subCategory.subSubCategories.length > 0 && (
+                      {showSubSubCategories && isSubExpanded && subCategory.subSubCategories && Array.isArray(subCategory.subSubCategories) && subCategory.subSubCategories.length > 0 && (
                         <div className="bg-muted/20">
                           {subCategory.subSubCategories.map((subSubCategory) => {
+                            if (!subSubCategory || !subSubCategory.subSubCategoryId) {
+                              console.warn('Skipping invalid sub-sub-category:', subSubCategory);
+                              return null;
+                            }
+
                             const isSubSubSelected = isSubSubCategorySelected(subSubCategory);
                             
                             return (
@@ -241,8 +320,8 @@ export function HierarchicalCategorySelector({
                                 <div className="flex items-center space-x-3">
                                   <Folder className="w-3 h-3 text-muted-foreground" />
                                   <div>
-                                    <div className="font-medium text-sm">{subSubCategory.name}</div>
-                                    <div className="text-xs text-muted-foreground">{subSubCategory.description}</div>
+                                    <div className="font-medium text-sm">{subSubCategory.name || 'Unnamed Sub-Sub-Category'}</div>
+                                    <div className="text-xs text-muted-foreground">{subSubCategory.description || 'No description'}</div>
                                   </div>
                                 </div>
                               </div>
