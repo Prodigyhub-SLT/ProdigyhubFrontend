@@ -179,9 +179,11 @@ export default function CreateOrder() {
   
   // Hierarchical category selection state
   const [selectedHierarchicalCategory, setSelectedHierarchicalCategory] = useState<{
-    mainCategory: any;
-    subCategory?: any;
-    subSubCategory?: any;
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
   } | null>(null);
   
   const [formData, setFormData] = useState<CreateProductOrderRequest>({
@@ -319,14 +321,35 @@ export default function CreateOrder() {
   };
 
   const handleHierarchicalCategorySelect = (selection: {
-    mainCategory: any;
-    subCategory?: any;
-    subSubCategory?: any;
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
   }) => {
     setSelectedHierarchicalCategory(selection);
+    
+    // Create a comprehensive category description that includes all selected sub-categories
+    let categoryDescription = selection.mainCategory.name || selection.mainCategory.label;
+    
+    if (selection.subCategories.length > 0) {
+      const subCategoryDescriptions = selection.subCategories.map(item => {
+        let desc = item.subCategory.name || item.subCategory.label;
+        if (item.subSubCategories.length > 0) {
+          const subSubDescriptions = item.subSubCategories.map(subSub => 
+            subSub.name || subSub.label
+          ).join(', ');
+          desc += ` (${subSubDescriptions})`;
+        }
+        return desc;
+      }).join(' + ');
+      
+      categoryDescription += ` - ${subCategoryDescriptions}`;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      category: selection.mainCategory.name,
+      category: categoryDescription,
       // Reset product items when category changes
       productOrderItem: [{
         action: 'add',
@@ -650,9 +673,23 @@ export default function CreateOrder() {
                     <div className="mt-2 p-2 bg-muted/50 rounded-md">
                       <div className="text-sm font-medium">Selected:</div>
                       <div className="text-xs text-muted-foreground">
-                        {selectedHierarchicalCategory.mainCategory.name}
-                        {selectedHierarchicalCategory.subCategory && ` → ${selectedHierarchicalCategory.subCategory.name}`}
-                        {selectedHierarchicalCategory.subSubCategory && ` → ${selectedHierarchicalCategory.subSubCategory.name}`}
+                        {selectedHierarchicalCategory.mainCategory.name || selectedHierarchicalCategory.mainCategory.label}
+                        {selectedHierarchicalCategory.subCategories.length > 0 && (
+                          <div className="mt-1 space-y-1">
+                            {selectedHierarchicalCategory.subCategories.map((item, index) => (
+                              <div key={index} className="ml-2">
+                                → {item.subCategory.name || item.subCategory.label}
+                                {item.subSubCategories.length > 0 && (
+                                  <span className="text-gray-500">
+                                    {' '}({item.subSubCategories.map(subSub => 
+                                      subSub.name || subSub.label
+                                    ).join(', ')})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

@@ -18,72 +18,81 @@ import {
   ChevronDown,
   ChevronRight,
   Folder,
-  FolderOpen
+  FolderOpen,
+  X,
+  Plus,
+  FolderTree,
+  Settings
 } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { CategoryHierarchy, SubCategory, SubSubCategory } from '../../shared/product-order-types';
 
 interface HierarchicalCategorySelectorProps {
   onCategorySelect: (selection: {
-    mainCategory: any;
-    subCategory?: any;
-    subSubCategory?: any;
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
   }) => void;
   selectedCategory?: {
-    mainCategory: any;
-    subCategory?: any;
-    subSubCategory?: any;
+    mainCategory: CategoryHierarchy;
+    subCategories: Array<{
+      subCategory: SubCategory;
+      subSubCategories: SubSubCategory[];
+    }>;
   };
   showSubCategories?: boolean;
   showSubSubCategories?: boolean;
   className?: string;
+  allowMultipleSelections?: boolean;
 }
-
-const categoryIcons: { [key: string]: React.ComponentType<any> } = {
-  'Wifi': Wifi,
-  'Building': Building,
-  'Smartphone': Smartphone,
-  'Cloud': Cloud,
-  'Package': Package,
-  'Tv': Tv,
-  'Phone': Phone,
-  'Gamepad2': Gamepad2,
-  'Globe': Globe,
-  'Gift': Gift,
-  'Folder': Folder
-};
 
 export function HierarchicalCategorySelector({ 
   onCategorySelect, 
   selectedCategory,
   showSubCategories = true,
   showSubSubCategories = true,
-  className = ""
+  className = "",
+  allowMultipleSelections = true
 }: HierarchicalCategorySelectorProps) {
   const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
+  
+  // Multiple selection state
+  const [selectedMainCategory, setSelectedMainCategory] = useState<CategoryHierarchy | null>(null);
+  const [selectedSubCategories, setSelectedSubCategories] = useState<Array<{
+    subCategory: SubCategory;
+    subSubCategories: SubSubCategory[];
+  }>>([]);
 
   useEffect(() => {
     loadCategories();
   }, []);
 
+  // Initialize from props if available
+  useEffect(() => {
+    if (selectedCategory) {
+      setSelectedMainCategory(selectedCategory.mainCategory);
+      setSelectedSubCategories(selectedCategory.subCategories || []);
+    }
+  }, [selectedCategory]);
+
   const loadCategories = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await productCatalogApi.getHierarchicalCategories();
       
       // Handle the API response structure - categories might be wrapped in a 'value' array
-      let categoriesData = response;
+      let fetchedCategories = response;
       if (response && typeof response === 'object' && 'value' in response && Array.isArray(response.value)) {
-        categoriesData = response.value;
+        fetchedCategories = response.value;
       }
       
       // Ensure all categories have required properties
-      const validatedCategories = categoriesData.filter(category => {
+      const validatedCategories = fetchedCategories.filter(category => {
         if (!category || typeof category !== 'object') return false;
         
         // Check if category has a unique identifier (either categoryId or _id)
@@ -105,238 +114,372 @@ export function HierarchicalCategorySelector({
       }));
       
       setCategories(validatedCategories);
-      console.log('Loaded categories:', validatedCategories);
+      console.log('Loaded categories in HierarchicalCategorySelector:', validatedCategories);
     } catch (error) {
       console.error('Error loading categories:', error);
-      setError('Failed to load categories. Please try again.');
+      setCategories([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Icon mapping
+  const iconMap: { [key: string]: React.ComponentType<any> } = {
+    Wifi, Settings, Smartphone, Globe, Package, Tv, Phone, 
+    Gamepad2, Gift, Folder, FolderOpen, FolderTree, Building, Cloud
+  };
+
+  const getIconComponent = (iconName: string) => {
+    return iconMap[iconName] || Folder;
+  };
+
+  // Expansion toggles
   const toggleCategoryExpansion = (categoryId: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryId)) {
-        newSet.delete(categoryId);
-      } else {
-        newSet.add(categoryId);
-      }
-      return newSet;
-    });
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
   };
 
   const toggleSubCategoryExpansion = (subCategoryId: string) => {
-    setExpandedSubCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(subCategoryId)) {
-        newSet.delete(subCategoryId);
-      } else {
-        newSet.add(subCategoryId);
-      }
-      return newSet;
+    const newExpanded = new Set(expandedSubCategories);
+    if (newExpanded.has(subCategoryId)) {
+      newExpanded.delete(subCategoryId);
+    } else {
+      newExpanded.add(subCategoryId);
+    }
+    setExpandedSubCategories(newExpanded);
+  };
+
+  // Selection handlers
+  const handleMainCategorySelect = (category: CategoryHierarchy) => {
+    setSelectedMainCategory(category);
+    setSelectedSubCategories([]); // Reset sub-categories when main category changes
+    onCategorySelect({
+      mainCategory: category,
+      subCategories: []
     });
   };
 
-  const handleCategorySelect = (category: CategoryHierarchy) => {
-    if (!category || !category.categoryId) {
-      console.warn('Invalid category selected:', category);
-      return;
+  const handleSubCategorySelect = (subCategory: SubCategory) => {
+    if (!selectedMainCategory) return;
+
+    if (allowMultipleSelections) {
+      // Check if this sub-category is already selected
+      const existingIndex = selectedSubCategories.findIndex(
+        item => item.subCategory.subCategoryId === subCategory.subCategoryId
+      );
+
+      if (existingIndex >= 0) {
+        // Remove if already selected
+        const updated = selectedSubCategories.filter((_, index) => index !== existingIndex);
+        setSelectedSubCategories(updated);
+        onCategorySelect({
+          mainCategory: selectedMainCategory,
+          subCategories: updated
+        });
+      } else {
+        // Add new selection
+        const updated = [...selectedSubCategories, {
+          subCategory,
+          subSubCategories: []
+        }];
+        setSelectedSubCategories(updated);
+        onCategorySelect({
+          mainCategory: selectedMainCategory,
+          subCategories: updated
+        });
+      }
+    } else {
+      // Single selection mode
+      const updated = [{
+        subCategory,
+        subSubCategories: []
+      }];
+      setSelectedSubCategories(updated);
+      onCategorySelect({
+        mainCategory: selectedMainCategory,
+        subCategories: updated
+      });
     }
-    onCategorySelect({ mainCategory: category });
   };
 
-  const handleSubCategorySelect = (mainCategory: CategoryHierarchy, subCategory: SubCategory) => {
-    if (!mainCategory || !mainCategory.categoryId || !subCategory || !subCategory.subCategoryId) {
-      console.warn('Invalid sub-category selection:', { mainCategory, subCategory });
-      return;
+  const handleSubSubCategorySelect = (subCategory: SubCategory, subSubCategory: SubSubCategory) => {
+    if (!selectedMainCategory) return;
+
+    // Find the parent sub-category in our selections
+    const subCategoryIndex = selectedSubCategories.findIndex(
+      item => item.subCategory.subCategoryId === subCategory.subCategoryId
+    );
+
+    if (subCategoryIndex >= 0) {
+      const updated = [...selectedSubCategories];
+      const currentSubSubCategories = updated[subCategoryIndex].subSubCategories;
+      
+      // Check if this sub-sub-category is already selected
+      const existingIndex = currentSubSubCategories.findIndex(
+        item => item.subSubCategoryId === subSubCategory.subSubCategoryId
+      );
+
+      if (existingIndex >= 0) {
+        // Remove if already selected
+        updated[subCategoryIndex].subSubCategories = currentSubSubCategories.filter(
+          (_, index) => index !== existingIndex
+        );
+      } else {
+        // Add new selection
+        updated[subCategoryIndex].subSubCategories = [...currentSubSubCategories, subSubCategory];
+      }
+
+      setSelectedSubCategories(updated);
+      onCategorySelect({
+        mainCategory: selectedMainCategory,
+        subCategories: updated
+      });
     }
-    onCategorySelect({ mainCategory, subCategory });
   };
 
-  const handleSubSubCategorySelect = (mainCategory: CategoryHierarchy, subCategory: SubCategory, subSubCategory: SubSubCategory) => {
-    if (!mainCategory || !mainCategory.categoryId || !subCategory || !subCategory.subCategoryId || !subSubCategory || !subSubCategory.subSubCategoryId) {
-      console.warn('Invalid sub-sub-category selection:', { mainCategory, subCategory, subSubCategory });
-      return;
-    }
-    onCategorySelect({ mainCategory, subCategory, subSubCategory });
+  const removeSubCategorySelection = (subCategoryId: string) => {
+    const updated = selectedSubCategories.filter(
+      item => item.subCategory.subCategoryId !== subCategoryId
+    );
+    setSelectedSubCategories(updated);
+    onCategorySelect({
+      mainCategory: selectedMainCategory!,
+      subCategories: updated
+    });
   };
 
-  const isCategorySelected = (category: CategoryHierarchy) => {
-    return selectedCategory?.mainCategory?.categoryId === category.categoryId;
+  const removeSubSubCategorySelection = (subCategoryId: string, subSubCategoryId: string) => {
+    const updated = selectedSubCategories.map(item => {
+      if (item.subCategory.subCategoryId === subCategoryId) {
+        return {
+          ...item,
+          subSubCategories: item.subSubCategories.filter(
+            subSub => subSub.subSubCategoryId !== subSubCategoryId
+          )
+        };
+      }
+      return item;
+    });
+    setSelectedSubCategories(updated);
+    onCategorySelect({
+      mainCategory: selectedMainCategory!,
+      subCategories: updated
+    });
   };
 
-  const isSubCategorySelected = (subCategory: SubCategory) => {
-    return selectedCategory?.subCategory?.subCategoryId === subCategory.subCategoryId;
+  const isSubCategorySelected = (subCategoryId: string) => {
+    return selectedSubCategories.some(
+      item => item.subCategory.subCategoryId === subCategoryId
+    );
   };
 
-  const isSubSubCategorySelected = (subSubCategory: SubSubCategory) => {
-    return selectedCategory?.subSubCategory?.subSubCategoryId === subSubCategory.subSubCategoryId;
+  const isSubSubCategorySelected = (subCategoryId: string, subSubCategoryId: string) => {
+    const subCategory = selectedSubCategories.find(
+      item => item.subCategory.subCategoryId === subCategoryId
+    );
+    return subCategory?.subSubCategories.some(
+      subSub => subSub.subSubCategoryId === subSubCategoryId
+    ) || false;
   };
 
   if (loading) {
     return (
       <div className={`flex items-center justify-center p-4 ${className}`}>
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-        <span className="ml-2 text-sm text-muted-foreground">Loading categories...</span>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-sm text-gray-600">Loading categories...</span>
       </div>
     );
   }
 
-  if (error) {
+  if (categories.length === 0) {
     return (
-      <div className={`p-4 text-center ${className}`}>
-        <div className="text-red-500 mb-2">{error}</div>
-        <Button onClick={loadCategories} variant="outline" size="sm">
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-  if (!categories || categories.length === 0) {
-    return (
-      <div className={`p-4 text-center text-muted-foreground ${className}`}>
-        No categories found. Please create some categories first.
+      <div className={`text-center p-4 text-gray-500 ${className}`}>
+        No categories available
       </div>
     );
   }
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      {categories.map((category) => {
-        if (!category || !category.categoryId) {
-          console.warn('Skipping invalid category:', category);
-          return null;
-        }
-
-        const IconComponent = categoryIcons[category.icon] || Folder;
-        const isExpanded = expandedCategories.has(category.categoryId);
-        const isSelected = isCategorySelected(category);
-        
-        return (
-          <div key={category.categoryId} className="border rounded-lg">
-            <div
-              className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
-                isSelected ? 'bg-primary/10 border-primary' : ''
-              }`}
-              onClick={() => handleCategorySelect(category)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded ${category.bgColor || 'bg-gray-100'}`}>
-                    <IconComponent className={`w-4 h-4 ${category.color || 'text-gray-600'}`} />
+    <div className={`space-y-4 ${className}`}>
+      {/* Main Category Selection */}
+      <div className="space-y-2">
+        <Label>Main Category *</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {categories.map((category) => {
+            const IconComponent = getIconComponent(category.icon);
+            const isSelected = selectedMainCategory?.categoryId === category.categoryId;
+            
+            return (
+              <Card 
+                key={category.categoryId} 
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => handleMainCategorySelect(category)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center space-x-2">
+                    <IconComponent className="w-5 h-5 text-blue-600" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{category.name || category.label}</div>
+                      <div className="text-xs text-gray-500 truncate">{category.description}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-medium">{category.name || 'Unnamed Category'}</div>
-                    <div className="text-xs text-muted-foreground">{category.description || 'No description'}</div>
-                  </div>
-                </div>
-                {showSubCategories && category.subCategories && category.subCategories.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCategoryExpansion(category.categoryId);
-                    }}
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
 
-            {/* Sub-categories */}
-            {showSubCategories && isExpanded && category.subCategories && category.subCategories.length > 0 && (
-              <div className="border-t bg-muted/30">
-                {category.subCategories.map((subCategory) => {
-                  if (!subCategory || !subCategory.subCategoryId) {
-                    console.warn('Skipping invalid sub-category:', subCategory);
-                    return null;
-                  }
-
-                  const isSubExpanded = expandedSubCategories.has(subCategory.subCategoryId);
-                  const isSubSelected = isSubCategorySelected(subCategory);
-                  
-                  return (
-                    <div key={subCategory.subCategoryId} className="border-b last:border-b-0">
-                      <div
-                        className={`p-3 pl-8 cursor-pointer hover:bg-muted/50 transition-colors ${
-                          isSubSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''
-                        }`}
-                        onClick={() => handleSubCategorySelect(category, subCategory)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Folder className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <div className="font-medium text-sm">{subCategory.name || 'Unnamed Sub-Category'}</div>
-                              <div className="text-xs text-muted-foreground">{subCategory.description || 'No description'}</div>
-                            </div>
-                          </div>
-                          {showSubSubCategories && subCategory.subSubCategories && Array.isArray(subCategory.subSubCategories) && subCategory.subSubCategories.length > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleSubCategoryExpansion(subCategory.subCategoryId);
-                              }}
-                            >
-                              {isSubExpanded ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </Button>
-                          )}
+      {/* Sub-Categories Selection (only show if main category is selected) */}
+      {selectedMainCategory && showSubCategories && (
+        <div className="space-y-2">
+          <Label>Sub-Categories</Label>
+          <div className="space-y-2">
+            {selectedMainCategory.subCategories?.map((subCategory) => {
+              const isExpanded = expandedSubCategories.has(subCategory.subCategoryId);
+              const isSelected = isSubCategorySelected(subCategory.subCategoryId);
+              
+              return (
+                <Card 
+                  key={subCategory.subCategoryId} 
+                  className={`transition-all ${
+                    isSelected ? 'ring-2 ring-green-500 bg-green-50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleSubCategoryExpansion(subCategory.subCategoryId)}
+                          className="p-1 h-6 w-6"
+                        >
+                          {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                        </Button>
+                        <FolderOpen className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <div className="font-medium text-sm">{subCategory.name || subCategory.label}</div>
+                          <div className="text-xs text-gray-500">{subCategory.description}</div>
                         </div>
                       </div>
+                      <Button
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleSubCategorySelect(subCategory)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        {isSelected ? "Selected" : "Select"}
+                      </Button>
+                    </div>
 
-                      {/* Sub-sub-categories */}
-                      {showSubSubCategories && isSubExpanded && subCategory.subSubCategories && Array.isArray(subCategory.subSubCategories) && subCategory.subSubCategories.length > 0 && (
-                        <div className="bg-muted/20">
-                          {subCategory.subSubCategories.map((subSubCategory) => {
-                            if (!subSubCategory || !subSubCategory.subSubCategoryId) {
-                              console.warn('Skipping invalid sub-sub-category:', subSubCategory);
-                              return null;
-                            }
-
-                            const isSubSubSelected = isSubSubCategorySelected(subSubCategory);
-                            
-                            return (
-                              <div
-                                key={subSubCategory.subSubCategoryId}
-                                className={`p-3 pl-12 cursor-pointer hover:bg-muted/50 transition-colors border-b last:border-b-0 ${
-                                  isSubSubSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''
-                                }`}
-                                onClick={() => handleSubSubCategorySelect(category, subCategory, subSubCategory)}
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <Folder className="w-3 h-3 text-muted-foreground" />
-                                  <div>
-                                    <div className="font-medium text-sm">{subSubCategory.name || 'Unnamed Sub-Sub-Category'}</div>
-                                    <div className="text-xs text-muted-foreground">{subSubCategory.description || 'No description'}</div>
-                                  </div>
+                    {/* Sub-Sub-Categories */}
+                    {isExpanded && showSubSubCategories && subCategory.subSubCategories && (
+                      <div className="ml-8 mt-3 space-y-2">
+                        {subCategory.subSubCategories.map((subSubCategory) => {
+                          const isSubSubSelected = isSubSubCategorySelected(
+                            subCategory.subCategoryId, 
+                            subSubCategory.subSubCategoryId
+                          );
+                          
+                          return (
+                            <div 
+                              key={subSubCategory.subSubCategoryId} 
+                              className="flex items-center justify-between border-l border-gray-200 pl-3"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <Folder className="w-3 h-3 text-gray-400" />
+                                <div>
+                                  <div className="text-sm font-medium">{subSubCategory.name || subSubCategory.label}</div>
+                                  <div className="text-xs text-gray-500">{subSubCategory.description}</div>
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
+                              <Button
+                                variant={isSubSubSelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleSubSubCategorySelect(subCategory, subSubCategory)}
+                                className="h-5 px-2 text-xs"
+                              >
+                                {isSubSubSelected ? "Selected" : "Select"}
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Selected Categories Summary */}
+      {selectedMainCategory && selectedSubCategories.length > 0 && (
+        <div className="space-y-2">
+          <Label>Selected Categories</Label>
+          <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
+            <div className="text-sm font-medium text-blue-900 mb-2">
+              {selectedMainCategory.name || selectedMainCategory.label}
+            </div>
+            <div className="space-y-2">
+              {selectedSubCategories.map((item) => (
+                <div key={item.subCategory.subCategoryId} className="ml-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-blue-800">→ {item.subCategory.name || item.subCategory.label}</span>
+                      {item.subSubCategories.length > 0 && (
+                        <span className="text-xs text-blue-600">
+                          ({item.subSubCategories.length} selected)
+                        </span>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeSubCategorySelection(item.subCategory.subCategoryId)}
+                      className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  
+                  {item.subSubCategories.length > 0 && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {item.subSubCategories.map((subSub) => (
+                        <div key={subSub.subSubCategoryId} className="flex items-center justify-between">
+                          <span className="text-xs text-blue-700">
+                            → {subSub.name || subSub.label}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSubSubCategorySelection(
+                              item.subCategory.subCategoryId, 
+                              subSub.subSubCategoryId
+                            )}
+                            className="h-4 w-4 p-0 text-red-500 hover:text-red-600"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        );
-      })}
+        </div>
+      )}
     </div>
   );
 } 
