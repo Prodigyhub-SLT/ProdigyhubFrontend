@@ -109,11 +109,41 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const fetchedCategories = await productCatalogApi.getHierarchicalCategories();
-      setCategories(fetchedCategories);
-      if (onCategoriesChange) {
-        onCategoriesChange(fetchedCategories);
+      const response = await productCatalogApi.getHierarchicalCategories();
+      
+      // Handle the API response structure - categories might be wrapped in a 'value' array
+      let fetchedCategories = response;
+      if (response && typeof response === 'object' && 'value' in response && Array.isArray(response.value)) {
+        fetchedCategories = response.value;
       }
+      
+      // Ensure all categories have required properties
+      const validatedCategories = fetchedCategories.filter(category => {
+        if (!category || typeof category !== 'object') return false;
+        
+        // Check if category has a unique identifier (either categoryId or _id)
+        const hasId = category.categoryId || (category as any)._id;
+        if (!hasId) {
+          console.warn('Category missing ID:', category);
+          return false;
+        }
+        
+        return true;
+      }).map(category => ({
+        ...category,
+        // Ensure categoryId exists
+        categoryId: category.categoryId || (category as any)._id,
+        // Ensure subCategories is an array
+        subCategories: Array.isArray(category.subCategories) ? category.subCategories : [],
+        // Ensure icon exists
+        icon: category.icon || 'Folder'
+      }));
+      
+      setCategories(validatedCategories);
+      if (onCategoriesChange) {
+        onCategoriesChange(validatedCategories);
+      }
+      console.log('Loaded categories in CategoryManagementTab:', validatedCategories);
     } catch (error) {
       console.error('Error loading categories:', error);
       toast({
