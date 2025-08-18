@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES, CategoryIcons } from "./CategoryConfig";
 import { MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
-import HierarchicalCategorySelector from "./HierarchicalCategorySelector";
+import { HierarchicalCategorySelector } from "./HierarchicalCategorySelector";
 
 interface SubCategorySelection {
   subCategory: string;

@@ -1,317 +1,263 @@
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Wifi, Settings, Smartphone, Globe, Package } from 'lucide-react';
-import { SLT_CATEGORIES, getSubCategories, getSubSubCategories } from './types/SLTTypes';
-
-interface SubCategorySelection {
-  subCategory: string;
-  subSubCategory: string;
-}
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Wifi, 
+  Building, 
+  Smartphone, 
+  Cloud, 
+  Package, 
+  Tv, 
+  Phone, 
+  Gamepad2, 
+  Globe, 
+  Gift,
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  FolderOpen
+} from 'lucide-react';
+import { productCatalogApi } from '@/lib/api';
+import { CategoryHierarchy, SubCategory, SubSubCategory } from '../../shared/product-order-types';
 
 interface HierarchicalCategorySelectorProps {
-  selectedCategory: string;
-  selectedSubCategory: string;
-  selectedSubSubCategory: string;
-  onCategorySelect: (category: string, subCategory: string, subSubCategory: string) => void;
-  // For Broadband: multiple sub-category selections
-  broadbandSelections?: SubCategorySelection[];
-  onBroadbandSelectionsChange?: (selections: SubCategorySelection[]) => void;
+  onCategorySelect: (selection: {
+    mainCategory: CategoryHierarchy;
+    subCategory?: SubCategory;
+    subSubCategory?: SubSubCategory;
+  }) => void;
+  selectedCategory?: {
+    mainCategory: CategoryHierarchy;
+    subCategory?: SubCategory;
+    subSubCategory?: SubSubCategory;
+  };
+  showSubCategories?: boolean;
+  showSubSubCategories?: boolean;
+  className?: string;
 }
 
-const iconMap = {
-  Wifi,
-  Settings,
-  Smartphone,
-  Globe,
-  Package
+const categoryIcons: { [key: string]: React.ComponentType<any> } = {
+  'Wifi': Wifi,
+  'Building': Building,
+  'Smartphone': Smartphone,
+  'Cloud': Cloud,
+  'Package': Package,
+  'Tv': Tv,
+  'Phone': Phone,
+  'Gamepad2': Gamepad2,
+  'Globe': Globe,
+  'Gift': Gift,
+  'Folder': Folder
 };
 
-export default function HierarchicalCategorySelector({ 
-  selectedCategory, 
-  selectedSubCategory, 
-  selectedSubSubCategory, 
-  onCategorySelect,
-  broadbandSelections = [],
-  onBroadbandSelectionsChange
+export function HierarchicalCategorySelector({ 
+  onCategorySelect, 
+  selectedCategory,
+  showSubCategories = true,
+  showSubSubCategories = true,
+  className = ""
 }: HierarchicalCategorySelectorProps) {
-  const [currentSubCategories, setCurrentSubCategories] = useState<string[]>([]);
-  const [currentSubSubCategories, setCurrentSubSubCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
 
-  const handleCategoryChange = (category: string) => {
-    const subCategories = getSubCategories(category);
-    setCurrentSubCategories(subCategories.map(sub => sub.value));
-    setCurrentSubSubCategories([]);
-    
-    if (category === 'Broadband') {
-      // For Broadband, initialize with all 3 sub-categories
-      const broadbandSubCategories = ['Connection Type', 'Package Usage Type', 'Package Type'];
-      const initialSelections: SubCategorySelection[] = broadbandSubCategories.map(subCat => ({
-        subCategory: subCat,
-        subSubCategory: ''
-      }));
-      onBroadbandSelectionsChange?.(initialSelections);
-      // Also update the main category selection
-      onCategorySelect(category, '', '');
-    } else {
-      // For other categories, use single selection
-      onCategorySelect(category, '', '');
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      const categoriesData = await productCatalogApi.getHierarchicalCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubCategoryChange = (subCategory: string) => {
-    const subSubCategories = getSubSubCategories(selectedCategory, subCategory);
-    setCurrentSubSubCategories(subSubCategories.map(sub => sub.value));
-    onCategorySelect(selectedCategory, subCategory, '');
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
   };
 
-  const handleSubSubCategoryChange = (subSubCategory: string) => {
-    onCategorySelect(selectedCategory, selectedSubCategory, subSubCategory);
+  const toggleSubCategoryExpansion = (subCategoryId: string) => {
+    setExpandedSubCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(subCategoryId)) {
+        newSet.delete(subCategoryId);
+      } else {
+        newSet.add(subCategoryId);
+      }
+      return newSet;
+    });
   };
 
-  // For Broadband: handle sub-category selection
-  const handleBroadbandSubCategoryChange = (index: number, subCategory: string) => {
-    const newSelections = [...broadbandSelections];
-    newSelections[index] = {
-      subCategory,
-      subSubCategory: ''
-    };
-    onBroadbandSelectionsChange?.(newSelections);
+  const handleCategorySelect = (category: CategoryHierarchy) => {
+    onCategorySelect({ mainCategory: category });
   };
 
-  // For Broadband: handle sub-sub-category selection
-  const handleBroadbandSubSubCategoryChange = (index: number, subSubCategory: string) => {
-    const newSelections = [...broadbandSelections];
-    newSelections[index] = {
-      ...newSelections[index],
-      subSubCategory
-    };
-    onBroadbandSelectionsChange?.(newSelections);
+  const handleSubCategorySelect = (mainCategory: CategoryHierarchy, subCategory: SubCategory) => {
+    onCategorySelect({ mainCategory, subCategory });
   };
 
-  // Check if all Broadband sub-categories are selected
-  const isBroadbandComplete = selectedCategory === 'Broadband' && 
-    broadbandSelections.length === 3 && 
-    broadbandSelections.every(selection => selection.subCategory && selection.subSubCategory);
+  const handleSubSubCategorySelect = (mainCategory: CategoryHierarchy, subCategory: SubCategory, subSubCategory: SubSubCategory) => {
+    onCategorySelect({ mainCategory, subCategory, subSubCategory });
+  };
+
+  const isCategorySelected = (category: CategoryHierarchy) => {
+    return selectedCategory?.mainCategory.categoryId === category.categoryId;
+  };
+
+  const isSubCategorySelected = (subCategory: SubCategory) => {
+    return selectedCategory?.subCategory?.subCategoryId === subCategory.subCategoryId;
+  };
+
+  const isSubSubCategorySelected = (subSubCategory: SubSubCategory) => {
+    return selectedCategory?.subSubCategory?.subSubCategoryId === subSubCategory.subSubCategoryId;
+  };
+
+  if (loading) {
+    return (
+      <div className={`flex items-center justify-center p-4 ${className}`}>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        <span className="ml-2 text-sm text-muted-foreground">Loading categories...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <Label className="text-base font-medium">Select Product Category *</Label>
-      
-      {/* Main Categories */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium text-gray-700">Main Category</Label>
-        <div className="grid grid-cols-1 gap-3">
-          {SLT_CATEGORIES.map((category) => {
-            const IconComponent = iconMap[category.icon as keyof typeof iconMap] || Package;
-            const isSelected = selectedCategory === category.value;
-            
-            return (
-              <Card 
-                key={category.value}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  isSelected
-                    ? 'ring-2 ring-blue-500 bg-blue-50' 
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => handleCategoryChange(category.value)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      isSelected 
-                        ? 'bg-blue-100' 
-                        : 'bg-gray-100'
-                    }`}>
-                      <IconComponent className={`w-5 h-5 ${category.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{category.label}</h3>
-                      <p className="text-sm text-gray-500">{category.description}</p>
-                    </div>
-                    {isSelected && (
-                      <CheckCircle className="w-5 h-5 text-blue-500" />
-                    )}
+    <div className={`space-y-2 ${className}`}>
+      {categories.map((category) => {
+        const IconComponent = categoryIcons[category.icon] || Folder;
+        const isExpanded = expandedCategories.has(category.categoryId);
+        const isSelected = isCategorySelected(category);
+        
+        return (
+          <div key={category.categoryId} className="border rounded-lg">
+            <div
+              className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
+                isSelected ? 'bg-primary/10 border-primary' : ''
+              }`}
+              onClick={() => handleCategorySelect(category)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded ${category.bgColor}`}>
+                    <IconComponent className={`w-4 h-4 ${category.color}`} />
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* For Broadband: Multiple Sub-Categories */}
-      {selectedCategory === 'Broadband' && broadbandSelections.length > 0 && (
-        <div className="space-y-6">
-          <Label className="text-sm font-medium text-gray-700">Broadband Sub-Categories (All Required)</Label>
-          
-          {broadbandSelections.map((selection, index) => {
-            const subCategories = getSubCategories('Broadband');
-            const subSubCategories = selection.subCategory ? 
-              getSubSubCategories('Broadband', selection.subCategory) : [];
-
-            return (
-              <div key={index} className="space-y-4 p-4 border border-gray-200 rounded-lg">
-                <Label className="text-sm font-medium text-gray-700">
-                  Sub-Category {index + 1}: {selection.subCategory || 'Not Selected'}
-                </Label>
-                
-                {/* Sub-Category Selection */}
-                <div className="space-y-2">
-                  <Label className="text-xs text-gray-600">Select Sub-Category</Label>
-                  <Select 
-                    value={selection.subCategory} 
-                    onValueChange={(value) => handleBroadbandSubCategoryChange(index, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select sub category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subCategories.map((subCategory) => (
-                        <SelectItem key={subCategory.value} value={subCategory.value}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{subCategory.label}</span>
-                            <span className="text-xs text-gray-500">{subCategory.description}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <div className="font-medium">{category.name}</div>
+                    <div className="text-xs text-muted-foreground">{category.description}</div>
+                  </div>
                 </div>
-
-                {/* Sub-Sub-Category Selection */}
-                {selection.subCategory && subSubCategories.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-600">Select Sub-Sub-Category</Label>
-                    <Select 
-                      value={selection.subSubCategory} 
-                      onValueChange={(value) => handleBroadbandSubSubCategoryChange(index, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select sub-sub category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subSubCategories.map((subSubCategory) => (
-                          <SelectItem key={subSubCategory.value} value={subSubCategory.value}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{subSubCategory.label}</span>
-                              <span className="text-xs text-gray-500">{subSubCategory.description}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {showSubCategories && category.subCategories && category.subCategories.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCategoryExpansion(category.categoryId);
+                    }}
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </Button>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* For Other Categories: Single Sub-Category Selection */}
-      {selectedCategory && selectedCategory !== 'Broadband' && currentSubCategories.length > 0 && (
-        <div className="space-y-4">
-          <Label className="text-sm font-medium text-gray-700">Sub Category</Label>
-          <Select value={selectedSubCategory} onValueChange={handleSubCategoryChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select sub category" />
-            </SelectTrigger>
-            <SelectContent>
-              {currentSubCategories.map((subCategory) => {
-                const subCategoryData = getSubCategories(selectedCategory).find(sub => sub.value === subCategory);
-                return (
-                  <SelectItem key={subCategory} value={subCategory}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{subCategoryData?.label}</span>
-                      <span className="text-xs text-gray-500">{subCategoryData?.description}</span>
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* For Other Categories: Single Sub-Sub-Category Selection */}
-      {selectedSubCategory && selectedCategory !== 'Broadband' && currentSubSubCategories.length > 0 && (
-        <div className="space-y-4">
-          <Label className="text-sm font-medium text-gray-700">Sub-Sub Category</Label>
-          <Select value={selectedSubSubCategory} onValueChange={handleSubSubCategoryChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select sub-sub category" />
-            </SelectTrigger>
-            <SelectContent>
-              {currentSubSubCategories.map((subSubCategory) => {
-                const subSubCategoryData = getSubSubCategories(selectedCategory, selectedSubCategory).find(sub => sub.value === subSubCategory);
-                return (
-                  <SelectItem key={subSubCategory} value={subSubCategory}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{subSubCategoryData?.label}</span>
-                      <span className="text-xs text-gray-500">{subSubCategoryData?.description}</span>
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Selection Summary */}
-      {selectedCategory && (
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <Label className="text-sm font-medium text-gray-700 mb-2">Selected Categories:</Label>
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="font-medium">Main:</span>
-              <span className="text-blue-600">{SLT_CATEGORIES.find(cat => cat.value === selectedCategory)?.label}</span>
             </div>
-            
-            {selectedCategory === 'Broadband' ? (
-              // Show all Broadband selections
-              broadbandSelections.map((selection, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="font-medium">Sub {index + 1}:</span>
-                  <span className="text-blue-600">
-                    {getSubCategories('Broadband').find(sub => sub.value === selection.subCategory)?.label}
-                    {selection.subSubCategory && (
-                      <>
-                        {' → '}
-                        {getSubSubCategories('Broadband', selection.subCategory).find(sub => sub.value === selection.subSubCategory)?.label}
-                      </>
-                    )}
-                  </span>
-                </div>
-              ))
-            ) : (
-              // Show single selection for other categories
-              <>
-                {selectedSubCategory && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Sub:</span>
-                    <span className="text-blue-600">{getSubCategories(selectedCategory).find(sub => sub.value === selectedSubCategory)?.label}</span>
-                  </div>
-                )}
-                {selectedSubSubCategory && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Sub-Sub:</span>
-                    <span className="text-blue-600">{getSubSubCategories(selectedCategory, selectedSubCategory).find(sub => sub.value === selectedSubSubCategory)?.label}</span>
-                  </div>
-                )}
-              </>
+
+            {/* Sub-categories */}
+            {showSubCategories && isExpanded && category.subCategories && category.subCategories.length > 0 && (
+              <div className="border-t bg-muted/30">
+                {category.subCategories.map((subCategory) => {
+                  const isSubExpanded = expandedSubCategories.has(subCategory.subCategoryId);
+                  const isSubSelected = isSubCategorySelected(subCategory);
+                  
+                  return (
+                    <div key={subCategory.subCategoryId} className="border-b last:border-b-0">
+                      <div
+                        className={`p-3 pl-8 cursor-pointer hover:bg-muted/50 transition-colors ${
+                          isSubSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''
+                        }`}
+                        onClick={() => handleSubCategorySelect(category, subCategory)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Folder className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium text-sm">{subCategory.name}</div>
+                              <div className="text-xs text-muted-foreground">{subCategory.description}</div>
+                            </div>
+                          </div>
+                          {showSubSubCategories && subCategory.subSubCategories && subCategory.subSubCategories.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleSubCategoryExpansion(subCategory.subCategoryId);
+                              }}
+                            >
+                              {isSubExpanded ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Sub-sub-categories */}
+                      {showSubSubCategories && isSubExpanded && subCategory.subSubCategories && subCategory.subSubCategories.length > 0 && (
+                        <div className="bg-muted/20">
+                          {subCategory.subSubCategories.map((subSubCategory) => {
+                            const isSubSubSelected = isSubSubCategorySelected(subSubCategory);
+                            
+                            return (
+                              <div
+                                key={subSubCategory.subSubCategoryId}
+                                className={`p-3 pl-12 cursor-pointer hover:bg-muted/50 transition-colors border-b last:border-b-0 ${
+                                  isSubSubSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''
+                                }`}
+                                onClick={() => handleSubSubCategorySelect(category, subCategory, subSubCategory)}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <Folder className="w-3 h-3 text-muted-foreground" />
+                                  <div>
+                                    <div className="font-medium text-sm">{subSubCategory.name}</div>
+                                    <div className="text-xs text-muted-foreground">{subSubCategory.description}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
-          
-          {selectedCategory === 'Broadband' && !isBroadbandComplete && (
-            <div className="mt-2 text-xs text-orange-600">
-              ⚠️ Please complete all 3 sub-category selections for Broadband offerings
-            </div>
-          )}
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 } 
