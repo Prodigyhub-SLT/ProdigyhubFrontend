@@ -12,37 +12,41 @@ import { useToast } from '@/hooks/use-toast';
 export default function Login() {
   const [email, setEmail] = useState('admin@company.com');
   const [password, setPassword] = useState('admin123');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
-  const { login, loginWithGoogle, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    const from = location.state?.from?.pathname || '/admin';
-    return <Navigate to={from} replace />;
-  }
+  // Remove the automatic redirect - let users always see the login form
+  // The ProtectedRoute will handle redirects after successful login
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     
+    console.log('🚀 Form submitted with:', { email, password: '***' });
+    
     try {
+      console.log('📞 Calling login function...');
       await login(email, password);
+      console.log('✅ Login successful!');
+      
       toast({
         title: "Access Granted",
         description: "Welcome to SLT Prodigy Hub",
       });
       
       // Redirect to dashboard redirect route
+      console.log('🔄 Redirecting to /dashboard...');
       navigate('/dashboard');
     } catch (err) {
+      console.error('❌ Login failed:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed');
       toast({
         title: "Access Denied",

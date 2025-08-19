@@ -203,15 +203,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
+      console.log('🔐 Attempting login with:', { email, password: '***' });
+      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Mock authentication - replace with real API call
       const mockUser = MOCK_USERS[email as keyof typeof MOCK_USERS];
+      console.log('🔍 Found mock user:', mockUser ? 'Yes' : 'No');
       
-      if (!mockUser || password !== 'admin123') {
+      if (!mockUser) {
+        console.error('❌ No mock user found for email:', email);
         throw new Error('Invalid email or password');
       }
+      
+      if (password !== 'admin123') {
+        console.error('❌ Password mismatch. Expected: admin123, Got:', password);
+        throw new Error('Invalid email or password');
+      }
+      
+      console.log('✅ Authentication successful for:', email);
       
       const userData: User = {
         ...mockUser,
@@ -219,17 +230,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
       
       setUser(userData);
+      console.log('👤 User set in context:', userData);
       
       // Store user data (handle gracefully if localStorage not available)
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
           localStorage.setItem('auth_user', JSON.stringify(userData));
+          console.log('💾 User data stored in localStorage');
         }
       } catch (error) {
         console.warn('Failed to store auth data:', error);
       }
       
     } catch (error) {
+      console.error('❌ Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -385,6 +399,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return true;
   };
+
+  // Test function to verify mock authentication
+  const testMockAuth = () => {
+    console.log('🧪 Testing mock authentication...');
+    console.log('📧 Available mock users:', Object.keys(MOCK_USERS));
+    console.log('🔑 Admin user data:', MOCK_USERS['admin@company.com']);
+    console.log('🔑 Regular user data:', MOCK_USERS['user@company.com']);
+    console.log('✅ Mock authentication test complete');
+  };
+
+  // Call test function on mount
+  useEffect(() => {
+    testMockAuth();
+  }, []);
 
   const contextValue: AuthContextType = {
     // State
