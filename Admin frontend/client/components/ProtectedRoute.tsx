@@ -25,8 +25,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Handle role-based routing for authenticated users
   useEffect(() => {
-    if (isAuthenticated && user && !requiredRole && !location.pathname.includes('/login')) {
-      // Only redirect if not on login page and no specific role is required
+    if (isAuthenticated && user && !requiredRole && !location.pathname.includes('/login') && !location.pathname.includes('/dashboard')) {
+      // Only redirect if not on login page, not on dashboard page, and no specific role is required
       if (user.role === 'admin') {
         // Admin users should go to admin dashboard
         if (location.pathname.startsWith('/user')) {

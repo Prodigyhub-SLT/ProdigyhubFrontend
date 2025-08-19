@@ -199,6 +199,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => unsubscribe();
   }, [user]);
 
+  // Debug user state changes
+  useEffect(() => {
+    console.log('🔄 AuthContext - User state changed:', {
+      user: user ? 'exists' : 'null',
+      userRole: user?.role,
+      isAuthenticated: !!user,
+      isLoading
+    });
+  }, [user, isLoading]);
+
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     
