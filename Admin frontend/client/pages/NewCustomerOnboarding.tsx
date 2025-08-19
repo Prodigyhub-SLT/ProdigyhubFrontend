@@ -229,12 +229,15 @@ export default function NewCustomerOnboarding() {
   const handleServiceRequest = async (serviceType: 'fiber' | 'adsl' | 'mobile' | 'fiber-test' | 'adsl-test' | 'mobile-test') => {
     if (!infrastructureCheck) return;
 
-    const service = infrastructureCheck[serviceType];
+    // Extract the base service type (remove '-test' suffix)
+    const baseServiceType = serviceType.replace('-test', '') as 'fiber' | 'adsl' | 'mobile';
+    const service = infrastructureCheck[baseServiceType];
+    
     // Allow testing even when service is available (for testing purposes)
     if (service.available && !serviceType.includes('test')) {
       toast({
         title: "Service Available",
-        description: `${serviceType.toUpperCase()} is already available in your area!`,
+        description: `${baseServiceType.toUpperCase()} is already available in your area!`,
       });
       return;
     }
@@ -317,17 +320,17 @@ export default function NewCustomerOnboarding() {
         const responseData = await response.json();
         console.log('✅ Backend response data:', responseData);
         
-        toast({
-          title: "Request Submitted",
-          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
-        });
-        
-        // Update the button to show it's been requested
-        const buttonElement = document.querySelector(`[data-service="${serviceType}"]`);
-        if (buttonElement) {
-          buttonElement.textContent = 'Request Submitted';
-          buttonElement.disabled = true;
-        }
+                 toast({
+           title: "Request Submitted",
+           description: `Your ${baseServiceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
+         });
+         
+         // Update the button to show it's been requested
+         const buttonElement = document.querySelector(`[data-service="${serviceType}"]`);
+         if (buttonElement) {
+           buttonElement.textContent = 'Request Submitted';
+           buttonElement.disabled = true;
+         }
       } else {
         const errorText = await response.text();
         console.error('❌ Backend error response:', errorText);
