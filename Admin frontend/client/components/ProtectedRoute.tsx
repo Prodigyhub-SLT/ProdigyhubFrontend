@@ -23,33 +23,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Temporarily disable all authentication logic for debugging
-  console.log('🔄 ProtectedRoute - All auth logic disabled for debugging');
-  
-  // Just render children without any checks
-  return <>{children}</>;
-  
-  /*
-  // Handle role-based routing for authenticated users
-  useEffect(() => {
-    // Temporarily disable role-based routing to debug the issue
-    console.log('🔄 ProtectedRoute - Role-based routing disabled for debugging');
-    
-    if (isAuthenticated && user && !requiredRole && !location.pathname.includes('/login') && !location.pathname.includes('/dashboard')) {
-      // Only redirect if not on login page, not on dashboard page, and no specific role is required
-      if (user.role === 'admin') {
-        // Admin users should go to admin dashboard
-        if (location.pathname.startsWith('/user')) {
-          navigate('/admin', { replace: true });
-        }
-      } else {
-        // Non-admin users should go to user dashboard
-        if (location.pathname.startsWith('/admin')) {
-          navigate('/user', { replace: true });
-        }
-      }
-    }
-  }, [isAuthenticated, user, requiredRole, location.pathname, navigate]);
+  console.log('🔄 ProtectedRoute - Checking auth:', {
+    isAuthenticated,
+    userRole: user?.role,
+    requiredRole,
+    pathname: location.pathname
+  });
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -65,11 +44,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
+    console.log('❌ User not authenticated, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Check role-based access
   if (requiredRole && !hasRole(requiredRole)) {
+    console.log('❌ User role insufficient:', user?.role, 'required:', requiredRole);
     const UnauthorizedComponent = fallback || (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
@@ -126,6 +107,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check permission-based access
   if (requiredPermission && !hasPermission(requiredPermission)) {
+    console.log('❌ User permission insufficient:', requiredPermission);
     const UnauthorizedComponent = fallback || (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
@@ -181,8 +163,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // User is authenticated and authorized
+  console.log('✅ User authorized, rendering protected content');
   return <>{children}</>;
-  */
 };
 
 export default ProtectedRoute;
