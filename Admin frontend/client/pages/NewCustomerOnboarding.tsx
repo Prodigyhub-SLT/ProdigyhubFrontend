@@ -96,10 +96,7 @@ export default function NewCustomerOnboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'details' | 'infrastructure'>('details');
   
-  // Debug step changes
-  useEffect(() => {
-    console.log('🔄 Step changed to:', step);
-  }, [step]);
+
 
   // Districts and Provinces for Sri Lanka
   const districts = [
@@ -161,19 +158,16 @@ export default function NewCustomerOnboarding() {
           area.status === 'active'
         );
 
-        if (matchedArea) {
-          console.log('✅ Found matched area:', matchedArea);
-          setAreaData(matchedArea);
-          setInfrastructureCheck(matchedArea.infrastructure);
-          console.log('✅ Set infrastructure check:', matchedArea.infrastructure);
-          toast({
-            title: "Infrastructure Found",
-            description: `Found infrastructure data for ${matchedArea.name}`,
-          });
-          
-          // Pass infrastructure data directly to avoid state timing issues
-          console.log('🔄 About to call handleSubmit with matched area...');
-          await handleSubmit(matchedArea.infrastructure, matchedArea);
+                 if (matchedArea) {
+           setAreaData(matchedArea);
+           setInfrastructureCheck(matchedArea.infrastructure);
+           toast({
+             title: "Infrastructure Found",
+             description: `Found infrastructure data for ${matchedArea.name}`,
+           });
+           
+           // Pass infrastructure data directly to avoid state timing issues
+           await handleSubmit(matchedArea.infrastructure, matchedArea);
         } else {
           // Create a default infrastructure check (you can modify this logic)
           const defaultInfrastructure: InfrastructureAvailability = {
@@ -199,17 +193,15 @@ export default function NewCustomerOnboarding() {
             }
           };
           
-          console.log('✅ Setting default infrastructure:', defaultInfrastructure);
-          setInfrastructureCheck(defaultInfrastructure);
-          setAreaData(null);
-          toast({
-            title: "Infrastructure Check Complete",
-            description: "Infrastructure availability has been determined for your area.",
-          });
-          
-          // Pass infrastructure data directly to avoid state timing issues
-          console.log('🔄 About to call handleSubmit with default infrastructure...');
-          await handleSubmit(defaultInfrastructure, null);
+                     setInfrastructureCheck(defaultInfrastructure);
+           setAreaData(null);
+           toast({
+             title: "Infrastructure Check Complete",
+             description: "Infrastructure availability has been determined for your area.",
+           });
+           
+           // Pass infrastructure data directly to avoid state timing issues
+           await handleSubmit(defaultInfrastructure, null);
         }
       } else {
         throw new Error('Failed to fetch area data');
@@ -226,18 +218,16 @@ export default function NewCustomerOnboarding() {
     }
   };
 
-  const handleServiceRequest = async (serviceType: 'fiber' | 'adsl' | 'mobile' | 'fiber-test' | 'adsl-test' | 'mobile-test') => {
+  const handleServiceRequest = async (serviceType: 'fiber' | 'adsl' | 'mobile') => {
     if (!infrastructureCheck) return;
 
-    // Extract the base service type (remove '-test' suffix)
-    const baseServiceType = serviceType.replace('-test', '') as 'fiber' | 'adsl' | 'mobile';
-    const service = infrastructureCheck[baseServiceType];
+    const service = infrastructureCheck[serviceType];
     
-    // Allow testing even when service is available (for testing purposes)
-    if (service.available && !serviceType.includes('test')) {
+    // Check if service is already available
+    if (service.available) {
       toast({
         title: "Service Available",
-        description: `${baseServiceType.toUpperCase()} is already available in your area!`,
+        description: `${serviceType.toUpperCase()} is already available in your area!`,
       });
       return;
     }
@@ -271,7 +261,7 @@ export default function NewCustomerOnboarding() {
           '@type': 'Note'
         },
                  {
-           text: `SLT_SERVICES:${JSON.stringify([`${serviceType.replace('-test', '').toUpperCase()} Broadband (TEST)`])}`,
+           text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband`])}`,
            author: 'SLT System',
            date: new Date().toISOString(),
            '@type': 'Note'
@@ -299,11 +289,9 @@ export default function NewCustomerOnboarding() {
       "@type": "CheckProductOfferingQualification"
     };
 
-    try {
-      console.log('🚀 Sending qualification data to backend:', JSON.stringify(qualificationData, null, 2));
-      
-      // Use the SAME endpoint that the admin dashboard uses
-      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
+         try {
+       // Use the SAME endpoint that the admin dashboard uses
+       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -313,16 +301,12 @@ export default function NewCustomerOnboarding() {
         body: JSON.stringify(qualificationData)
       });
       
-      console.log('📡 Backend response status:', response.status);
-      console.log('📡 Backend response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log('✅ Backend response data:', responseData);
+             if (response.ok) {
+         const responseData = await response.json();
         
                  toast({
            title: "Request Submitted",
-           description: `Your ${baseServiceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
+           description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
          });
          
          // Update the button to show it's been requested
@@ -331,19 +315,17 @@ export default function NewCustomerOnboarding() {
            buttonElement.textContent = 'Request Submitted';
            buttonElement.disabled = true;
          }
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Backend error response:', errorText);
-        throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Error submitting request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit service request. Please try again.",
-        variant: "destructive"
-      });
-    }
+             } else {
+         const errorText = await response.text();
+         throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
+       }
+         } catch (error) {
+       toast({
+         title: "Error",
+         description: "Failed to submit service request. Please try again.",
+         variant: "destructive"
+       });
+     }
   };
 
 
@@ -353,24 +335,14 @@ export default function NewCustomerOnboarding() {
     const infrastructureToUse = infrastructureData || infrastructureCheck;
     const areaDataToUse = areaDataParam || areaData;
     
-    // Debug logging to see what's happening
-    console.log('handleSubmit called with:', {
-      infrastructureData,
-      areaDataParam,
-      infrastructureToUse,
-      userDetails,
-      step
-    });
-    
-    if (!infrastructureToUse) {
-      console.log('❌ Infrastructure check is null/undefined');
-      toast({
-        title: "Missing Information",
-        description: "Please check infrastructure availability before proceeding.",
-        variant: "destructive"
-      });
-      return;
-    }
+         if (!infrastructureToUse) {
+       toast({
+         title: "Missing Information",
+         description: "Please check infrastructure availability before proceeding.",
+         variant: "destructive"
+       });
+       return;
+     }
 
     setIsSubmitting(true);
     try {
@@ -385,9 +357,8 @@ export default function NewCustomerOnboarding() {
         status: 'active'
       };
 
-      // First, check if user already exists by email
-      console.log('🔍 Checking if user exists with email:', userDetails.email);
-      const checkResponse = await fetch(`/api/users/email/${encodeURIComponent(userDetails.email)}`, {
+             // First, check if user already exists by email
+       const checkResponse = await fetch(`/api/users/email/${encodeURIComponent(userDetails.email)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -395,12 +366,11 @@ export default function NewCustomerOnboarding() {
       });
 
       let response;
-      if (checkResponse.ok) {
-        // User exists, update them
-        const existingUser = await checkResponse.json();
-        console.log('✅ User exists, updating:', existingUser.id);
-        
-        response = await fetch(`/api/users/${existingUser.id}`, {
+             if (checkResponse.ok) {
+         // User exists, update them
+         const existingUser = await checkResponse.json();
+         
+         response = await fetch(`/api/users/${existingUser.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -410,10 +380,9 @@ export default function NewCustomerOnboarding() {
             updatedAt: new Date().toISOString()
           })
         });
-      } else {
-        // User doesn't exist, create new one
-        console.log('✅ User does not exist, creating new user');
-        response = await fetch('/api/users', {
+             } else {
+         // User doesn't exist, create new one
+         response = await fetch('/api/users', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -436,50 +405,34 @@ export default function NewCustomerOnboarding() {
             : "Your information has been saved successfully!",
         });
         
-        // IMPORTANT: Show infrastructure results and service options
-        console.log('✅ User data saved successfully, transitioning to infrastructure step');
-        setStep('infrastructure');
-        
-        // Force a re-render to ensure the infrastructure step shows
-        setTimeout(() => {
-          console.log('🔄 Forcing re-render of infrastructure step');
-          setStep('infrastructure');
-        }, 100);
+                 // IMPORTANT: Show infrastructure results and service options
+         setStep('infrastructure');
+         
+         // Force a re-render to ensure the infrastructure step shows
+         setTimeout(() => {
+           setStep('infrastructure');
+         }, 100);
       } else {
-         const errorText = await response.text();
-         console.error('🔍 Full API Response Details:', {
-           status: response.status,
-           statusText: response.statusText,
-           headers: Object.fromEntries(response.headers.entries()),
-           body: errorText,
-           url: response.url
-         });
-         
-         // Try to parse error response as JSON for more details
-         let errorDetails = errorText;
-         try {
-           const errorJson = JSON.parse(errorText);
-           errorDetails = errorJson.message || errorJson.error || errorText;
-           console.error('🔍 Parsed Error Details:', errorJson);
-         } catch (e) {
-           console.log('🔍 Error response is not JSON, using as text');
-         }
-         
-         throw new Error(`Failed to save user data: ${response.status} ${response.statusText} - ${errorDetails}`);
+                   const errorText = await response.text();
+          
+          // Try to parse error response as JSON for more details
+          let errorDetails = errorText;
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetails = errorJson.message || errorJson.error || errorText;
+          } catch (e) {
+            // Error response is not JSON, use as text
+          }
+          
+          throw new Error(`Failed to save user data: ${response.status} ${response.statusText} - ${errorDetails}`);
        }
-    } catch (error) {
-      console.error('Error saving user data:', error);
-      console.error('Full error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      toast({
-        title: "Error",
-        description: `Failed to save your information: ${error.message}`,
-        variant: "destructive"
-      });
-    } finally {
+         } catch (error) {
+       toast({
+         title: "Error",
+         description: `Failed to save your information: ${error.message}`,
+         variant: "destructive"
+       });
+     } finally {
       setIsSubmitting(false);
     }
   };
@@ -505,14 +458,8 @@ export default function NewCustomerOnboarding() {
                      isValidEmail(userDetails.email) && 
                      isValidPhone(userDetails.phoneNumber);
 
-  if (step === 'infrastructure') {
-    console.log('🏗️ Rendering infrastructure step with:', {
-      infrastructureCheck,
-      areaData,
-      userDetails
-    });
-    
-    return (
+     if (step === 'infrastructure') {
+     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
         <div className="container mx-auto px-4 py-8">
           <Button
@@ -540,10 +487,7 @@ export default function NewCustomerOnboarding() {
                    <p className="text-blue-200">Checking infrastructure availability...</p>
                  </div>
                ) : infrastructureCheck ? (
-                 (() => {
-                   console.log('✅ Rendering infrastructure results with:', infrastructureCheck);
-                   return (
-                     <div className="space-y-6">
+                                   <div className="space-y-6">
                    {/* Infrastructure Summary */}
                    <div className="bg-white/10 rounded-lg p-6 border border-white/20">
                      <h3 className="text-xl font-semibold text-white mb-4 text-center">
@@ -723,103 +667,37 @@ export default function NewCustomerOnboarding() {
                               You can subscribe to any of the available services
                             </div>
                             
-                                                         {/* Test Buttons for Qualification Records */}
-                             <div className="mt-4 space-y-2">
-                               <Button 
-                                 className="bg-orange-600 hover:bg-orange-700 text-white w-full"
-                                 onClick={() => handleServiceRequest('fiber-test')}
-                                 data-service="fiber-test"
-                               >
-                                 🧪 Test: Request Fiber Service (for testing)
-                               </Button>
-                               
-                               <Button 
-                                 className="bg-purple-600 hover:bg-purple-700 text-white w-full"
-                                 onClick={() => handleServiceRequest('adsl-test')}
-                                 data-service="adsl-test"
-                               >
-                                 🧪 Test: Request ADSL Service (for testing)
-                               </Button>
-                               
-                               <Button 
-                                 className="bg-green-600 hover:bg-green-700 text-white w-full"
-                                 onClick={() => handleServiceRequest('mobile-test')}
-                                 data-service="mobile-test"
-                               >
-                                 🧪 Test: Request Mobile Service (for testing)
-                               </Button>
-                               
-                               <p className="text-xs text-orange-300 mt-2">
-                                 These will test if qualification records appear in admin dashboard
+                                                         <div className="mt-4 text-center">
+                               <p className="text-blue-200 text-sm">
+                                 All services are available in your area. You can subscribe to any of them.
                                </p>
-                              
-                              {/* Test Backend Connection */}
-                              <div className="mt-2">
-                                <Button 
-                                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
-                                  onClick={async () => {
-                                    try {
-                                      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification?limit=1');
-                                      console.log('🔍 Backend test response:', response.status);
-                                      if (response.ok) {
-                                        const data = await response.json();
-                                        console.log('🔍 Backend test data:', data);
-                                        toast({
-                                          title: "Backend Test",
-                                          description: `Backend is working! Found ${Array.isArray(data) ? data.length : 1} records.`,
-                                        });
-                                      } else {
-                                        throw new Error(`HTTP ${response.status}`);
-                                      }
-                                    } catch (error) {
-                                      console.error('Backend test failed:', error);
-                                      toast({
-                                        title: "Backend Test Failed",
-                                        description: `Error: ${error.message}`,
-                                        variant: "destructive"
-                                      });
-                                    }
-                                  }}
-                                >
-                                  🔍 Test Backend Connection
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                               <p className="text-xs text-gray-400 mt-2">
+                                 If you need assistance, please contact SLT customer support.
+                               </p>
+                             </div>
+                                                         </div>
+                         </div>
+                       )}
                      </div>
                      
                      <div className="text-sm text-blue-200">
-                       Your service requests have been submitted and will appear in the admin dashboard Qualification Records section
+                       Service requests will appear in the admin dashboard Qualification Records section
                                           </div>
                    </div>
                  </div>
-                   );
-                 })()
-                              ) : (
+                  ) : (
                  <div className="text-center py-8">
                    <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
                    <p className="text-yellow-200 text-lg">No infrastructure data found for your area.</p>
                    <p className="text-blue-200">Please contact SLT support for more information.</p>
                  </div>
                )}
-               
-               {/* Debug info */}
-               <div className="text-xs text-gray-400 mt-4 p-4 bg-black/20 rounded">
-                 <p>Debug Info:</p>
-                 <p>Step: {step}</p>
-                 <p>Infrastructure Check: {infrastructureCheck ? 'Available' : 'Not Available'}</p>
-                 <p>Area Data: {areaData ? 'Available' : 'Not Available'}</p>
-                 <p>User Details: {userDetails.firstName ? 'Filled' : 'Not Filled'}</p>
-               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     );
   }
-
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
