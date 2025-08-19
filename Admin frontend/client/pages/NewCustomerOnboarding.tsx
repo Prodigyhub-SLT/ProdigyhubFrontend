@@ -16,7 +16,6 @@ import {
   Wifi, 
   Signal, 
   ArrowLeft,
-  ArrowRight,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -273,7 +272,7 @@ export default function NewCustomerOnboarding() {
       if (response.ok) {
         toast({
           title: "Request Submitted",
-          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in Qualification Records.`,
+          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
         });
         
         // Update the button to show it's been requested
@@ -667,18 +666,8 @@ export default function NewCustomerOnboarding() {
                        )}
                      </div>
                      
-                     {/* View Admin Dashboard Button */}
-                     <Button
-                       size="lg"
-                       className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 text-lg font-semibold"
-                       onClick={() => navigate('/admin/qualification')}
-                     >
-                       View Qualification Records
-                       <ArrowRight className="w-5 h-5 ml-2" />
-                     </Button>
-                     
                      <div className="text-sm text-blue-200">
-                       Your service requests will appear in the Qualification Records section
+                       Your service requests have been submitted and will appear in the admin dashboard Qualification Records section
                      </div>
                    </div>
                 </div>
