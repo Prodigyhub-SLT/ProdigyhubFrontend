@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ export default function Login() {
   const { login, loginWithGoogle, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -38,6 +39,9 @@ export default function Login() {
         title: "Access Granted",
         description: "Welcome to SLT Prodigy Hub",
       });
+      
+      // Redirect to dashboard redirect route
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
       toast({
@@ -62,6 +66,9 @@ export default function Login() {
         title: "Google Sign-In Successful",
         description: "Welcome to SLT Prodigy Hub",
       });
+      
+      // Redirect to dashboard redirect route
+      navigate('/dashboard');
     } catch (err) {
       console.error('❌ Google Sign-In failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Google Sign-In failed';

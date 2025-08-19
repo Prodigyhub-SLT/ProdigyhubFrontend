@@ -23,6 +23,8 @@ import CreateOrder from "./pages/CreateOrder";
 import OrderDetail from "./pages/OrderDetail";
 import NotFound from "./pages/NotFound";
 import PublicOfferings from "./pages/PublicOfferings";
+import UserDashboard from "./pages/UserDashboard";
+import DashboardRedirect from "./pages/DashboardRedirect";
 
 // API Dashboard Pages
 import ProductCatalogDashboard from "./pages/ProductCatalogDashboard";
@@ -63,9 +65,27 @@ const App = () => (
             <Route path="/" element={<PublicOfferings />} />
             <Route path="/login" element={<Login />} />
             
-            {/* Protected Routes with Layout */}
-            <Route path="/admin/*" element={
+            {/* Dashboard Redirect Route */}
+            <Route path="/dashboard" element={
               <ProtectedRoute>
+                <DashboardRedirect />
+              </ProtectedRoute>
+            } />
+            
+            {/* User Dashboard Route */}
+            <Route path="/user/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="/" element={<UserDashboard />} />
+                  {/* Add more user-specific routes here later */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin Routes with Layout */}
+            <Route path="/admin/*" element={
+              <ProtectedRoute requiredRole="admin">
                 <Layout>
                   <Routes>
                     {/* Main Dashboard */}

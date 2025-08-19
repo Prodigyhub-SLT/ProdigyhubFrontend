@@ -1,6 +1,6 @@
 // client/components/ProtectedRoute.tsx
-import { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { ReactNode, useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertTriangle, Lock, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, isAuthenticated, isLoading, hasPermission, hasRole } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle role-based routing for authenticated users
+  useEffect(() => {
+    if (isAuthenticated && user && !requiredRole) {
+      // If no specific role is required, check user's role and redirect accordingly
+      if (user.role === 'admin') {
+        // Admin users should go to admin dashboard
+        if (location.pathname.startsWith('/user')) {
+          navigate('/admin', { replace: true });
+        }
+      } else {
+        // Non-admin users should go to user dashboard
+        if (location.pathname.startsWith('/admin')) {
+          navigate('/user', { replace: true });
+        }
+      }
+    }
+  }, [isAuthenticated, user, requiredRole, location.pathname, navigate]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -75,7 +94,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                 </Button>
                 <Button 
                   className="flex-1"
-                  onClick={() => window.location.href = '/admin'}
+                  onClick={() => {
+                    if (user?.role === 'admin') {
+                      window.location.href = '/admin';
+                    } else {
+                      window.location.href = '/user';
+                    }
+                  }}
                 >
                   Dashboard
                 </Button>
@@ -125,7 +150,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                 </Button>
                 <Button 
                   className="flex-1"
-                  onClick={() => window.location.href = '/admin'}
+                  onClick={() => {
+                    if (user?.role === 'admin') {
+                      window.location.href = '/admin';
+                    } else {
+                      window.location.href = '/user';
+                    }
+                  }}
                 >
                   Dashboard
                 </Button>
