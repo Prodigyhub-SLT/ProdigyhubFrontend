@@ -810,9 +810,24 @@ export default function NewCustomerOnboarding() {
                         )}
                       </div>
                      
-                     <div className="text-sm text-blue-200">
-                       Service requests will appear in the admin dashboard Qualification Records section
-                     </div>
+                                           <div className="text-sm text-blue-200 mb-6">
+                        Service requests will appear in the admin dashboard Qualification Records section
+                      </div>
+                      
+                      {/* Navigation to User Dashboard */}
+                      <div className="text-center">
+                        <Button 
+                          size="lg"
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 text-lg font-semibold"
+                          onClick={() => navigate('/user-dashboard')}
+                        >
+                          Go to User Dashboard
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
+                        <p className="text-xs text-gray-400 mt-2">
+                          Access your personalized SLT dashboard
+                        </p>
+                      </div>
                    </div>
                  </div>
                   ) : (

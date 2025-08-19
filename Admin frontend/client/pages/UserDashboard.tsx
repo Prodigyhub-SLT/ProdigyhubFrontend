@@ -3,215 +3,394 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
-  User, 
-  UserPlus, 
-  Building, 
-  ArrowRight, 
-  LogOut,
-  Home,
-  Settings,
-  Bell
+  Wifi, 
+  Tv, 
+  Phone, 
+  Smartphone, 
+  Megaphone,
+  Plus,
+  Cloud,
+  Monitor,
+  FileText,
+  MessageCircle,
+  ChevronDown,
+  ArrowRight,
+  CheckCircle,
+  Zap,
+  Gift,
+  Clock,
+  History,
+  Star
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+
+interface ServiceData {
+  name: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+}
+
+interface DataUsage {
+  type: string;
+  used: string;
+  total: string;
+  percentage: number;
+}
+
+interface QuickLink {
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
+interface ValueAddedService {
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+}
 
 export default function UserDashboard() {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [selectedOption, setSelectedOption] = useState<'existing' | 'new' | null>(null);
+  const [activeService, setActiveService] = useState('broadband');
+  const [activeSubService, setActiveSubService] = useState('summary');
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+  // Mock data for services
+  const services: ServiceData[] = [
+    { name: 'Broadband', icon: <Wifi className="w-6 h-6" />, isActive: true },
+    { name: 'PEOTV', icon: <Tv className="w-6 h-6" />, isActive: false },
+    { name: 'Voice', icon: <Phone className="w-6 h-6" />, isActive: false },
+    { name: 'Mobile', icon: <Smartphone className="w-6 h-6" />, isActive: false },
+    { name: 'Promotion', icon: <Megaphone className="w-6 h-6" />, isActive: false },
+  ];
 
-  const handleOptionSelect = (option: 'existing' | 'new') => {
-    setSelectedOption(option);
-    // For now, just show the selection
-    // Later you can add navigation to specific flows
-    console.log(`User selected: ${option} customer option`);
-  };
+  // Mock data for broadband sub-services
+  const broadbandSubServices = [
+    { name: 'Summary', isActive: true },
+    { name: 'Daily Usage', isActive: false },
+    { name: 'Gift Data', isActive: false },
+    { name: 'History', isActive: false },
+    { name: 'Redeem Data', isActive: false },
+    { name: 'Happy Day', isActive: false },
+    { name: 'More', isActive: false, hasDropdown: true },
+  ];
 
-  const handleContinue = () => {
-    if (selectedOption === 'existing') {
-      // Navigate to existing customer flow
-      console.log('Navigating to existing customer flow');
-      // navigate('/existing-customer');
-    } else if (selectedOption === 'new') {
-      // Navigate to new customer flow
-      console.log('Navigating to new customer flow');
-      navigate('/new-customer');
-    }
-  };
+  // Mock data for data usage
+  const dataUsage: DataUsage[] = [
+    { type: 'My Package', used: '55.2', total: '87.1GB', percentage: 63 },
+    { type: 'Extra GB', used: '0.4', total: '1.0GB', percentage: 40 },
+    { type: 'Bonus Data', used: 'N/A', total: 'N/A', percentage: 0 },
+    { type: 'Add-Ons Data', used: '40.5', total: '45.0GB', percentage: 90 },
+    { type: 'Free Data', used: 'N/A', total: 'N/A', percentage: 0 },
+  ];
+
+  // Mock data for quick links
+  const quickLinks: QuickLink[] = [
+    { name: 'New Services', icon: <Plus className="w-5 h-5" />, color: 'bg-blue-500' },
+    { name: 'Digital Life', icon: <Cloud className="w-5 h-5" />, color: 'bg-green-500' },
+    { name: 'Hot Device', icon: <Monitor className="w-5 h-5" />, color: 'bg-purple-500' },
+    { name: 'Bill', icon: <FileText className="w-5 h-5" />, color: 'bg-orange-500' },
+    { name: 'Complaints', icon: <MessageCircle className="w-5 h-5" />, color: 'bg-red-500' },
+    { name: 'More', icon: <ChevronDown className="w-5 h-5" />, color: 'bg-gray-500' },
+  ];
+
+  // Mock data for value added services
+  const valueAddedServices: ValueAddedService[] = [
+    { name: 'Duthaya', icon: <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">D</div>, color: 'bg-blue-500' },
+    { name: 'Kaspersky', icon: <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">🛡️</div>, color: 'bg-green-500' },
+    { name: 'PEOTV GO', icon: <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs">PEO</div>, color: 'bg-purple-500' },
+    { name: 'SLT Kimaki', icon: <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">🥷</div>, color: 'bg-red-500' },
+    { name: 'Storage', icon: <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">📦</div>, color: 'bg-blue-600' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
-      <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo and Brand */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">S</span>
-              </div>
-              <div className="text-white">
-                <div className="text-xl font-bold">SLTMOBITEL</div>
-                <div className="text-sm text-blue-200">The Connection</div>
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">SLT</span>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">SLTMOBITEL</h1>
+                  <p className="text-sm text-gray-600">The Connection</p>
+                </div>
               </div>
             </div>
-
-            {/* User Menu */}
+            
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                <Bell className="w-4 h-4 mr-2" />
-                Notifications
-              </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+              <span className="text-gray-700">My SLT Portal</span>
+              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
+                <span className="text-gray-700 font-medium">0372298622</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </div>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                U
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
+
+      {/* Main Service Navigation */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-2 py-4">
+            {services.map((service) => (
+              <Button
+                key={service.name}
+                variant={service.isActive ? "default" : "outline"}
+                className={`px-6 py-3 ${
+                  service.isActive 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setActiveService(service.name.toLowerCase())}
+              >
+                {service.icon}
+                <span className="ml-2">{service.name}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Broadband Sub-Navigation */}
+      {activeService === 'broadband' && (
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex space-x-2 py-3">
+              {broadbandSubServices.map((subService) => (
+                <Button
+                  key={subService.name}
+                  variant={subService.isActive ? "default" : "ghost"}
+                  className={`px-4 py-2 ${
+                    subService.isActive 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setActiveSubService(subService.name.toLowerCase())}
+                >
+                  {subService.name}
+                  {subService.hasDropdown && <ChevronDown className="w-4 h-4 ml-1" />}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome, {user?.name || 'User'}!
-          </h1>
-          <p className="text-blue-200 text-lg">
-            Let's get you started with SLT services
-          </p>
-        </div>
-
-        {/* Customer Type Selection */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-white">
-                Are you an existing SLT Customer?
-              </CardTitle>
-              <CardDescription className="text-blue-200">
-                Please select the option that best describes your situation
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Option Cards */}
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Existing Customer Option */}
-                <Card 
-                  className={`cursor-pointer transition-all duration-300 ${
-                    selectedOption === 'existing' 
-                      ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/25' 
-                      : 'bg-white/20 border-white/30 hover:bg-white/30 hover:border-white/50'
-                  }`}
-                  onClick={() => handleOptionSelect('existing')}
-                >
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <User className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">
-                      Existing Customer
-                    </h3>
-                    <p className="text-blue-100 text-sm">
-                      I already have SLT services and want to manage my account
-                    </p>
-                    {selectedOption === 'existing' && (
-                      <Badge className="mt-3 bg-green-500 text-white">
-                        Selected
-                      </Badge>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* New Customer Option */}
-                <Card 
-                  className={`cursor-pointer transition-all duration-300 ${
-                    selectedOption === 'new' 
-                      ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/25' 
-                      : 'bg-white/20 border-white/30 hover:bg-white/30 hover:border-white/50'
-                  }`}
-                  onClick={() => handleOptionSelect('new')}
-                >
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <UserPlus className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">
-                      New Customer
-                    </h3>
-                    <p className="text-blue-100 text-sm">
-                      I'm new to SLT and want to explore available services
-                    </p>
-                    {selectedOption === 'new' && (
-                      <Badge className="mt-3 bg-green-500 text-white">
-                        Selected
-                      </Badge>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Continue Button */}
-              {selectedOption && (
-                <div className="text-center pt-4">
-                  <Button 
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 text-lg font-semibold"
-                    onClick={handleContinue}
-                  >
-                    Continue
-                    <ArrowRight className="w-5 h-5 ml-2" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Panel - Package Information and Data Usage */}
+          <div className="lg:col-span-1 space-y-6">
+            
+            {/* Package Details */}
+            <Card className="bg-white shadow-lg border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-800">Package Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Package:</span>
+                    <span className="font-semibold text-gray-800">ANY TRIO SHINE</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Status:</span>
+                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Username:</span>
+                    <span className="font-semibold text-gray-800">94372298622</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 pt-4">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    Package Upgrade
+                  </Button>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Get Extra GB
+                  </Button>
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                    Get Data Add-ons
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
 
-        {/* User Info Card */}
-        <div className="max-w-md mx-auto mt-8">
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-white flex items-center">
-                <User className="w-5 h-5 mr-2" />
-                Your Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-200">Name:</span>
-                <span className="text-white font-medium">{user?.name || 'N/A'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-200">Email:</span>
-                <span className="text-white font-medium">{user?.email || 'N/A'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-200">Role:</span>
-                <Badge variant="secondary" className="bg-blue-500 text-white">
-                  {user?.role || 'User'}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-200">Department:</span>
-                <span className="text-white font-medium">{user?.department || 'General'}</span>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Data Usage Cards */}
+            <div className="space-y-4">
+              {dataUsage.map((usage, index) => (
+                <Card key={index} className="bg-white shadow-lg border-0">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700">{usage.type}</span>
+                      <span className="text-sm text-gray-500">
+                        {usage.used} used from {usage.total}
+                      </span>
+                    </div>
+                    {usage.percentage > 0 && (
+                      <Progress value={usage.percentage} className="h-2" />
+                    )}
+                    {usage.percentage === 0 && (
+                      <div className="h-2 bg-gray-200 rounded-full">
+                        <div className="h-2 bg-gray-300 rounded-full w-1/3"></div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Central Panel - Usage Meter */}
+          <div className="lg:col-span-1">
+            <Card className="bg-white shadow-lg border-0 h-full">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  <div className="flex items-center justify-center space-x-2 mb-2">
+                    <span className="text-gray-600">Your speed is</span>
+                    <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">NORMAL</Badge>
+                    <span className="text-gray-600">right now</span>
+                  </div>
+                  <p className="text-gray-600 text-sm">Any Time Usage.</p>
+                </div>
+
+                {/* Circular Progress Meter */}
+                <div className="relative w-48 h-48 mx-auto mb-6">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    {/* Background circle */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="transparent"
+                      className="text-gray-200"
+                    />
+                    {/* Progress circle */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="transparent"
+                      className="text-blue-600"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - 0.37)}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  
+                  {/* Center text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-2xl font-bold text-blue-600">37%</div>
+                    <div className="text-sm text-gray-600">REMAINING</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-lg font-semibold text-gray-800">
+                    55.2 GB USED OF 87.1 GB
+                  </p>
+                  <p className="text-sm text-gray-600">(Valid Till: 31-Aug)</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Panel - Quick Links, Promotions, Billing, VAS */}
+          <div className="lg:col-span-1 space-y-6">
+            
+            {/* Quick Links */}
+            <Card className="bg-white shadow-lg border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-800">Quick Links</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  {quickLinks.map((link, index) => (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      className={`h-20 flex flex-col items-center justify-center space-y-2 ${link.color} text-white hover:opacity-80`}
+                    >
+                      {link.icon}
+                      <span className="text-xs font-medium">{link.name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Promotional Banner */}
+            <Card className="bg-white shadow-lg border-0 overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative h-48 bg-gradient-to-r from-blue-600 to-purple-600">
+                  <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                  <div className="relative p-6 text-white h-full flex flex-col justify-between">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold mb-2 text-yellow-300">
+                        SPEED BASED UNLIMITED DATA
+                      </h3>
+                      <p className="text-lg">Play, Learn, Work, Entertainment</p>
+                    </div>
+                    <div className="text-center text-sm">
+                      <p>SLT-MOBITEL FIBRE</p>
+                      <p>SPEED BASED Unlimited Data plans</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Billing Information */}
+            <Card className="bg-white shadow-lg border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-800">Billing</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total Payable:</span>
+                  <Badge className="bg-green-100 text-green-800 text-lg px-4 py-2">Rs 0.00</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Pay Now
+                  </Button>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Bill History
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Value Added Services */}
+            <Card className="bg-white shadow-lg border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-800">Value Added Services</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-5 gap-3">
+                  {valueAddedServices.map((service, index) => (
+                    <div key={index} className="text-center">
+                      {service.icon}
+                      <p className="text-xs text-gray-600 mt-2">{service.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
