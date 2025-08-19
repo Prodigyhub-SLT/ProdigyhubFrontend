@@ -95,6 +95,11 @@ export default function NewCustomerOnboarding() {
   const [isCheckingInfrastructure, setIsCheckingInfrastructure] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'details' | 'infrastructure'>('details');
+  
+  // Debug step changes
+  useEffect(() => {
+    console.log('🔄 Step changed to:', step);
+  }, [step]);
 
   // Districts and Provinces for Sri Lanka
   const districts = [
@@ -427,8 +432,15 @@ export default function NewCustomerOnboarding() {
             : "Your information has been saved successfully!",
         });
         
-        // Show infrastructure results and service options
+        // IMPORTANT: Show infrastructure results and service options
+        console.log('✅ User data saved successfully, transitioning to infrastructure step');
         setStep('infrastructure');
+        
+        // Force a re-render to ensure the infrastructure step shows
+        setTimeout(() => {
+          console.log('🔄 Forcing re-render of infrastructure step');
+          setStep('infrastructure');
+        }, 100);
       } else {
          const errorText = await response.text();
          console.error('🔍 Full API Response Details:', {
@@ -490,6 +502,12 @@ export default function NewCustomerOnboarding() {
                      isValidPhone(userDetails.phoneNumber);
 
   if (step === 'infrastructure') {
+    console.log('🏗️ Rendering infrastructure step with:', {
+      infrastructureCheck,
+      areaData,
+      userDetails
+    });
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
         <div className="container mx-auto px-4 py-8">
@@ -512,13 +530,16 @@ export default function NewCustomerOnboarding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {isCheckingInfrastructure ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
-                  <p className="text-blue-200">Checking infrastructure availability...</p>
-                </div>
-                             ) : infrastructureCheck ? (
-                 <div className="space-y-6">
+                             {isCheckingInfrastructure ? (
+                 <div className="text-center py-12">
+                   <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
+                   <p className="text-blue-200">Checking infrastructure availability...</p>
+                 </div>
+               ) : infrastructureCheck ? (
+                 (() => {
+                   console.log('✅ Rendering infrastructure results with:', infrastructureCheck);
+                   return (
+                     <div className="space-y-6">
                    {/* Infrastructure Summary */}
                    <div className="bg-white/10 rounded-lg p-6 border border-white/20">
                      <h3 className="text-xl font-semibold text-white mb-4 text-center">
@@ -703,16 +724,27 @@ export default function NewCustomerOnboarding() {
                      
                      <div className="text-sm text-blue-200">
                        Your service requests have been submitted and will appear in the admin dashboard Qualification Records section
-                     </div>
+                                          </div>
                    </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                  <p className="text-yellow-200 text-lg">No infrastructure data found for your area.</p>
-                  <p className="text-blue-200">Please contact SLT support for more information.</p>
-                </div>
-              )}
+                 </div>
+                   );
+                 })()
+                              ) : (
+                 <div className="text-center py-8">
+                   <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+                   <p className="text-yellow-200 text-lg">No infrastructure data found for your area.</p>
+                   <p className="text-blue-200">Please contact SLT support for more information.</p>
+                 </div>
+               )}
+               
+               {/* Debug info */}
+               <div className="text-xs text-gray-400 mt-4 p-4 bg-black/20 rounded">
+                 <p>Debug Info:</p>
+                 <p>Step: {step}</p>
+                 <p>Infrastructure Check: {infrastructureCheck ? 'Available' : 'Not Available'}</p>
+                 <p>Area Data: {areaData ? 'Available' : 'Not Available'}</p>
+                 <p>User Details: {userDetails.firstName ? 'Filled' : 'Not Filled'}</p>
+               </div>
             </CardContent>
           </Card>
         </div>
