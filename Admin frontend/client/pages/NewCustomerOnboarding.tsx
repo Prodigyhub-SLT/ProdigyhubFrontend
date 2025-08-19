@@ -338,13 +338,24 @@ export default function NewCustomerOnboarding() {
         // Show infrastructure results and service options
         setStep('infrastructure');
       } else {
-        throw new Error('Failed to save user data');
+        const errorText = await response.text();
+        console.error('API Response Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`Failed to save user data: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error saving user data:', error);
+      console.error('Full error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast({
         title: "Error",
-        description: "Failed to save your information. Please try again.",
+        description: `Failed to save your information: ${error.message}`,
         variant: "destructive"
       });
     } finally {
