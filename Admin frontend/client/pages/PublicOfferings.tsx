@@ -596,84 +596,111 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const getOfferingSpecs = (offering: ProductOffering) => {
     // Try to get actual specifications from the offering data
     const customAttributes = (offering as any).customAttributes || [];
-    
-    // Extract connection type from broadband selections first
-    let connectionType = 'Data/PEOTV & Voice Packages'; // Default
+
+    // Broadband-specific selections if present
     const broadbandSelections = (offering as any).broadbandSelections || [];
-    const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+
+    // Technology (Fiber/ADSL/4G) comes from 'Package Type'
+    const technologySelection = broadbandSelections.find((selection: any) =>
+      selection.subCategory === 'Package Type'
+    );
+    let connectionTechnology = technologySelection?.subSubCategory as string | undefined;
+
+    // Package type (Unlimited/Any Time/Time Based) comes from 'Package Usage Type'
+    const packageUsageSelection = broadbandSelections.find((selection: any) =>
+      selection.subCategory === 'Package Usage Type'
+    );
+    const packageType = packageUsageSelection?.subSubCategory as string | undefined;
+
+    // Service group (Data Packages / Data & Voice / Data/PEOTV & Voice Packages)
+    const serviceGroupSelection = broadbandSelections.find((selection: any) =>
       selection.subCategory === 'Connection Type'
     );
-    
-    if (connectionTypeSelection) {
-      connectionType = connectionTypeSelection.subSubCategory;
-    } else {
-      // Fallback to custom attributes or category
-      const connectionTypeAttr = customAttributes.find((attr: any) => 
-        attr.name.toLowerCase().includes('connection') || 
+    const serviceGroup = serviceGroupSelection?.subSubCategory as string | undefined;
+
+    // Fallbacks from custom attributes / name
+    if (!connectionTechnology) {
+      const connectionTypeAttr = customAttributes.find((attr: any) =>
+        attr.name.toLowerCase().includes('connection') ||
+        attr.name.toLowerCase().includes('technology') ||
         attr.name.toLowerCase().includes('type')
       );
-      connectionType = connectionTypeAttr?.value || getOfferingCategory(offering);
+      connectionTechnology = connectionTypeAttr?.value;
     }
-    
-    // Extract data information from custom attributes
-    const dataAttr = customAttributes.find((attr: any) => 
-      attr.name.toLowerCase().includes('data') || 
-      attr.name.toLowerCase().includes('usage')
+    if (!connectionTechnology) {
+      const lowerName = (offering.name || '').toLowerCase();
+      if (lowerName.includes('fibre') || lowerName.includes('fiber')) connectionTechnology = 'Fiber';
+    }
+
+    // Data allowance
+    const dataAttr = customAttributes.find((attr: any) =>
+      attr.name.toLowerCase().includes('data') ||
+      attr.name.toLowerCase().includes('usage') ||
+      attr.name.toLowerCase().includes('allowance')
     );
-    const data = dataAttr?.value || 'Unlimited';
-    
-    // Extract speed information from custom attributes
-    const speedAttr = customAttributes.find((attr: any) => 
-      attr.name.toLowerCase().includes('speed') || 
+    const dataAllowance = dataAttr?.value || 'Unlimited';
+
+    // Internet speed
+    const speedAttr = customAttributes.find((attr: any) =>
+      attr.name.toLowerCase().includes('speed') ||
       attr.name.toLowerCase().includes('bandwidth') ||
       attr.name.toLowerCase().includes('mbps')
     );
-    const internetSpeed = speedAttr?.value || '300 Mbps/100 Mbps +';
-    
-    // Extract voice information from custom attributes
-    const voiceAttr = customAttributes.find((attr: any) => 
-      attr.name.toLowerCase().includes('voice') || 
+    const internetSpeed = speedAttr?.value || '300 Mbps';
+
+    // Voice (optional)
+    const voiceAttr = customAttributes.find((attr: any) =>
+      attr.name.toLowerCase().includes('voice') ||
       attr.name.toLowerCase().includes('calls')
     );
     const voice = voiceAttr?.value || 'Unlimited Calls';
-    
-    // Fallback to category-based defaults if no custom attributes found
+
     const category = getOfferingCategory(offering);
-    const name = offering.name.toLowerCase();
-    
+    const name = (offering.name || '').toLowerCase();
+
     if (category === 'Broadband' || name.includes('fibre') || name.includes('broadband')) {
       return {
-        connectionType: connectionType,
-        data: data,
+        connectionType: connectionTechnology || serviceGroup || 'Broadband',
+        packageType: packageType || 'Unlimited',
+        dataAllowance: dataAllowance,
+        data: dataAllowance,
         internetSpeed: internetSpeed,
         voice: voice
       };
     } else if (category === 'Mobile' || name.includes('mobile')) {
       return {
         connectionType: 'Mobile',
-        data: data,
+        packageType: packageType || 'Standard',
+        dataAllowance: dataAllowance,
+        data: dataAllowance,
         internetSpeed: '4G/5G',
         voice: voice
       };
     } else if (category === 'Business') {
       return {
         connectionType: 'Enterprise',
-        data: data,
+        packageType: packageType || 'Contract',
+        dataAllowance: dataAllowance,
+        data: dataAllowance,
         internetSpeed: '1 Gbps',
         voice: voice
       };
     } else if (category === 'Product') {
       return {
         connectionType: 'Product',
+        packageType: '-',
+        dataAllowance: 'Hardware/Software',
         data: 'Hardware/Software',
         internetSpeed: 'N/A',
         voice: 'N/A'
       };
     }
-    
+
     return {
-      connectionType: connectionType,
-      data: data,
+      connectionType: connectionTechnology || serviceGroup || 'Other',
+      packageType: packageType || 'Standard',
+      dataAllowance: dataAllowance,
+      data: dataAllowance,
       internetSpeed: internetSpeed,
       voice: voice
     };
@@ -1082,27 +1109,19 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="font-medium text-gray-700">Connection Type:</span>
-                              <span className="text-gray-900">
-                                {(() => {
-                                  const broadbandSelections = (offering as any).broadbandSelections || [];
-                                  const connectionTypeSelection = broadbandSelections.find((selection: any) => 
-                                    selection.subCategory === 'Connection Type'
-                                  );
-                                  return connectionTypeSelection ? connectionTypeSelection.subSubCategory : specs.connectionType;
-                                })()}
-                              </span>
+                              <span className="text-gray-900">{(specs as any).connectionType}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Data:</span>
-                              <span className="text-gray-900">{specs.data}</span>
+                              <span className="font-medium text-gray-700">Package Type:</span>
+                              <span className="text-gray-900">{(specs as any).packageType || '-'}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="font-medium text-gray-700">Internet Speed:</span>
                               <span className="text-gray-900">{specs.internetSpeed}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Voice:</span>
-                              <span className="text-gray-900">{specs.voice}</span>
+                              <span className="font-medium text-gray-700">Data Allowance:</span>
+                              <span className="text-gray-900">{(specs as any).dataAllowance || specs.data}</span>
                             </div>
                           </div>
                         </div>
@@ -1359,16 +1378,16 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Data:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).data}</span>
+                    <span className="font-medium text-gray-700">Package Type:</span>
+                    <span className="text-gray-900">{(getOfferingSpecs(selectedOffering) as any).packageType || '-'}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="font-medium text-gray-700">Internet Speed:</span>
                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Voice:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).voice}</span>
+                    <span className="font-medium text-gray-700">Data Allowance:</span>
+                    <span className="text-gray-900">{(getOfferingSpecs(selectedOffering) as any).dataAllowance || getOfferingSpecs(selectedOffering).data}</span>
                   </div>
                 </div>
               </div>
