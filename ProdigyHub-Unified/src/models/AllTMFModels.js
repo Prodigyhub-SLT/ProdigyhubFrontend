@@ -358,6 +358,57 @@ const QueryProductOfferingQualificationSchema = new mongoose.Schema({
 });
 
 // ===================================
+// USER MANAGEMENT MODELS
+// ===================================
+
+const UserSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true, default: uuidv4 },
+  userId: String, // Firebase UID
+  userEmail: String, // Firebase email
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true },
+  phoneNumber: { type: String, required: true },
+  address: {
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    district: { type: String, required: true },
+    province: { type: String, required: true },
+    postalCode: String
+  },
+  infrastructureCheck: {
+    fiber: {
+      available: Boolean,
+      technology: String,
+      maxSpeed: String,
+      coverage: Number,
+      monthlyFee: Number
+    },
+    adsl: {
+      available: Boolean,
+      technology: String,
+      maxSpeed: String,
+      coverage: Number,
+      monthlyFee: Number
+    },
+    mobile: {
+      available: Boolean,
+      technologies: [String],
+      coverage: String,
+      signalStrength: String
+    }
+  },
+  areaData: mongoose.Schema.Types.Mixed, // Reference to area data if found
+  status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  '@type': { type: String, default: 'User' }
+}, {
+  timestamps: true,
+  collection: 'users'
+});
+
+// ===================================
 // AREA MANAGEMENT MODELS
 // ===================================
 
@@ -646,6 +697,7 @@ const Product = mongoose.model('Product', ProductSchema);
 const CheckProductOfferingQualification = mongoose.model('CheckProductOfferingQualification', CheckProductOfferingQualificationSchema);
 const QueryProductOfferingQualification = mongoose.model('QueryProductOfferingQualification', QueryProductOfferingQualificationSchema);
 const Area = mongoose.model('Area', AreaSchema);
+const User = mongoose.model('User', UserSchema);
 const ProductOrder = mongoose.model('ProductOrder', ProductOrderSchema);
 const CancelProductOrder = mongoose.model('CancelProductOrder', CancelProductOrderSchema);
 const Event = mongoose.model('Event', EventSchema);
@@ -678,5 +730,8 @@ module.exports = {
   Topic,
 
   // AREA MANAGEMENT MODELS
-  Area
+  Area,
+  
+  // USER MANAGEMENT MODELS
+  User
 };

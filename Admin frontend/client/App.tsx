@@ -24,6 +24,7 @@ import OrderDetail from "./pages/OrderDetail";
 import NotFound from "./pages/NotFound";
 import PublicOfferings from "./pages/PublicOfferings";
 import UserDashboard from "./pages/UserDashboard";
+import NewCustomerOnboarding from "./pages/NewCustomerOnboarding";
 import DashboardRedirect from "./pages/DashboardRedirect";
 
 // API Dashboard Pages
@@ -80,6 +81,13 @@ const App = () => (
                   {/* Add more user-specific routes here later */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+              </ProtectedRoute>
+            } />
+            
+            {/* New Customer Onboarding Route */}
+            <Route path="/new-customer" element={
+              <ProtectedRoute>
+                <NewCustomerOnboarding />
               </ProtectedRoute>
             } />
             

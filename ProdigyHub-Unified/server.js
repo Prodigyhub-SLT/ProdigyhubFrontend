@@ -2182,6 +2182,10 @@ app.delete('/productOfferingQualification/v5/queryProductOfferingQualification/:
 const areaManagementRoutes = require('./src/api/tmf679/routes/areaManagementRoutes');
 app.use('/areaManagement/v5', areaManagementRoutes);
 
+// Users API
+const userRoutes = require('./src/api/users/routes/userRoutes');
+app.use('/users', userRoutes);
+
 // TMF622 - Product Ordering Management
 // Product Orders
 app.get('/productOrderingManagement/v4/productOrder', (req, res) => tmf622Controller.getProductOrders(req, res));

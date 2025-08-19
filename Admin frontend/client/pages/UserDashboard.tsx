@@ -44,7 +44,7 @@ export default function UserDashboard() {
     } else if (selectedOption === 'new') {
       // Navigate to new customer flow
       console.log('Navigating to new customer flow');
-      // navigate('/new-customer');
+      navigate('/new-customer');
     }
   };
 
