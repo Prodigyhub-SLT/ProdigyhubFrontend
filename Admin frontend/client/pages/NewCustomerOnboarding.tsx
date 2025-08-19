@@ -253,7 +253,7 @@ export default function NewCustomerOnboarding() {
       provideOnlyAvailable: true,
       provideResultReason: false,
       state: "acknowledged",
-      creationDate: new Date().toISOString(),
+      creationDate: new Date().toISOString(), // Backend expects creationDate, not creationDate
       note: [
         {
           text: `SLT_LOCATION:${JSON.stringify({
@@ -308,7 +308,7 @@ export default function NewCustomerOnboarding() {
         },
         body: JSON.stringify(qualificationData)
       });
-
+      
       console.log('📡 Backend response status:', response.status);
       console.log('📡 Backend response headers:', Object.fromEntries(response.headers.entries()));
 
@@ -707,19 +707,65 @@ export default function NewCustomerOnboarding() {
                          </Button>
                        )}
                        
-                       {/* Show message if all services are available */}
-                       {infrastructureCheck.fiber.available && 
-                        infrastructureCheck.adsl.available && 
-                        infrastructureCheck.mobile.available && (
-                         <div className="col-span-3 text-center py-4">
-                           <div className="text-green-400 text-lg font-semibold mb-2">
-                             🎉 All services are available in your area!
-                           </div>
-                           <div className="text-blue-200 text-sm">
-                             You can subscribe to any of the available services
-                           </div>
-                         </div>
-                       )}
+                                               {/* Show message if all services are available */}
+                        {infrastructureCheck.fiber.available && 
+                         infrastructureCheck.adsl.available && 
+                         infrastructureCheck.mobile.available && (
+                          <div className="col-span-3 text-center py-4">
+                            <div className="text-green-400 text-lg font-semibold mb-2">
+                              🎉 All services are available in your area!
+                            </div>
+                            <div className="text-blue-200 text-sm">
+                              You can subscribe to any of the available services
+                            </div>
+                            
+                            {/* Test Button for Qualification Records */}
+                            <div className="mt-4">
+                              <Button 
+                                className="bg-orange-600 hover:bg-orange-700 text-white"
+                                onClick={() => handleServiceRequest('fiber')}
+                                data-service="fiber"
+                              >
+                                🧪 Test: Request Fiber Service (for testing)
+                              </Button>
+                              <p className="text-xs text-orange-300 mt-2">
+                                This will test if qualification records appear in admin dashboard
+                              </p>
+                              
+                              {/* Test Backend Connection */}
+                              <div className="mt-2">
+                                <Button 
+                                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
+                                  onClick={async () => {
+                                    try {
+                                      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification?limit=1');
+                                      console.log('🔍 Backend test response:', response.status);
+                                      if (response.ok) {
+                                        const data = await response.json();
+                                        console.log('🔍 Backend test data:', data);
+                                        toast({
+                                          title: "Backend Test",
+                                          description: `Backend is working! Found ${Array.isArray(data) ? data.length : 1} records.`,
+                                        });
+                                      } else {
+                                        throw new Error(`HTTP ${response.status}`);
+                                      }
+                                    } catch (error) {
+                                      console.error('Backend test failed:', error);
+                                      toast({
+                                        title: "Backend Test Failed",
+                                        description: `Error: ${error.message}`,
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                >
+                                  🔍 Test Backend Connection
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                      </div>
                      
                      <div className="text-sm text-blue-200">
