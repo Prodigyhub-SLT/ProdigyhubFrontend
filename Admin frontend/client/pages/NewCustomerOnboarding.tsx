@@ -233,38 +233,30 @@ export default function NewCustomerOnboarding() {
       return;
     }
 
-    // Create qualification request that matches the admin dashboard format
+    // Create qualification request that matches the admin dashboard format EXACTLY
     const qualificationData = {
-      id: `qual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       location: {
+        address: `${userDetails.address.street}, ${userDetails.address.city}`, // Combine street + city
         district: userDetails.address.district,
         province: userDetails.address.province,
-        coordinates: null
+        postalCode: userDetails.address.postalCode || ''
       },
-      service: `${serviceType.toUpperCase()} Broadband`,
-      infrastructure: getInfrastructureSummary(),
-      result: 'unqualified', // Will show as pending request in admin dashboard
-      date: new Date().toISOString(),
-      customerDetails: {
-        name: `${userDetails.firstName} ${userDetails.lastName}`,
-        email: userDetails.email,
-        phone: userDetails.phoneNumber,
-        address: userDetails.address
-      },
-      requestedServices: [serviceType],
-      status: 'pending',
-      requestType: 'infrastructure_request',
-      description: `Customer requesting ${serviceType.toUpperCase()} service in ${userDetails.address.district}, ${userDetails.address.province}`,
-      createdAt: new Date().toISOString(),
-      '@type': 'CheckProductOfferingQualification'
+      requestedServices: [`${serviceType.toUpperCase()} Broadband`], // Array format
+      customerType: 'residential', // Default customer type
+      infrastructure: infrastructureCheck, // Use the actual infrastructure data
+      qualificationResult: 'unqualified', // Will show as pending request
+      creationDate: new Date().toISOString(),
+      state: 'done' // Required state for admin dashboard
     };
 
     try {
-      // On Vercel, API calls go directly to the backend
+      // Use the SAME endpoint that the admin dashboard uses
       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
         },
         body: JSON.stringify(qualificationData)
       });
@@ -294,15 +286,7 @@ export default function NewCustomerOnboarding() {
     }
   };
 
-  // Helper function to get infrastructure summary for admin dashboard
-  const getInfrastructureSummary = () => {
-    const available = [];
-    if (infrastructureCheck?.fiber.available) available.push('Fiber');
-    if (infrastructureCheck?.adsl.available) available.push('ADSL');
-    if (infrastructureCheck?.mobile.available) available.push('Mobile');
-    
-    return available.length > 0 ? available.join(' ') : 'None';
-  };
+
 
   const handleSubmit = async (infrastructureData?: InfrastructureAvailability, areaDataParam?: AreaData | null) => {
     // Use passed data or fall back to state
