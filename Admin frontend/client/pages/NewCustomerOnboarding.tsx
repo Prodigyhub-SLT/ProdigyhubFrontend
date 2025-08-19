@@ -141,6 +141,7 @@ export default function NewCustomerOnboarding() {
     setIsCheckingInfrastructure(true);
     try {
       // Check if area exists in the system
+      // On Vercel, API calls go directly to the backend
       const response = await fetch('/api/areaManagement/v5/area', {
         method: 'GET',
         headers: {
@@ -252,6 +253,7 @@ export default function NewCustomerOnboarding() {
     };
 
     try {
+      // On Vercel, API calls go directly to the backend
       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',
         headers: {
@@ -318,6 +320,7 @@ export default function NewCustomerOnboarding() {
         status: 'active'
       };
 
+      // On Vercel, API calls go directly to the backend
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {

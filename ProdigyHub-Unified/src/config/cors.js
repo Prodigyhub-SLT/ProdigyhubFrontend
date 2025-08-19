@@ -12,7 +12,10 @@ const corsConfig = {
       'http://127.0.0.1:8080',
       'http://127.0.0.1:5173',     // Add Vite localhost
       // Add your deployed frontend URLs here
-      'https://your-frontend-domain.vercel.app',
+      'https://sltprodigyhub.vercel.app',
+      'https://prodigyhub.vercel.app',
+      'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
+      'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
       'https://your-frontend-domain.netlify.app',
       'https://your-frontend-domain.onrender.com'
     ],
@@ -42,7 +45,11 @@ const corsConfig = {
     origin: function (origin, callback) {
       // Get allowed origins from environment variable with defaults
       const defaultOrigins = [
-        'https://prodigyhub.onrender.com', // Your own domain
+        'https://sltprodigyhub.vercel.app', // Your Vercel frontend
+        'https://prodigyhub.vercel.app',    // Your Vercel frontend alternative
+        'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
+        'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
+        'https://prodigyhub.onrender.com',  // Your own domain
         'http://localhost:3000',           // Development
         'http://localhost:5173',           // Vite development
       ];
