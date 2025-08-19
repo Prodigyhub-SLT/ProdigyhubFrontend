@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, push, set, remove, query, orderByChild, limitToLast } from 'firebase/database';
-import { getAuth, signInAnonymously } from 'firebase/auth';
+import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 // 🔥 FIREBASE CONFIGURATION SETUP 🔥
 // 
@@ -26,6 +26,12 @@ export const database = getDatabase(app);
 // Initialize Auth
 export const auth = getAuth(app);
 
+// Initialize Google Auth Provider
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
 // Database references
 export const dbRefs = {
   orders: ref(database, 'orders'),
@@ -36,7 +42,8 @@ export const dbRefs = {
   events: ref(database, 'events'),
   systemHealth: ref(database, 'systemHealth'),
   collectionStats: ref(database, 'collectionStats'),
-  infrastructure: ref(database, 'infrastructure')
+  infrastructure: ref(database, 'infrastructure'),
+  users: ref(database, 'users')
 };
 
 // Real-time data listeners
@@ -167,11 +174,57 @@ export const dbOperations = {
       ...statsData,
       updatedAt: Date.now()
     });
+  },
+
+  // Create or update user profile
+  createUserProfile: (userData: any) => {
+    const userRef = ref(database, `users/${userData.uid}`);
+    return set(userRef, {
+      ...userData,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+  },
+
+  // Get user profile
+  getUserProfile: (uid: string) => {
+    const userRef = ref(database, `users/${uid}`);
+    return new Promise((resolve, reject) => {
+      onValue(userRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          resolve(data);
+        } else {
+          reject(new Error('User profile not found'));
+        }
+      }, { onlyOnce: true });
+    });
   }
 };
 
-// Authentication
+// Authentication operations
 export const authOperations = {
+  // Sign in with Google
+  signInWithGoogle: async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      return result;
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+      throw error;
+    }
+  },
+
+  // Sign out
+  signOut: async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Sign Out Error:', error);
+      throw error;
+    }
+  },
+
   // Sign in anonymously (for demo purposes)
   signInAnonymously: () => {
     return signInAnonymously(auth);
@@ -180,6 +233,11 @@ export const authOperations = {
   // Get current user
   getCurrentUser: () => {
     return auth.currentUser;
+  },
+
+  // Listen to auth state changes
+  onAuthStateChanged: (callback: (user: FirebaseUser | null) => void) => {
+    return onAuthStateChanged(auth, callback);
   }
 };
 

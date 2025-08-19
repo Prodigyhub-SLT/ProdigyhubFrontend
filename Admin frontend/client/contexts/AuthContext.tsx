@@ -1,9 +1,12 @@
 // client/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authOperations, dbOperations } from '@/lib/firebase';
+import { User as FirebaseUser } from 'firebase/auth';
 
 // Enhanced User interface to match what your pages expect
 export interface User {
   id: string;
+  uid?: string; // Firebase UID
   name: string;
   email: string;
   role: 'admin' | 'user' | 'viewer';
@@ -32,6 +35,7 @@ export interface AuthContextType {
   
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   
@@ -93,6 +97,7 @@ const MOCK_USERS = {
     role: 'user' as const,
     department: 'Product',
     lastLogin: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    avatar: '/api/placeholder/150/150',
     permissions: [
       'tmf620:read', 'tmf622:read', 'tmf622:write',
       'tmf637:read', 'tmf679:read', 'tmf688:read',
@@ -111,40 +116,106 @@ const MOCK_USERS = {
   }
 };
 
+// Helper function to create user from Firebase user
+const createUserFromFirebase = (firebaseUser: FirebaseUser): User => {
+  // Check if user exists in mock data
+  const mockUser = MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS];
+  
+  if (mockUser) {
+    return {
+      ...mockUser,
+      uid: firebaseUser.uid,
+      avatar: firebaseUser.photoURL || mockUser.avatar || '/api/placeholder/150/150',
+      lastLogin: new Date().toISOString()
+    };
+  }
+  
+  // Create new user from Google account
+  return {
+    id: `user_${firebaseUser.uid}`,
+    uid: firebaseUser.uid,
+    name: firebaseUser.displayName || 'Google User',
+    email: firebaseUser.email || '',
+    role: 'user' as const,
+    department: 'General',
+    lastLogin: new Date().toISOString(),
+    avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
+    permissions: [
+      'tmf620:read', 'tmf622:read', 'tmf637:read', 
+      'tmf679:read', 'tmf688:read', 'dashboard:read'
+    ],
+    preferences: {
+      theme: 'system' as const,
+      language: 'en-US',
+      timezone: 'UTC+00:00'
+    },
+    profile: {
+      phone: '',
+      location: '',
+      bio: 'User signed in via Google authentication.',
+    }
+  };
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize auth state from localStorage (but handle gracefully if not available)
+  // Initialize auth state from Firebase
   useEffect(() => {
-    const initializeAuth = async () => {
+    const unsubscribe = authOperations.onAuthStateChanged(async (firebaseUser) => {
       setIsLoading(true);
       
       try {
-        // Try to get stored user data
-        const storedUser = typeof window !== 'undefined' && window.localStorage 
-          ? localStorage.getItem('auth_user') 
-          : null;
+        if (firebaseUser) {
+          // User is signed in
+          const userData = createUserFromFirebase(firebaseUser);
+          setUser(userData);
           
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          // Validate the stored user data
-          if (userData && userData.id && userData.email) {
-            setUser(userData);
+          // Store user data in localStorage as backup
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('auth_user', JSON.stringify(userData));
+            }
+          } catch (error) {
+            console.warn('Failed to store auth data:', error);
+          }
+          
+          // Create/update user profile in Firebase database
+          try {
+            await dbOperations.createUserProfile({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              lastLogin: Date.now()
+            });
+          } catch (error) {
+            console.warn('Failed to update user profile in database:', error);
+          }
+        } else {
+          // User is signed out
+          setUser(null);
+          
+          // Clear stored data
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.removeItem('auth_user');
+            }
+          } catch (error) {
+            console.warn('Failed to clear auth data:', error);
           }
         }
       } catch (error) {
-        console.warn('Failed to load stored auth data:', error);
-        // Clear invalid stored data
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.removeItem('auth_user');
-        }
+        console.error('Error handling auth state change:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-    };
+    });
 
-    initializeAuth();
+    // Cleanup subscription
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
@@ -184,16 +255,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const loginWithGoogle = async (): Promise<void> => {
+    setIsLoading(true);
     
-    // Clear stored data (handle gracefully)
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem('auth_user');
+      const result = await authOperations.signInWithGoogle();
+      
+      if (result.user) {
+        const userData = createUserFromFirebase(result.user);
+        setUser(userData);
+        
+        // Store user data in localStorage as backup
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('auth_user', JSON.stringify(userData));
+          }
+        } catch (error) {
+          console.warn('Failed to store auth data:', error);
+        }
       }
     } catch (error) {
-      console.warn('Failed to clear auth data:', error);
+      console.error('Google Sign-In Error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authOperations.signOut();
+      setUser(null);
+      
+      // Clear stored data
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem('auth_user');
+        }
+      } catch (error) {
+        console.warn('Failed to clear auth data:', error);
+      }
+    } catch (error) {
+      console.error('Logout Error:', error);
+      // Still clear local state even if Firebase logout fails
+      setUser(null);
     }
   };
 
@@ -285,6 +390,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Actions
     login,
+    loginWithGoogle,
     logout,
     updateUser,
     
