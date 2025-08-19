@@ -16,6 +16,7 @@ import {
   Wifi, 
   Signal, 
   ArrowLeft,
+  ArrowRight,
   CheckCircle,
   XCircle,
   AlertCircle,
