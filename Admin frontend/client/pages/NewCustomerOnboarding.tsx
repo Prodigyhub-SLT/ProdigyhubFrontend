@@ -223,13 +223,15 @@ export default function NewCustomerOnboarding() {
 
     const service = infrastructureCheck[serviceType];
     
-    // Check if service is already available
-    if (service.available) {
+    // Determine if this is a request for unavailable service or interest in available service
+    const isInterestRequest = service.available;
+    
+    if (isInterestRequest) {
+      // Service is available, this is an interest request
       toast({
-        title: "Service Available",
-        description: `${serviceType.toUpperCase()} is already available in your area!`,
+        title: "Interest Recorded",
+        description: `Your interest in ${serviceType.toUpperCase()} has been recorded!`,
       });
-      return;
     }
 
     // SEPARATION OF CONCERNS:
@@ -237,11 +239,13 @@ export default function NewCustomerOnboarding() {
     // 2. Infrastructure/qualification data -> checkproductofferingqualifications collection
     // This prevents conflicts and keeps data properly organized
 
-    // Create qualification request that matches the admin dashboard format EXACTLY
-    // The admin dashboard expects data in the 'note' field, not as direct fields
-    // IMPORTANT: Only send infrastructure/area data, NOT personal information
-    const qualificationData = {
-      description: `SLT Location Qualification for ${userDetails.address.district}, ${userDetails.address.province}`,
+         // Create qualification request that matches the admin dashboard format EXACTLY
+     // The admin dashboard expects data in the 'note' field, not as direct fields
+     // IMPORTANT: Only send infrastructure/area data, NOT personal information
+     const qualificationData = {
+       description: isInterestRequest 
+         ? `SLT Customer Interest in ${serviceType.toUpperCase()} for ${userDetails.address.district}, ${userDetails.address.province}`
+         : `SLT Service Request for ${serviceType.toUpperCase()} in ${userDetails.address.district}, ${userDetails.address.province}`,
       instantSyncQualification: true,
       provideAlternative: false,
       provideOnlyAvailable: true,
@@ -261,7 +265,7 @@ export default function NewCustomerOnboarding() {
           '@type': 'Note'
         },
                  {
-           text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband`])}`,
+           text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband ${isInterestRequest ? '(Interest)' : '(Request)'}`])}`,
            author: 'SLT System',
            date: new Date().toISOString(),
            '@type': 'Note'
@@ -272,15 +276,15 @@ export default function NewCustomerOnboarding() {
           date: new Date().toISOString(),
           '@type': 'Note'
         },
-        {
-          text: `SLT_AREA_MATCH:${JSON.stringify({
-            matchedArea: areaData,
-            qualificationResult: 'unqualified'
-          })}`,
-          author: 'SLT System',
-          date: new Date().toISOString(),
-          '@type': 'Note'
-        }
+                 {
+           text: `SLT_AREA_MATCH:${JSON.stringify({
+             matchedArea: areaData,
+             qualificationResult: isInterestRequest ? 'interested' : 'unqualified'
+           })}`,
+           author: 'SLT System',
+           date: new Date().toISOString(),
+           '@type': 'Note'
+         }
       ],
       channel: {},
       checkProductOfferingQualificationItem: [],
@@ -305,14 +309,16 @@ export default function NewCustomerOnboarding() {
          const responseData = await response.json();
         
                  toast({
-           title: "Request Submitted",
-           description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
+           title: isInterestRequest ? "Interest Recorded" : "Request Submitted",
+           description: isInterestRequest 
+             ? `Your interest in ${serviceType.toUpperCase()} has been recorded and will appear in the admin dashboard Qualification Records section.`
+             : `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
          });
          
-         // Update the button to show it's been requested
+         // Update the button to show it's been submitted
          const buttonElement = document.querySelector(`[data-service="${serviceType}"]`);
          if (buttonElement) {
-           buttonElement.textContent = 'Request Submitted';
+           buttonElement.textContent = isInterestRequest ? 'Interest Recorded' : 'Request Submitted';
            buttonElement.disabled = true;
          }
              } else {
@@ -328,7 +334,83 @@ export default function NewCustomerOnboarding() {
      }
   };
 
+  // Create a qualification record for infrastructure check completion
+  const createInfrastructureQualificationRecord = async (infrastructureData: InfrastructureAvailability, areaDataParam: AreaData | null) => {
+    try {
+      const qualificationData = {
+        description: `SLT Infrastructure Check Completed for ${userDetails.address.district}, ${userDetails.address.province}`,
+        instantSyncQualification: true,
+        provideAlternative: false,
+        provideOnlyAvailable: true,
+        provideResultReason: false,
+        state: "acknowledged",
+        creationDate: new Date().toISOString(),
+        note: [
+          {
+            text: `SLT_LOCATION:${JSON.stringify({
+              address: `${userDetails.address.district}, ${userDetails.address.province}`,
+              district: userDetails.address.district,
+              province: userDetails.address.province,
+              postalCode: userDetails.address.postalCode || ''
+            })}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_SERVICES:${JSON.stringify(['Infrastructure Check'])}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_INFRASTRUCTURE:${JSON.stringify(infrastructureData)}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_AREA_MATCH:${JSON.stringify({
+              matchedArea: areaDataParam,
+              qualificationResult: 'completed'
+            })}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          }
+        ],
+        channel: {},
+        checkProductOfferingQualificationItem: [],
+        relatedParty: [],
+        "@baseType": "CheckProductOfferingQualification",
+        "@type": "CheckProductOfferingQualification"
+      };
 
+      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        },
+        body: JSON.stringify(qualificationData)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Infrastructure qualification record created successfully:', responseData);
+        toast({
+          title: "Infrastructure Check Recorded",
+          description: "Your infrastructure check has been recorded in the admin dashboard.",
+        });
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Failed to create infrastructure qualification record:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error creating infrastructure qualification record:', error);
+    }
+  };
 
   const handleSubmit = async (infrastructureData?: InfrastructureAvailability, areaDataParam?: AreaData | null) => {
     // Use passed data or fall back to state
@@ -407,6 +489,9 @@ export default function NewCustomerOnboarding() {
         
                  // IMPORTANT: Show infrastructure results and service options
          setStep('infrastructure');
+         
+         // Automatically create a qualification record for tracking purposes
+         await createInfrastructureQualificationRecord(infrastructureToUse, areaDataToUse);
          
          // Force a re-render to ensure the infrastructure step shows
          setTimeout(() => {
@@ -655,28 +740,50 @@ export default function NewCustomerOnboarding() {
                          </Button>
                        )}
                        
-                       {/* Show message if all services are available */}
-                       {infrastructureCheck.fiber.available && 
-                        infrastructureCheck.adsl.available && 
-                        infrastructureCheck.mobile.available && (
-                         <div className="col-span-3 text-center py-4">
-                           <div className="text-green-400 text-lg font-semibold mb-2">
-                             🎉 All services are available in your area!
-                           </div>
-                           <div className="text-blue-200 text-sm">
-                             You can subscribe to any of the available services
-                           </div>
-                           
-                           <div className="mt-4 text-center">
-                             <p className="text-blue-200 text-sm">
-                               All services are available in your area. You can subscribe to any of them.
-                             </p>
-                             <p className="text-xs text-gray-400 mt-2">
-                               If you need assistance, please contact SLT customer support.
-                             </p>
-                           </div>
-                         </div>
-                       )}
+                                               {/* Show message if all services are available */}
+                        {infrastructureCheck.fiber.available && 
+                         infrastructureCheck.adsl.available && 
+                         infrastructureCheck.mobile.available && (
+                          <div className="col-span-3 text-center py-4">
+                            <div className="text-green-400 text-lg font-semibold mb-2">
+                              🎉 All services are available in your area!
+                            </div>
+                            <div className="text-blue-200 text-sm">
+                              You can subscribe to any of the available services
+                            </div>
+                            
+                            {/* Service Interest Buttons - Even when available, customers can express interest */}
+                            <div className="mt-4 space-y-2">
+                              <Button 
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => handleServiceRequest('fiber')}
+                                data-service="fiber"
+                              >
+                                Express Interest in Fiber
+                              </Button>
+                              
+                              <Button 
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => handleServiceRequest('adsl')}
+                                data-service="adsl"
+                              >
+                                Express Interest in ADSL
+                              </Button>
+                              
+                              <Button 
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => handleServiceRequest('mobile')}
+                                data-service="mobile"
+                              >
+                                Express Interest in Mobile
+                              </Button>
+                            </div>
+                            
+                            <p className="text-xs text-gray-400 mt-2">
+                              Expressing interest helps us track customer preferences
+                            </p>
+                          </div>
+                        )}
                      </div>
                      
                      <div className="text-sm text-blue-200">
