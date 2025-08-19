@@ -23,6 +23,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Temporarily disable all authentication logic for debugging
+  console.log('🔄 ProtectedRoute - All auth logic disabled for debugging');
+  
+  // Just render children without any checks
+  return <>{children}</>;
+  
+  /*
   // Handle role-based routing for authenticated users
   useEffect(() => {
     // Temporarily disable role-based routing to debug the issue
@@ -176,6 +183,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // User is authenticated and authorized
   return <>{children}</>;
+  */
 };
 
 export default ProtectedRoute;
