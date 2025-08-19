@@ -233,20 +233,26 @@ export default function NewCustomerOnboarding() {
       return;
     }
 
+    // SEPARATION OF CONCERNS:
+    // 1. Personal info (name, email, phone) -> users collection (already saved)
+    // 2. Infrastructure/qualification data -> checkproductofferingqualifications collection
+    // This prevents conflicts and keeps data properly organized
+
     // Create qualification request that matches the admin dashboard format EXACTLY
     // The admin dashboard expects data in the 'note' field, not as direct fields
+    // IMPORTANT: Only send infrastructure/area data, NOT personal information
     const qualificationData = {
-      description: `SLT Location Qualification for ${userDetails.address.street}, ${userDetails.address.city}`,
+      description: `SLT Location Qualification for ${userDetails.address.district}, ${userDetails.address.province}`,
       instantSyncQualification: true,
       provideAlternative: false,
       provideOnlyAvailable: true,
       provideResultReason: false,
       state: "acknowledged",
-      creationDate: new Date().toISOString(), // Backend expects creationDate, not creationDate
+      creationDate: new Date().toISOString(),
       note: [
         {
           text: `SLT_LOCATION:${JSON.stringify({
-            address: `${userDetails.address.street}, ${userDetails.address.city}`,
+            address: `${userDetails.address.district}, ${userDetails.address.province}`,
             district: userDetails.address.district,
             province: userDetails.address.province,
             postalCode: userDetails.address.postalCode || ''
