@@ -311,8 +311,8 @@ export default function NewCustomerOnboarding() {
                  toast({
            title: isInterestRequest ? "Interest Recorded" : "Request Submitted",
            description: isInterestRequest 
-             ? `Your interest in ${serviceType.toUpperCase()} has been recorded and will appear in the admin dashboard Qualification Records section.`
-             : `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
+             ? `Your interest in ${serviceType.toUpperCase()} has been recorded and will appear in the admin dashboard Qualification Records section. You will be redirected to your dashboard in a moment.`
+             : `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section. You will be redirected to your dashboard in a moment.`,
          });
          
          // Update the button to show it's been submitted
@@ -321,6 +321,11 @@ export default function NewCustomerOnboarding() {
            buttonElement.textContent = isInterestRequest ? 'Interest Recorded' : 'Request Submitted';
            buttonElement.disabled = true;
          }
+         
+         // Navigate to User Dashboard after successful qualification submission
+         setTimeout(() => {
+           navigate('/user-dashboard');
+         }, 1500); // Wait 1.5 seconds to show the success message
              } else {
          const errorText = await response.text();
          throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
@@ -814,20 +819,7 @@ export default function NewCustomerOnboarding() {
                         Service requests will appear in the admin dashboard Qualification Records section
                       </div>
                       
-                      {/* Navigation to User Dashboard */}
-                      <div className="text-center">
-                        <Button 
-                          size="lg"
-                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 text-lg font-semibold"
-                          onClick={() => navigate('/user-dashboard')}
-                        >
-                          Go to User Dashboard
-                          <ArrowRight className="w-5 h-5 ml-2" />
-                        </Button>
-                        <p className="text-xs text-gray-400 mt-2">
-                          Access your personalized SLT dashboard
-                        </p>
-                      </div>
+
                    </div>
                  </div>
                   ) : (
