@@ -363,15 +363,28 @@ export default function NewCustomerOnboarding() {
         
         // Show infrastructure results and service options
         setStep('infrastructure');
-      } else {
-        const errorText = await response.text();
-        console.error('API Response Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText
-        });
-        throw new Error(`Failed to save user data: ${response.status} ${response.statusText}`);
-      }
+             } else {
+         const errorText = await response.text();
+         console.error('🔍 Full API Response Details:', {
+           status: response.status,
+           statusText: response.statusText,
+           headers: Object.fromEntries(response.headers.entries()),
+           body: errorText,
+           url: response.url
+         });
+         
+         // Try to parse error response as JSON for more details
+         let errorDetails = errorText;
+         try {
+           const errorJson = JSON.parse(errorText);
+           errorDetails = errorJson.message || errorJson.error || errorText;
+           console.error('🔍 Parsed Error Details:', errorJson);
+         } catch (e) {
+           console.log('🔍 Error response is not JSON, using as text');
+         }
+         
+         throw new Error(`Failed to save user data: ${response.status} ${response.statusText} - ${errorDetails}`);
+       }
     } catch (error) {
       console.error('Error saving user data:', error);
       console.error('Full error details:', {
