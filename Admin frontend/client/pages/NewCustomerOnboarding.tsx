@@ -226,11 +226,12 @@ export default function NewCustomerOnboarding() {
     }
   };
 
-  const handleServiceRequest = async (serviceType: 'fiber' | 'adsl' | 'mobile') => {
+  const handleServiceRequest = async (serviceType: 'fiber' | 'adsl' | 'mobile' | 'fiber-test' | 'adsl-test' | 'mobile-test') => {
     if (!infrastructureCheck) return;
 
     const service = infrastructureCheck[serviceType];
-    if (service.available) {
+    // Allow testing even when service is available (for testing purposes)
+    if (service.available && !serviceType.includes('test')) {
       toast({
         title: "Service Available",
         description: `${serviceType.toUpperCase()} is already available in your area!`,
@@ -266,12 +267,12 @@ export default function NewCustomerOnboarding() {
           date: new Date().toISOString(),
           '@type': 'Note'
         },
-        {
-          text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband`])}`,
-          author: 'SLT System',
-          date: new Date().toISOString(),
-          '@type': 'Note'
-        },
+                 {
+           text: `SLT_SERVICES:${JSON.stringify([`${serviceType.replace('-test', '').toUpperCase()} Broadband (TEST)`])}`,
+           author: 'SLT System',
+           date: new Date().toISOString(),
+           '@type': 'Note'
+         },
         {
           text: `SLT_INFRASTRUCTURE:${JSON.stringify(infrastructureCheck)}`,
           author: 'SLT System',
@@ -723,8 +724,8 @@ export default function NewCustomerOnboarding() {
                             <div className="mt-4">
                               <Button 
                                 className="bg-orange-600 hover:bg-orange-700 text-white"
-                                onClick={() => handleServiceRequest('fiber')}
-                                data-service="fiber"
+                                onClick={() => handleServiceRequest('fiber-test')}
+                                data-service="fiber-test"
                               >
                                 🧪 Test: Request Fiber Service (for testing)
                               </Button>
