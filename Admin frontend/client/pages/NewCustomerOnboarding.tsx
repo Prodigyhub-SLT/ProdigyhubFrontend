@@ -655,49 +655,48 @@ export default function NewCustomerOnboarding() {
                          </Button>
                        )}
                        
-                                               {/* Show message if all services are available */}
-                        {infrastructureCheck.fiber.available && 
-                         infrastructureCheck.adsl.available && 
-                         infrastructureCheck.mobile.available && (
-                          <div className="col-span-3 text-center py-4">
-                            <div className="text-green-400 text-lg font-semibold mb-2">
-                              🎉 All services are available in your area!
-                            </div>
-                            <div className="text-blue-200 text-sm">
-                              You can subscribe to any of the available services
-                            </div>
-                            
-                                                         <div className="mt-4 text-center">
-                               <p className="text-blue-200 text-sm">
-                                 All services are available in your area. You can subscribe to any of them.
-                               </p>
-                               <p className="text-xs text-gray-400 mt-2">
-                                 If you need assistance, please contact SLT customer support.
-                               </p>
-                             </div>
-                                                         </div>
+                       {/* Show message if all services are available */}
+                       {infrastructureCheck.fiber.available && 
+                        infrastructureCheck.adsl.available && 
+                        infrastructureCheck.mobile.available && (
+                         <div className="col-span-3 text-center py-4">
+                           <div className="text-green-400 text-lg font-semibold mb-2">
+                             🎉 All services are available in your area!
+                           </div>
+                           <div className="text-blue-200 text-sm">
+                             You can subscribe to any of the available services
+                           </div>
+                           
+                           <div className="mt-4 text-center">
+                             <p className="text-blue-200 text-sm">
+                               All services are available in your area. You can subscribe to any of them.
+                             </p>
+                             <p className="text-xs text-gray-400 mt-2">
+                               If you need assistance, please contact SLT customer support.
+                             </p>
+                           </div>
                          </div>
                        )}
                      </div>
                      
                      <div className="text-sm text-blue-200">
                        Service requests will appear in the admin dashboard Qualification Records section
-                                          </div>
+                     </div>
                    </div>
                  </div>
                   ) : (
-                 <div className="text-center py-8">
-                   <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                   <p className="text-yellow-200 text-lg">No infrastructure data found for your area.</p>
-                   <p className="text-blue-200">Please contact SLT support for more information.</p>
-                 </div>
-               )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+                   <div className="text-center py-8">
+                     <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+                     <p className="text-yellow-200 text-lg">No infrastructure data found for your area.</p>
+                     <p className="text-blue-200">Please contact SLT support for more information.</p>
+                   </div>
+                 )}
+               </CardContent>
+             </Card>
+           </div>
+         </div>
+       );
+     }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
