@@ -94,7 +94,7 @@ export default function NewCustomerOnboarding() {
   const [areaData, setAreaData] = useState<AreaData | null>(null);
   const [isCheckingInfrastructure, setIsCheckingInfrastructure] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<'details' | 'infrastructure' | 'services'>('details');
+  const [step, setStep] = useState<'details' | 'infrastructure'>('details');
 
   // Districts and Provinces for Sri Lanka
   const districts = [
@@ -194,6 +194,9 @@ export default function NewCustomerOnboarding() {
             description: "Infrastructure availability has been determined for your area.",
           });
         }
+        
+        // After infrastructure check, save user data and show results
+        await handleSubmit();
       } else {
         throw new Error('Failed to fetch area data');
       }
@@ -221,8 +224,18 @@ export default function NewCustomerOnboarding() {
       return;
     }
 
-    // Create qualification request
+    // Create qualification request that matches the admin dashboard format
     const qualificationData = {
+      id: `qual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      location: {
+        district: userDetails.address.district,
+        province: userDetails.address.province,
+        coordinates: null
+      },
+      service: `${serviceType.toUpperCase()} Broadband`,
+      infrastructure: getInfrastructureSummary(),
+      result: 'unqualified', // Will show as pending request in admin dashboard
+      date: new Date().toISOString(),
       customerDetails: {
         name: `${userDetails.firstName} ${userDetails.lastName}`,
         email: userDetails.email,
@@ -230,15 +243,11 @@ export default function NewCustomerOnboarding() {
         address: userDetails.address
       },
       requestedServices: [serviceType],
-      location: {
-        district: userDetails.address.district,
-        province: userDetails.address.province,
-        coordinates: null
-      },
       status: 'pending',
       requestType: 'infrastructure_request',
       description: `Customer requesting ${serviceType.toUpperCase()} service in ${userDetails.address.district}, ${userDetails.address.province}`,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      '@type': 'CheckProductOfferingQualification'
     };
 
     try {
@@ -253,9 +262,15 @@ export default function NewCustomerOnboarding() {
       if (response.ok) {
         toast({
           title: "Request Submitted",
-          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully.`,
+          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in Qualification Records.`,
         });
-        // You can navigate to a confirmation page or dashboard
+        
+        // Update the button to show it's been requested
+        const buttonElement = document.querySelector(`[data-service="${serviceType}"]`);
+        if (buttonElement) {
+          buttonElement.textContent = 'Request Submitted';
+          buttonElement.disabled = true;
+        }
       } else {
         throw new Error('Failed to submit request');
       }
@@ -267,6 +282,16 @@ export default function NewCustomerOnboarding() {
         variant: "destructive"
       });
     }
+  };
+
+  // Helper function to get infrastructure summary for admin dashboard
+  const getInfrastructureSummary = () => {
+    const available = [];
+    if (infrastructureCheck?.fiber.available) available.push('Fiber');
+    if (infrastructureCheck?.adsl.available) available.push('ADSL');
+    if (infrastructureCheck?.mobile.available) available.push('Mobile');
+    
+    return available.length > 0 ? available.join(' ') : 'None';
   };
 
   const handleSubmit = async () => {
@@ -305,8 +330,9 @@ export default function NewCustomerOnboarding() {
           title: "Success",
           description: "Your information has been saved successfully!",
         });
-        // Navigate to next step or dashboard
-        setStep('services');
+        
+        // Show infrastructure results and service options
+        setStep('infrastructure');
       } else {
         throw new Error('Failed to save user data');
       }
@@ -371,9 +397,65 @@ export default function NewCustomerOnboarding() {
                   <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
                   <p className="text-blue-200">Checking infrastructure availability...</p>
                 </div>
-              ) : infrastructureCheck ? (
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-3 gap-4">
+                             ) : infrastructureCheck ? (
+                 <div className="space-y-6">
+                   {/* Infrastructure Summary */}
+                   <div className="bg-white/10 rounded-lg p-6 border border-white/20">
+                     <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                       Infrastructure Summary for {userDetails.address.district}, {userDetails.address.province}
+                     </h3>
+                     <div className="grid md:grid-cols-3 gap-4">
+                       <div className="text-center">
+                         <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                           infrastructureCheck.fiber.available ? 'bg-green-500/30' : 'bg-red-500/30'
+                         }`}>
+                           {infrastructureCheck.fiber.available ? (
+                             <CheckCircle className="w-8 h-8 text-green-400" />
+                           ) : (
+                             <XCircle className="w-8 h-8 text-red-400" />
+                           )}
+                         </div>
+                         <div className="text-white font-semibold">Fiber Internet</div>
+                         <div className={`text-sm ${infrastructureCheck.fiber.available ? 'text-green-400' : 'text-red-400'}`}>
+                           {infrastructureCheck.fiber.available ? 'Available' : 'Not Available'}
+                         </div>
+                       </div>
+                       
+                       <div className="text-center">
+                         <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                           infrastructureCheck.adsl.available ? 'bg-green-500/30' : 'bg-red-500/30'
+                         }`}>
+                           {infrastructureCheck.adsl.available ? (
+                             <CheckCircle className="w-8 h-8 text-green-400" />
+                           ) : (
+                             <XCircle className="w-8 h-8 text-red-400" />
+                           )}
+                         </div>
+                         <div className="text-white font-semibold">ADSL Internet</div>
+                         <div className={`text-sm ${infrastructureCheck.adsl.available ? 'text-green-400' : 'text-red-400'}`}>
+                           {infrastructureCheck.adsl.available ? 'Available' : 'Not Available'}
+                         </div>
+                       </div>
+                       
+                       <div className="text-center">
+                         <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                           infrastructureCheck.mobile.available ? 'bg-green-500/30' : 'bg-red-500/30'
+                         }`}>
+                           {infrastructureCheck.mobile.available ? (
+                             <CheckCircle className="w-8 h-8 text-green-400" />
+                           ) : (
+                             <XCircle className="w-8 h-8 text-red-400" />
+                           )}
+                         </div>
+                         <div className="text-white font-semibold">Mobile Internet</div>
+                         <div className={`text-sm ${infrastructureCheck.mobile.available ? 'text-green-400' : 'text-red-400'}`}>
+                           {infrastructureCheck.mobile.available ? 'Available' : 'Not Available'}
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                   
+                   <div className="grid md:grid-cols-3 gap-4">
                     {/* Fiber Service */}
                     <Card className={`${infrastructureCheck.fiber.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
                       <CardContent className="p-4 text-center">
@@ -444,23 +526,75 @@ export default function NewCustomerOnboarding() {
                     </Card>
                   </div>
 
-                  <div className="text-center">
-                    <Button
-                      size="lg"
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 text-lg font-semibold"
-                      onClick={handleSubmit}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Continue'
-                      )}
-                    </Button>
-                  </div>
+                                     <div className="text-center space-y-4">
+                     <div className="text-lg font-semibold text-white mb-4">
+                       Infrastructure Check Complete for {userDetails.address.district}, {userDetails.address.province}
+                     </div>
+                     
+                     {/* Service Request Buttons */}
+                     <div className="grid md:grid-cols-3 gap-4 mb-6">
+                       {/* Fiber Service Request */}
+                       {!infrastructureCheck.fiber.available && (
+                         <Button 
+                           className="w-full bg-red-600 hover:bg-red-700 text-white"
+                           onClick={() => handleServiceRequest('fiber')}
+                           data-service="fiber"
+                         >
+                           Request Fiber Service
+                         </Button>
+                       )}
+                       
+                       {/* ADSL Service Request */}
+                       {!infrastructureCheck.adsl.available && (
+                         <Button 
+                           className="w-full bg-red-600 hover:bg-red-700 text-white"
+                           onClick={() => handleServiceRequest('adsl')}
+                           data-service="adsl"
+                         >
+                           Request ADSL Service
+                         </Button>
+                       )}
+                       
+                       {/* Mobile Service Request */}
+                       {!infrastructureCheck.mobile.available && (
+                         <Button 
+                           className="w-full bg-red-600 hover:bg-red-700 text-white"
+                           onClick={() => handleServiceRequest('mobile')}
+                           data-service="mobile"
+                         >
+                           Request Mobile Service
+                         </Button>
+                       )}
+                       
+                       {/* Show message if all services are available */}
+                       {infrastructureCheck.fiber.available && 
+                        infrastructureCheck.adsl.available && 
+                        infrastructureCheck.mobile.available && (
+                         <div className="col-span-3 text-center py-4">
+                           <div className="text-green-400 text-lg font-semibold mb-2">
+                             🎉 All services are available in your area!
+                           </div>
+                           <div className="text-blue-200 text-sm">
+                             You can subscribe to any of the available services
+                           </div>
+                         </div>
+                       )}
+                     </div>
+                     
+                     {/* View Admin Dashboard Button */}
+                     <Button
+                       size="lg"
+                       className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 text-lg font-semibold"
+                       onClick={() => navigate('/admin/qualification')}
+                     >
+                       View Qualification Records
+                       <ArrowRight className="w-5 h-5 ml-2" />
+                     </Button>
+                     
+                     <div className="text-sm text-blue-200">
+                       Your service requests will appear in the Qualification Records section
+                     </div>
+                   </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -476,115 +610,7 @@ export default function NewCustomerOnboarding() {
     );
   }
 
-  if (step === 'services') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
-        <div className="container mx-auto px-4 py-8">
-          <Button
-            variant="ghost"
-            className="text-white hover:bg-white/20 mb-6"
-            onClick={() => setStep('infrastructure')}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Infrastructure
-          </Button>
-
-          <Card className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md border-white/20 text-white">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-white">
-                Service Options
-              </CardTitle>
-              <CardDescription className="text-blue-200">
-                Choose your preferred service or request unavailable services
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-4">
-                {/* Fiber Service */}
-                <Card className={`${infrastructureCheck?.fiber.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
-                  <CardContent className="p-4 text-center">
-                    <Wifi className="w-12 h-12 mx-auto mb-2 text-blue-400" />
-                    <h3 className="font-semibold text-white mb-2">Fiber Internet</h3>
-                    <p className="text-sm text-blue-200 mb-3">
-                      High-speed fiber optic internet with speeds up to 1000 Mbps
-                    </p>
-                    {infrastructureCheck?.fiber.available ? (
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        Subscribe Now
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full bg-red-600 hover:bg-red-700"
-                        onClick={() => handleServiceRequest('fiber')}
-                      >
-                        Request Service
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* ADSL Service */}
-                <Card className={`${infrastructureCheck?.adsl.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
-                  <CardContent className="p-4 text-center">
-                    <Signal className="w-12 h-12 mx-auto mb-2 text-blue-400" />
-                    <h3 className="font-semibold text-white mb-2">ADSL Internet</h3>
-                    <p className="text-sm text-blue-200 mb-3">
-                      Reliable ADSL internet with speeds up to 24 Mbps
-                    </p>
-                    {infrastructureCheck?.adsl.available ? (
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        Subscribe Now
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full bg-red-600 hover:bg-red-700"
-                        onClick={() => handleServiceRequest('adsl')}
-                      >
-                        Request Service
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Mobile Service */}
-                <Card className={`${infrastructureCheck?.mobile.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
-                  <CardContent className="p-4 text-center">
-                    <Signal className="w-12 h-12 mx-auto mb-2 text-blue-400" />
-                    <h3 className="font-semibold text-white mb-2">Mobile Internet</h3>
-                    <p className="text-sm text-blue-200 mb-3">
-                      High-speed mobile internet with 4G LTE technology
-                    </p>
-                    {infrastructureCheck?.mobile.available ? (
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        Subscribe Now
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full bg-red-600 hover:bg-red-700"
-                        onClick={() => handleServiceRequest('mobile')}
-                    >
-                        Request Service
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="text-center pt-4">
-                <Button
-                  variant="outline"
-                  className="text-white border-white hover:bg-white/20"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  Back to Dashboard
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">

@@ -17,9 +17,10 @@ The New Customer Onboarding System is a comprehensive flow that allows new SLT c
 - **Real-time Data**: Integrates with existing Area Management system in Admin Dashboard
 
 ### 3. Service Options & Requests
-- **Available Services**: Customers can subscribe to services available in their area
+- **Available Services**: Customers can see what services are available in their area
 - **Service Requests**: Customers can request services not currently available
 - **Integration**: Service requests appear in Qualification Records area for admin review
+- **Admin Dashboard Access**: Direct navigation to Qualification Records section
 
 ## Technical Implementation
 
@@ -27,11 +28,10 @@ The New Customer Onboarding System is a comprehensive flow that allows new SLT c
 
 #### NewCustomerOnboarding.tsx
 - **Location**: `Admin frontend/client/pages/NewCustomerOnboarding.tsx`
-- **Features**: Multi-step form with infrastructure checking
+- **Features**: Two-step form with infrastructure checking and service requests
 - **States**: 
   - `details`: Customer information collection
-  - `infrastructure`: Infrastructure availability display
-  - `services`: Service selection and requests
+  - `infrastructure`: Infrastructure availability display with service request options
 
 ### Backend API
 
@@ -55,10 +55,10 @@ The New Customer Onboarding System is a comprehensive flow that allows new SLT c
 
 1. **User Registration**: Customer fills out form with personal and address details
 2. **Infrastructure Check**: System queries Area Management API for district/province match
-3. **Availability Display**: Shows available services (Fiber, ADSL, Mobile)
-4. **Service Selection**: Customer can subscribe to available services
-5. **Service Requests**: For unavailable services, creates qualification requests
-6. **Data Storage**: User data saved to MongoDB, requests appear in admin dashboard
+3. **Availability Display**: Shows infrastructure summary with available/unavailable services
+4. **Service Requests**: For unavailable services, customers can submit request buttons
+5. **Qualification Records**: Service requests automatically appear in admin dashboard
+6. **Admin Access**: Direct navigation to Qualification Records section for review
 
 ## Integration Points
 
