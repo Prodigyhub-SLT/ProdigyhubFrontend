@@ -17,7 +17,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, user } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -42,9 +42,15 @@ export default function Login() {
         description: "Welcome to SLT Prodigy Hub",
       });
       
-      // Redirect to dashboard redirect route
-      console.log('🔄 Redirecting to /dashboard...');
-      navigate('/dashboard');
+      // Redirect based on email (since we know the mock user roles)
+      if (email === 'admin@company.com') {
+        console.log('👑 Admin user detected, redirecting to /admin');
+        navigate('/admin');
+      } else {
+        console.log('👤 Regular user detected, redirecting to /user');
+        navigate('/user');
+      }
+      
     } catch (err) {
       console.error('❌ Login failed:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed');
@@ -66,13 +72,16 @@ export default function Login() {
       console.log('🔐 Starting Google Sign-In...');
       await loginWithGoogle();
       console.log('✅ Google Sign-In successful!');
+      
       toast({
         title: "Google Sign-In Successful",
         description: "Welcome to SLT Prodigy Hub",
       });
       
-      // Redirect to dashboard redirect route
-      navigate('/dashboard');
+      // For Google users, they get 'user' role by default
+      console.log('👤 Google user detected, redirecting to /user');
+      navigate('/user');
+      
     } catch (err) {
       console.error('❌ Google Sign-In failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Google Sign-In failed';
