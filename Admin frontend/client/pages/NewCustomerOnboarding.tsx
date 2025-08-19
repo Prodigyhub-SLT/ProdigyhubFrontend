@@ -242,6 +242,7 @@ export default function NewCustomerOnboarding() {
       provideOnlyAvailable: true,
       provideResultReason: false,
       state: "acknowledged",
+      creationDate: new Date().toISOString(), // Backend expects creationDate, not creationDate
       note: [
         {
           text: `SLT_LOCATION:${JSON.stringify({
@@ -284,6 +285,8 @@ export default function NewCustomerOnboarding() {
     };
 
     try {
+      console.log('🚀 Sending qualification data to backend:', JSON.stringify(qualificationData, null, 2));
+      
       // Use the SAME endpoint that the admin dashboard uses
       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',
@@ -295,7 +298,13 @@ export default function NewCustomerOnboarding() {
         body: JSON.stringify(qualificationData)
       });
 
+      console.log('📡 Backend response status:', response.status);
+      console.log('📡 Backend response headers:', Object.fromEntries(response.headers.entries()));
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Backend response data:', responseData);
+        
         toast({
           title: "Request Submitted",
           description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
@@ -308,7 +317,9 @@ export default function NewCustomerOnboarding() {
           buttonElement.disabled = true;
         }
       } else {
-        throw new Error('Failed to submit request');
+        const errorText = await response.text();
+        console.error('❌ Backend error response:', errorText);
+        throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error submitting request:', error);
