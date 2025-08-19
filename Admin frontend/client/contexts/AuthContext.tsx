@@ -205,7 +205,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user: user ? 'exists' : 'null',
       userRole: user?.role,
       isAuthenticated: !!user,
-      isLoading
+      isLoading,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
     });
   }, [user, isLoading]);
 
