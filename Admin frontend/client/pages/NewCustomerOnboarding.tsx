@@ -705,86 +705,110 @@ export default function NewCustomerOnboarding() {
                        Infrastructure Check Complete for {userDetails.address.district}, {userDetails.address.province}
                      </div>
                      
-                     {/* Service Request Buttons */}
-                     <div className="grid md:grid-cols-3 gap-4 mb-6">
-                       {/* Fiber Service Request */}
-                       {!infrastructureCheck.fiber.available && (
-                         <Button 
-                           className="w-full bg-red-600 hover:bg-red-700 text-white"
-                           onClick={() => handleServiceRequest('fiber')}
-                           data-service="fiber"
-                         >
-                           Request Fiber Service
-                         </Button>
-                       )}
-                       
-                       {/* ADSL Service Request */}
-                       {!infrastructureCheck.adsl.available && (
-                         <Button 
-                           className="w-full bg-red-600 hover:bg-red-700 text-white"
-                           onClick={() => handleServiceRequest('adsl')}
-                           data-service="adsl"
-                         >
-                           Request ADSL Service
-                         </Button>
-                       )}
-                       
-                       {/* Mobile Service Request */}
-                       {!infrastructureCheck.mobile.available && (
-                         <Button 
-                           className="w-full bg-red-600 hover:bg-red-700 text-white"
-                           onClick={() => handleServiceRequest('mobile')}
-                           data-service="mobile"
-                         >
-                           Request Mobile Service
-                         </Button>
-                       )}
-                       
-                                               {/* Show message if all services are available */}
+                                           {/* Service Request Buttons */}
+                      <div className="grid md:grid-cols-3 gap-4 mb-6">
+                        {/* Fiber Service - Show Request button if unavailable, Interest button if available */}
+                        <div className="space-y-2">
+                          {!infrastructureCheck.fiber.available ? (
+                            <Button 
+                              className="w-full bg-red-600 hover:bg-red-700 text-white"
+                              onClick={() => handleServiceRequest('fiber')}
+                              data-service="fiber"
+                            >
+                              Request Fiber Service
+                            </Button>
+                          ) : (
+                            <Button 
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => handleServiceRequest('fiber')}
+                              data-service="fiber"
+                            >
+                              Express Interest in Fiber
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* ADSL Service - Show Request button if unavailable, Interest button if available */}
+                        <div className="space-y-2">
+                          {!infrastructureCheck.adsl.available ? (
+                            <Button 
+                              className="w-full bg-red-600 hover:bg-red-700 text-white"
+                              onClick={() => handleServiceRequest('adsl')}
+                              data-service="adsl"
+                            >
+                              Request ADSL Service
+                            </Button>
+                          ) : (
+                            <Button 
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => handleServiceRequest('adsl')}
+                              data-service="adsl"
+                            >
+                              Express Interest in ADSL
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* Mobile Service - Show Request button if unavailable, Interest button if available */}
+                        <div className="space-y-2">
+                          {!infrastructureCheck.mobile.available ? (
+                            <Button 
+                              className="w-full bg-red-600 hover:bg-red-700 text-white"
+                              onClick={() => handleServiceRequest('mobile')}
+                              data-service="mobile"
+                            >
+                              Request Mobile Service
+                            </Button>
+                          ) : (
+                            <Button 
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => handleServiceRequest('mobile')}
+                              data-service="mobile"
+                            >
+                              Express Interest in Mobile
+                            </Button>
+                            )}
+                        </div>
+                      </div>
+                      
+                      {/* Status Message */}
+                      <div className="text-center py-4">
                         {infrastructureCheck.fiber.available && 
                          infrastructureCheck.adsl.available && 
-                         infrastructureCheck.mobile.available && (
-                          <div className="col-span-3 text-center py-4">
+                         infrastructureCheck.mobile.available ? (
+                          <div>
                             <div className="text-green-400 text-lg font-semibold mb-2">
                               🎉 All services are available in your area!
                             </div>
                             <div className="text-blue-200 text-sm">
                               You can subscribe to any of the available services
                             </div>
-                            
-                            {/* Service Interest Buttons - Even when available, customers can express interest */}
-                            <div className="mt-4 space-y-2">
-                              <Button 
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={() => handleServiceRequest('fiber')}
-                                data-service="fiber"
-                              >
-                                Express Interest in Fiber
-                              </Button>
-                              
-                              <Button 
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={() => handleServiceRequest('adsl')}
-                                data-service="adsl"
-                              >
-                                Express Interest in ADSL
-                              </Button>
-                              
-                              <Button 
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={() => handleServiceRequest('mobile')}
-                                data-service="mobile"
-                              >
-                                Express Interest in Mobile
-                              </Button>
-                            </div>
-                            
                             <p className="text-xs text-gray-400 mt-2">
                               Expressing interest helps us track customer preferences
                             </p>
                           </div>
+                        ) : (
+                          <div>
+                            <div className="text-blue-200 text-lg font-semibold mb-2">
+                              Service Status Summary
+                            </div>
+                            <div className="text-blue-200 text-sm">
+                              {[
+                                !infrastructureCheck.fiber.available && 'Fiber',
+                                !infrastructureCheck.adsl.available && 'ADSL',
+                                !infrastructureCheck.mobile.available && 'Mobile'
+                              ].filter(Boolean).join(', ')} {[
+                                !infrastructureCheck.fiber.available && 'Fiber',
+                                !infrastructureCheck.adsl.available && 'ADSL',
+                                !infrastructureCheck.mobile.available && 'Mobile'
+                              ].filter(Boolean).length === 1 ? 'is' : 'are'} not available in your area
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">
+                              Click the red buttons to request unavailable services
+                            </p>
+                          </div>
                         )}
-                     </div>
+                      </div>
                      
                      <div className="text-sm text-blue-200">
                        Service requests will appear in the admin dashboard Qualification Records section
