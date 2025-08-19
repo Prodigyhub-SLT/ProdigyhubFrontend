@@ -1,7 +1,5 @@
 // client/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authOperations, dbOperations } from '@/lib/firebase';
-import { User as FirebaseUser } from 'firebase/auth';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 // Enhanced User interface to match what your pages expect
 export interface User {
@@ -116,100 +114,11 @@ const MOCK_USERS = {
   }
 };
 
-// Helper function to create user from Firebase user
-const createUserFromFirebase = (firebaseUser: FirebaseUser): User => {
-  // Check if user exists in mock data
-  const mockUser = MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS];
-  
-  if (mockUser) {
-    return {
-      ...mockUser,
-      uid: firebaseUser.uid,
-      avatar: firebaseUser.photoURL || mockUser.avatar || '/api/placeholder/150/150',
-      lastLogin: new Date().toISOString()
-    };
-  }
-  
-  // Create new user from Google account
-  return {
-    id: `user_${firebaseUser.uid}`,
-    uid: firebaseUser.uid,
-    name: firebaseUser.displayName || 'Google User',
-    email: firebaseUser.email || '',
-    role: 'user' as const,
-    department: 'General',
-    lastLogin: new Date().toISOString(),
-    avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
-    permissions: [
-      'tmf620:read', 'tmf622:read', 'tmf637:read', 
-      'tmf679:read', 'tmf688:read', 'dashboard:read'
-    ],
-    preferences: {
-      theme: 'system' as const,
-      language: 'en-US',
-      timezone: 'UTC+00:00'
-    },
-    profile: {
-      phone: '',
-      location: '',
-      bio: 'User signed in via Google authentication.',
-    }
-  };
-};
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // Start with false, not true
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize auth state from localStorage only (not Firebase auto-login)
-  useEffect(() => {
-    // Check if user was previously logged in via localStorage
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const storedUser = localStorage.getItem('auth_user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to restore auth data from localStorage:', error);
-    }
-  }, []);
-
-  // Firebase auth state listener - only for active sessions
-  useEffect(() => {
-    // Only set up Firebase listener if user is already authenticated
-    if (!user) return;
-
-    const unsubscribe = authOperations.onAuthStateChanged(async (firebaseUser) => {
-      if (!firebaseUser && user) {
-        // Firebase user signed out, clear local state
-        setUser(null);
-        try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.removeItem('auth_user');
-          }
-        } catch (error) {
-          console.warn('Failed to clear auth data:', error);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Debug user state changes
-  useEffect(() => {
-    console.log('🔄 AuthContext - User state changed:', {
-      user: user ? 'exists' : 'null',
-      userRole: user?.role,
-      isAuthenticated: !!user,
-      isLoading,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
-  }, [user, isLoading]);
+  console.log('🔄 AuthProvider - Current state:', { user: user ? 'exists' : 'null', isAuthenticated: !!user, isLoading });
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -266,36 +175,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      const result = await authOperations.signInWithGoogle();
-      
-      if (result.user) {
-        const userData = createUserFromFirebase(result.user);
-        setUser(userData);
-        
-        // Store user data in localStorage
-        try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.setItem('auth_user', JSON.stringify(userData));
-          }
-        } catch (error) {
-          console.warn('Failed to store auth data:', error);
-        }
-        
-        // Create/update user profile in Firebase database
-        try {
-          await dbOperations.createUserProfile({
-            uid: result.user.uid,
-            email: result.user.email,
-            displayName: result.user.displayName,
-            photoURL: result.user.photoURL,
-            lastLogin: Date.now()
-          });
-        } catch (error) {
-          console.warn('Failed to update user profile in database:', error);
-        }
-      }
+      console.log('🔐 Google Sign-In not implemented in simplified version');
+      throw new Error('Google Sign-In not available in simplified version');
     } catch (error) {
-      console.error('Google Sign-In Error:', error);
+      console.error('❌ Google Sign-In error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -304,8 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Clear Firebase auth state
-      await authOperations.signOut();
+      console.log('🚪 Logging out user');
       
       // Clear local state
       setUser(null);
@@ -318,17 +200,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.warn('Failed to clear auth data:', error);
       }
+      
+      console.log('✅ Logout successful');
     } catch (error) {
-      console.error('Logout Error:', error);
-      // Still clear local state even if Firebase logout fails
+      console.error('❌ Logout error:', error);
+      // Still clear local state even if there's an error
       setUser(null);
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.removeItem('auth_user');
-        }
-      } catch (localError) {
-        console.warn('Failed to clear local auth data:', localError);
-      }
     }
   };
 
@@ -411,20 +288,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return true;
   };
-
-  // Test function to verify mock authentication
-  const testMockAuth = () => {
-    console.log('🧪 Testing mock authentication...');
-    console.log('📧 Available mock users:', Object.keys(MOCK_USERS));
-    console.log('🔑 Admin user data:', MOCK_USERS['admin@company.com']);
-    console.log('🔑 Regular user data:', MOCK_USERS['user@company.com']);
-    console.log('✅ Mock authentication test complete');
-  };
-
-  // Call test function on mount
-  useEffect(() => {
-    testMockAuth();
-  }, []);
 
   const contextValue: AuthContextType = {
     // State
