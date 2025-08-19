@@ -166,6 +166,10 @@ export default function NewCustomerOnboarding() {
             title: "Infrastructure Found",
             description: `Found infrastructure data for ${matchedArea.name}`,
           });
+          
+          // Pass infrastructure data directly to avoid state timing issues
+          console.log('🔄 About to call handleSubmit with matched area...');
+          await handleSubmit(matchedArea.infrastructure, matchedArea);
         } else {
           // Create a default infrastructure check (you can modify this logic)
           const defaultInfrastructure: InfrastructureAvailability = {
@@ -198,11 +202,11 @@ export default function NewCustomerOnboarding() {
             title: "Infrastructure Check Complete",
             description: "Infrastructure availability has been determined for your area.",
           });
+          
+          // Pass infrastructure data directly to avoid state timing issues
+          console.log('🔄 About to call handleSubmit with default infrastructure...');
+          await handleSubmit(defaultInfrastructure, null);
         }
-        
-        console.log('🔄 About to call handleSubmit...');
-        // After infrastructure check, save user data and show results
-        await handleSubmit();
       } else {
         throw new Error('Failed to fetch area data');
       }
@@ -301,15 +305,21 @@ export default function NewCustomerOnboarding() {
     return available.length > 0 ? available.join(' ') : 'None';
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (infrastructureData?: InfrastructureAvailability, areaDataParam?: AreaData | null) => {
+    // Use passed data or fall back to state
+    const infrastructureToUse = infrastructureData || infrastructureCheck;
+    const areaDataToUse = areaDataParam || areaData;
+    
     // Debug logging to see what's happening
     console.log('handleSubmit called with:', {
-      infrastructureCheck,
+      infrastructureData,
+      areaDataParam,
+      infrastructureToUse,
       userDetails,
       step
     });
     
-    if (!infrastructureCheck) {
+    if (!infrastructureToUse) {
       console.log('❌ Infrastructure check is null/undefined');
       toast({
         title: "Missing Information",
@@ -326,8 +336,8 @@ export default function NewCustomerOnboarding() {
         ...userDetails,
         userId: user?.uid,
         userEmail: user?.email,
-        infrastructureCheck,
-        areaData,
+        infrastructureCheck: infrastructureToUse,
+        areaData: areaDataToUse,
         createdAt: new Date().toISOString(),
         status: 'active'
       };
@@ -342,6 +352,10 @@ export default function NewCustomerOnboarding() {
       });
 
       if (response.ok) {
+        // Update state with the infrastructure data we used
+        setInfrastructureCheck(infrastructureToUse);
+        setAreaData(areaDataToUse);
+        
         toast({
           title: "Success",
           description: "Your information has been saved successfully!",
