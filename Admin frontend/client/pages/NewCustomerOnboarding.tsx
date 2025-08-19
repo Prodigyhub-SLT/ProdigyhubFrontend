@@ -331,7 +331,7 @@ export default function NewCustomerOnboarding() {
 
     setIsSubmitting(true);
     try {
-      // Save user details to MongoDB
+      // Prepare user data
       const userData = {
         ...userDetails,
         userId: user?.uid,
@@ -342,28 +342,60 @@ export default function NewCustomerOnboarding() {
         status: 'active'
       };
 
-      // On Vercel, API calls go directly to the backend
-      const response = await fetch('/api/users', {
-        method: 'POST',
+      // First, check if user already exists by email
+      console.log('🔍 Checking if user exists with email:', userDetails.email);
+      const checkResponse = await fetch(`/api/users/email/${encodeURIComponent(userDetails.email)}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
+        }
       });
 
-      if (response.ok) {
+      let response;
+      if (checkResponse.ok) {
+        // User exists, update them
+        const existingUser = await checkResponse.json();
+        console.log('✅ User exists, updating:', existingUser.id);
+        
+        response = await fetch(`/api/users/${existingUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...userData,
+            updatedAt: new Date().toISOString()
+          })
+        });
+      } else {
+        // User doesn't exist, create new one
+        console.log('✅ User does not exist, creating new user');
+        response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userData)
+        });
+      }
+
+            if (response.ok) {
         // Update state with the infrastructure data we used
         setInfrastructureCheck(infrastructureToUse);
         setAreaData(areaDataToUse);
         
+        // Determine if we created or updated the user
+        const isUpdate = checkResponse.ok;
         toast({
           title: "Success",
-          description: "Your information has been saved successfully!",
+          description: isUpdate 
+            ? "Your information has been updated successfully!" 
+            : "Your information has been saved successfully!",
         });
         
         // Show infrastructure results and service options
         setStep('infrastructure');
-             } else {
+      } else {
          const errorText = await response.text();
          console.error('🔍 Full API Response Details:', {
            status: response.status,
