@@ -158,8 +158,10 @@ export default function NewCustomerOnboarding() {
         );
 
         if (matchedArea) {
+          console.log('✅ Found matched area:', matchedArea);
           setAreaData(matchedArea);
           setInfrastructureCheck(matchedArea.infrastructure);
+          console.log('✅ Set infrastructure check:', matchedArea.infrastructure);
           toast({
             title: "Infrastructure Found",
             description: `Found infrastructure data for ${matchedArea.name}`,
@@ -189,6 +191,7 @@ export default function NewCustomerOnboarding() {
             }
           };
           
+          console.log('✅ Setting default infrastructure:', defaultInfrastructure);
           setInfrastructureCheck(defaultInfrastructure);
           setAreaData(null);
           toast({
@@ -197,6 +200,7 @@ export default function NewCustomerOnboarding() {
           });
         }
         
+        console.log('🔄 About to call handleSubmit...');
         // After infrastructure check, save user data and show results
         await handleSubmit();
       } else {
@@ -298,7 +302,15 @@ export default function NewCustomerOnboarding() {
   };
 
   const handleSubmit = async () => {
+    // Debug logging to see what's happening
+    console.log('handleSubmit called with:', {
+      infrastructureCheck,
+      userDetails,
+      step
+    });
+    
     if (!infrastructureCheck) {
+      console.log('❌ Infrastructure check is null/undefined');
       toast({
         title: "Missing Information",
         description: "Please check infrastructure availability before proceeding.",
