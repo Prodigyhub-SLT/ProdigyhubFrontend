@@ -723,18 +723,35 @@ export default function NewCustomerOnboarding() {
                               You can subscribe to any of the available services
                             </div>
                             
-                            {/* Test Button for Qualification Records */}
-                            <div className="mt-4">
-                              <Button 
-                                className="bg-orange-600 hover:bg-orange-700 text-white"
-                                onClick={() => handleServiceRequest('fiber-test')}
-                                data-service="fiber-test"
-                              >
-                                🧪 Test: Request Fiber Service (for testing)
-                              </Button>
-                              <p className="text-xs text-orange-300 mt-2">
-                                This will test if qualification records appear in admin dashboard
-                              </p>
+                                                         {/* Test Buttons for Qualification Records */}
+                             <div className="mt-4 space-y-2">
+                               <Button 
+                                 className="bg-orange-600 hover:bg-orange-700 text-white w-full"
+                                 onClick={() => handleServiceRequest('fiber-test')}
+                                 data-service="fiber-test"
+                               >
+                                 🧪 Test: Request Fiber Service (for testing)
+                               </Button>
+                               
+                               <Button 
+                                 className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+                                 onClick={() => handleServiceRequest('adsl-test')}
+                                 data-service="adsl-test"
+                               >
+                                 🧪 Test: Request ADSL Service (for testing)
+                               </Button>
+                               
+                               <Button 
+                                 className="bg-green-600 hover:bg-green-700 text-white w-full"
+                                 onClick={() => handleServiceRequest('mobile-test')}
+                                 data-service="mobile-test"
+                               >
+                                 🧪 Test: Request Mobile Service (for testing)
+                               </Button>
+                               
+                               <p className="text-xs text-orange-300 mt-2">
+                                 These will test if qualification records appear in admin dashboard
+                               </p>
                               
                               {/* Test Backend Connection */}
                               <div className="mt-2">
