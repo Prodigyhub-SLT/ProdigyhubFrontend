@@ -1,5 +1,6 @@
 // client/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { authOperations } from '@/lib/firebase';
 
 // Enhanced User interface to match what your pages expect
 export interface User {
@@ -114,6 +115,47 @@ const MOCK_USERS = {
   }
 };
 
+// Helper function to create user from Firebase user
+const createUserFromFirebase = (firebaseUser: any): User => {
+  // Check if user exists in mock data
+  const mockUser = MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS];
+  
+  if (mockUser) {
+    return {
+      ...mockUser,
+      uid: firebaseUser.uid,
+      avatar: firebaseUser.photoURL || mockUser.avatar || '/api/placeholder/150/150',
+      lastLogin: new Date().toISOString()
+    };
+  }
+  
+  // Create new user from Google account
+  return {
+    id: `user_${firebaseUser.uid}`,
+    uid: firebaseUser.uid,
+    name: firebaseUser.displayName || 'Google User',
+    email: firebaseUser.email || '',
+    role: 'user' as const,
+    department: 'General',
+    lastLogin: new Date().toISOString(),
+    avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
+    permissions: [
+      'tmf620:read', 'tmf622:read', 'tmf637:read', 
+      'tmf679:read', 'tmf688:read', 'dashboard:read'
+    ],
+    preferences: {
+      theme: 'system' as const,
+      language: 'en-US',
+      timezone: 'UTC+00:00'
+    },
+    profile: {
+      phone: '',
+      location: '',
+      bio: 'User signed in via Google authentication.',
+    }
+  };
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,8 +217,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      console.log('🔐 Google Sign-In not implemented in simplified version');
-      throw new Error('Google Sign-In not available in simplified version');
+      console.log('🔐 Starting Google Sign-In...');
+      
+      // Call Firebase Google Sign-In
+      const result = await authOperations.signInWithGoogle();
+      
+      if (result.user) {
+        console.log('✅ Google Sign-In successful, creating user profile');
+        
+        // Create user profile from Firebase user
+        const userData = createUserFromFirebase(result.user);
+        
+        // Set user in context
+        setUser(userData);
+        console.log('👤 Google user set in context:', userData);
+        
+        // Store user data in localStorage
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('auth_user', JSON.stringify(userData));
+            console.log('💾 Google user data stored in localStorage');
+          }
+        } catch (error) {
+          console.warn('Failed to store Google auth data:', error);
+        }
+        
+        console.log('✅ Google Sign-In completed successfully');
+      } else {
+        throw new Error('Google Sign-In failed - no user returned');
+      }
+      
     } catch (error) {
       console.error('❌ Google Sign-In error:', error);
       throw error;
@@ -188,6 +258,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       console.log('🚪 Logging out user');
+      
+      // Clear Firebase auth state if user was signed in with Google
+      if (user?.uid) {
+        try {
+          await authOperations.signOut();
+          console.log('✅ Firebase sign-out successful');
+        } catch (error) {
+          console.warn('Firebase sign-out failed, but continuing with local logout:', error);
+        }
+      }
       
       // Clear local state
       setUser(null);
