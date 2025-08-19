@@ -97,69 +97,37 @@ const App = () => (
                     {/* Order Management */}
                     <Route 
                       path="/orders/new" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf622:write">
-                          <CreateOrder />
-                        </ProtectedRoute>
-                      } 
+                      element={<CreateOrder />}
                     />
                     <Route 
                       path="/orders/:id" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf622:read">
-                          <OrderDetail />
-                        </ProtectedRoute>
-                      } 
+                      element={<OrderDetail />}
                     />
                     
                     {/* API Dashboard Routes with Permissions */}
                     <Route 
                       path="/catalog" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf620:read">
-                          <ProductCatalogDashboard />
-                        </ProtectedRoute>
-                      } 
+                      element={<ProductCatalogDashboard />}
                     />
                     <Route 
                       path="/ordering" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf622:read">
-                          <ProductOrderingDashboard />
-                        </ProtectedRoute>
-                      } 
+                      element={<ProductOrderingDashboard />}
                     />
                     <Route 
                       path="/inventory" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf637:read">
-                          <ProductInventoryDashboard />
-                        </ProtectedRoute>
-                      } 
+                      element={<ProductInventoryDashboard />}
                     />
                     <Route 
                       path="/qualification" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf679:read">
-                          <ProductQualificationDashboard />
-                        </ProtectedRoute>
-                      } 
+                      element={<ProductQualificationDashboard />}
                     />
                     <Route 
                       path="/events" 
-                      element={
-                        <ProtectedRoute requiredPermission="tmf688:read">
-                          <EventManagementDashboard />
-                        </ProtectedRoute>
-                      } 
+                      element={<EventManagementDashboard />}
                     />
                     <Route
                       path="/configuration"
-                      element={
-                        <ProtectedRoute requiredPermission="tmf760:read">
-                          <ProductConfigurationDashboard />
-                        </ProtectedRoute>
-                      }
+                      element={<ProductConfigurationDashboard />}
                     />
 
                     {/* Profile and Settings Routes */}
