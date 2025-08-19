@@ -159,64 +159,45 @@ const createUserFromFirebase = (firebaseUser: FirebaseUser): User => {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start with false, not true
 
-  // Initialize auth state from Firebase
+  // Initialize auth state from localStorage only (not Firebase auto-login)
   useEffect(() => {
-    const unsubscribe = authOperations.onAuthStateChanged(async (firebaseUser) => {
-      setIsLoading(true);
-      
-      try {
-        if (firebaseUser) {
-          // User is signed in
-          const userData = createUserFromFirebase(firebaseUser);
+    // Check if user was previously logged in via localStorage
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const storedUser = localStorage.getItem('auth_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
           setUser(userData);
-          
-          // Store user data in localStorage as backup
-          try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              localStorage.setItem('auth_user', JSON.stringify(userData));
-            }
-          } catch (error) {
-            console.warn('Failed to store auth data:', error);
-          }
-          
-          // Create/update user profile in Firebase database
-          try {
-            await dbOperations.createUserProfile({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
-              photoURL: firebaseUser.photoURL,
-              lastLogin: Date.now()
-            });
-          } catch (error) {
-            console.warn('Failed to update user profile in database:', error);
-          }
-        } else {
-          // User is signed out
-          setUser(null);
-          
-          // Clear stored data
-          try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              localStorage.removeItem('auth_user');
-            }
-          } catch (error) {
-            console.warn('Failed to clear auth data:', error);
-          }
         }
-      } catch (error) {
-        console.error('Error handling auth state change:', error);
+      }
+    } catch (error) {
+      console.warn('Failed to restore auth data from localStorage:', error);
+    }
+  }, []);
+
+  // Firebase auth state listener - only for active sessions
+  useEffect(() => {
+    // Only set up Firebase listener if user is already authenticated
+    if (!user) return;
+
+    const unsubscribe = authOperations.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser && user) {
+        // Firebase user signed out, clear local state
         setUser(null);
-      } finally {
-        setIsLoading(false);
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.removeItem('auth_user');
+          }
+        } catch (error) {
+          console.warn('Failed to clear auth data:', error);
+        }
       }
     });
 
-    // Cleanup subscription
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -265,13 +246,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userData = createUserFromFirebase(result.user);
         setUser(userData);
         
-        // Store user data in localStorage as backup
+        // Store user data in localStorage
         try {
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem('auth_user', JSON.stringify(userData));
           }
         } catch (error) {
           console.warn('Failed to store auth data:', error);
+        }
+        
+        // Create/update user profile in Firebase database
+        try {
+          await dbOperations.createUserProfile({
+            uid: result.user.uid,
+            email: result.user.email,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL,
+            lastLogin: Date.now()
+          });
+        } catch (error) {
+          console.warn('Failed to update user profile in database:', error);
         }
       }
     } catch (error) {
@@ -284,7 +278,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Clear Firebase auth state
       await authOperations.signOut();
+      
+      // Clear local state
       setUser(null);
       
       // Clear stored data
@@ -299,6 +296,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout Error:', error);
       // Still clear local state even if Firebase logout fails
       setUser(null);
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem('auth_user');
+        }
+      } catch (localError) {
+        console.warn('Failed to clear local auth data:', localError);
+      }
     }
   };
 
