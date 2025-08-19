@@ -234,19 +234,53 @@ export default function NewCustomerOnboarding() {
     }
 
     // Create qualification request that matches the admin dashboard format EXACTLY
+    // The admin dashboard expects data in the 'note' field, not as direct fields
     const qualificationData = {
-      location: {
-        address: `${userDetails.address.street}, ${userDetails.address.city}`, // Combine street + city
-        district: userDetails.address.district,
-        province: userDetails.address.province,
-        postalCode: userDetails.address.postalCode || ''
-      },
-      requestedServices: [`${serviceType.toUpperCase()} Broadband`], // Array format
-      customerType: 'residential', // Default customer type
-      infrastructure: infrastructureCheck, // Use the actual infrastructure data
-      qualificationResult: 'unqualified', // Will show as pending request
-      creationDate: new Date().toISOString(),
-      state: 'done' // Required state for admin dashboard
+      description: `SLT Location Qualification for ${userDetails.address.street}, ${userDetails.address.city}`,
+      instantSyncQualification: true,
+      provideAlternative: false,
+      provideOnlyAvailable: true,
+      provideResultReason: false,
+      state: "acknowledged",
+      note: [
+        {
+          text: `SLT_LOCATION:${JSON.stringify({
+            address: `${userDetails.address.street}, ${userDetails.address.city}`,
+            district: userDetails.address.district,
+            province: userDetails.address.province,
+            postalCode: userDetails.address.postalCode || ''
+          })}`,
+          author: 'SLT System',
+          date: new Date().toISOString(),
+          '@type': 'Note'
+        },
+        {
+          text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband`])}`,
+          author: 'SLT System',
+          date: new Date().toISOString(),
+          '@type': 'Note'
+        },
+        {
+          text: `SLT_INFRASTRUCTURE:${JSON.stringify(infrastructureCheck)}`,
+          author: 'SLT System',
+          date: new Date().toISOString(),
+          '@type': 'Note'
+        },
+        {
+          text: `SLT_AREA_MATCH:${JSON.stringify({
+            matchedArea: areaData,
+            qualificationResult: 'unqualified'
+          })}`,
+          author: 'SLT System',
+          date: new Date().toISOString(),
+          '@type': 'Note'
+        }
+      ],
+      channel: {},
+      checkProductOfferingQualificationItem: [],
+      relatedParty: [],
+      "@baseType": "CheckProductOfferingQualification",
+      "@type": "CheckProductOfferingQualification"
     };
 
     try {
