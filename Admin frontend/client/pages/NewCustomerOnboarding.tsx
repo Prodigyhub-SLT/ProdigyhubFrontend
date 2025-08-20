@@ -311,21 +311,18 @@ export default function NewCustomerOnboarding() {
                  toast({
            title: isInterestRequest ? "Interest Recorded" : "Request Submitted",
            description: isInterestRequest 
-             ? `Your interest in ${serviceType.toUpperCase()} has been recorded and will appear in the admin dashboard Qualification Records section. You will be redirected to your dashboard in a moment.`
-             : `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section. You will be redirected to your dashboard in a moment.`,
+             ? `Your interest in ${serviceType.toUpperCase()} has been recorded and will appear in the admin dashboard Qualification Records section. Use the Go to Dashboard button to continue.`
+             : `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section. Use the Go to Dashboard button to continue.`,
          });
          
          // Update the button to show it's been submitted
          const buttonElement = document.querySelector(`[data-service="${serviceType}"]`);
          if (buttonElement) {
            buttonElement.textContent = isInterestRequest ? 'Interest Recorded' : 'Request Submitted';
-           buttonElement.disabled = true;
+           (buttonElement as HTMLButtonElement).disabled = true;
          }
          
-         // Navigate to User Dashboard after successful qualification submission
-         setTimeout(() => {
-           navigate('/user-dashboard');
-         }, 1500); // Wait 1.5 seconds to show the success message
+         // Use the dedicated button to navigate to the dashboard; no auto-redirect here
              } else {
          const errorText = await response.text();
          throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
@@ -814,11 +811,18 @@ export default function NewCustomerOnboarding() {
                           </div>
                         )}
                       </div>
-                     
-                                           <div className="text-sm text-blue-200 mb-6">
+                      
+                                          <div className="text-sm text-blue-200 mb-6">
                         Service requests will appear in the admin dashboard Qualification Records section
                       </div>
-                      
+                      <div className="flex justify-center mt-2">
+                        <Button
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2"
+                          onClick={() => navigate('/user-dashboard')}
+                        >
+                          Go to Dashboard
+                        </Button>
+                      </div>
 
                    </div>
                  </div>
