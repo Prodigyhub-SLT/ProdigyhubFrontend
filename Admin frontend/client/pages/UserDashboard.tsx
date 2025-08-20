@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Wifi, 
   Tv, 
@@ -22,7 +23,8 @@ import {
   Gift,
   Clock,
   History,
-  Star
+  Star,
+  LogOut
 } from 'lucide-react';
 
 interface ServiceData {
@@ -52,8 +54,18 @@ interface ValueAddedService {
 
 export default function UserDashboard() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
   const [activeSubService, setActiveSubService] = useState('summary');
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
 
   // Mock data for services
   const services: ServiceData[] = [
@@ -130,6 +142,15 @@ export default function UserDashboard() {
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                 U
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>
