@@ -206,7 +206,7 @@ export default function UserDashboard() {
                 className={`px-4 py-2 ${
                   activeTab === tab.id 
                     ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'text-gray-600 hover:text-white hover:bg-blue-50'
+                    : 'text-gray-600 hover:text-blue-700 hover:bg-blue-100'
                 }`}
                 onClick={() => setActiveTab(tab.id)}
               >
