@@ -24,7 +24,13 @@ import {
   Clock,
   History,
   Star,
-  LogOut
+  LogOut,
+  Home,
+  Package,
+  Database,
+  Award,
+  Palette,
+  MessageSquare
 } from 'lucide-react';
 
 interface ServiceData {
@@ -57,6 +63,7 @@ export default function UserDashboard() {
   const { logout } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
   const [activeSubService, setActiveSubService] = useState('summary');
+  const [activeTab, setActiveTab] = useState('summary');
 
   const handleSignOut = async () => {
     try {
@@ -113,6 +120,16 @@ export default function UserDashboard() {
     { name: 'PEOTV GO', icon: <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs">PEO</div>, color: 'bg-purple-500' },
     { name: 'SLT Kimaki', icon: <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">🥷</div>, color: 'bg-red-500' },
     { name: 'Storage', icon: <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">📦</div>, color: 'bg-blue-600' },
+  ];
+
+  // Tab configuration for second navigation bar
+  const secondNavTabs = [
+    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'inventory', name: 'Inventory', icon: <Database className="w-4 h-4" /> },
+    { id: 'qualification', name: 'Qualification', icon: <Award className="w-4 h-4" /> },
+    { id: 'customize', name: 'Customize', icon: <Palette className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
   return (
@@ -173,6 +190,29 @@ export default function UserDashboard() {
               >
                 {service.icon}
                 <span className="ml-2">{service.name}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Second Navigation Bar */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-1 py-3">
+            {secondNavTabs.map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                className={`px-4 py-2 ${
+                  activeTab === tab.id 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'text-gray-600 hover:text-white hover:bg-blue-50'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.icon}
+                <span className="ml-2">{tab.name}</span>
               </Button>
             ))}
           </div>
