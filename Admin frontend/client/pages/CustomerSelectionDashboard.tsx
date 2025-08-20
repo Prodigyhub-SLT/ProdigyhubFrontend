@@ -11,7 +11,12 @@ import {
   LogOut,
   Home,
   Settings,
-  Bell
+  Bell,
+  Package,
+  Database,
+  Award,
+  Palette,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +24,7 @@ export default function CustomerSelectionDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState<'existing' | 'new' | null>(null);
+  const [activeTab, setActiveTab] = useState('summary');
 
   const handleLogout = async () => {
     try {
@@ -45,6 +51,16 @@ export default function CustomerSelectionDashboard() {
       navigate('/new-customer');
     }
   };
+
+  // Tab configuration with icons
+  const tabs = [
+    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'inventory', name: 'Inventory', icon: <Database className="w-4 h-4" /> },
+    { id: 'qualification', name: 'Qualification', icon: <Award className="w-4 h-4" /> },
+    { id: 'customize', name: 'Customize', icon: <Palette className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
@@ -81,6 +97,29 @@ export default function CustomerSelectionDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Second Navigation Bar */}
+      <div className="bg-white/5 backdrop-blur-md border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <div className="flex space-x-1 py-3">
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                className={`px-4 py-2 ${
+                  activeTab === tab.id 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'text-blue-200 hover:text-white hover:bg-white/10'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.icon}
+                <span className="ml-2">{tab.name}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
