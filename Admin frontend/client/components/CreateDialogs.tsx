@@ -550,7 +550,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                   onClick={handleUpdateOffering}
                   disabled={!validateCurrentStep()}
                 >
-                  Update in MongoDB
+                  Update
                 </Button>
               )}
             </div>

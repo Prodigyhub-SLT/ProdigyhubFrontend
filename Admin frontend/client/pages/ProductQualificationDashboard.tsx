@@ -1574,7 +1574,7 @@ function LocationCheckDialog({ open, onOpenChange, onQualificationComplete }: {
               </Button>
               <Button type="submit" disabled={isChecking}>
                 <Database className="w-4 h-4 mr-2" />
-                Save to MongoDB
+                Save
               </Button>
             </DialogFooter>
           </form>
