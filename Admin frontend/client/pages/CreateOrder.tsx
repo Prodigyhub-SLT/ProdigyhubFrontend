@@ -189,8 +189,9 @@ export default function CreateOrder() {
   // Computed selected category for easier access
   const selectedCategory = selectedHierarchicalCategory?.mainCategory;
   
-  const [formData, setFormData] = useState<CreateProductOrderRequest>({
+  const [formData, setFormData] = useState<CreateProductOrderRequest & { categoryDescription?: string }>({
     category: '',
+    categoryDescription: '',
     description: '',
     priority: '1',
     productOrderItem: [{
@@ -235,11 +236,18 @@ export default function CreateOrder() {
   // Filter offerings when category changes
   useEffect(() => {
     if (formData.category) {
+      console.log('🔍 Filtering offerings for category:', formData.category);
+      console.log('📊 Available offerings categories:', availableOfferings.map(o => o.category));
+      
       const categoryOfferings = availableOfferings.filter(
         offering => offering.category === formData.category && 
                    offering.lifecycleStatus === 'Active' && 
                    offering.isSellable
       );
+      
+      console.log('✅ Found offerings for category:', categoryOfferings.length);
+      console.log('📋 Matching offerings:', categoryOfferings.map(o => ({ id: o.id, name: o.name, category: o.category })));
+      
       setFilteredOfferings(categoryOfferings);
       // Reset search terms when category changes
       setOfferingSearchTerms({});
@@ -256,14 +264,16 @@ export default function CreateOrder() {
       
       const offerings = await productCatalogApi.getOfferings({ limit: 100 });
       console.log('📥 Raw offerings from MongoDB:', offerings);
+      console.log('🔍 Sample offering category structure:', offerings.slice(0, 3).map(o => ({
+        name: o.name,
+        category: o.category,
+        categoryType: typeof o.category,
+        isArray: Array.isArray(o.category)
+      })));
       
       // Convert TMF620 offerings to our format
-      const mongoFormattedOfferings: MongoOffering[] = offerings.map(offering => ({
-        _id: (offering as any)._id,
-        id: offering.id,
-        name: offering.name,
-        description: offering.description || '',
-        category: (() => {
+      const mongoFormattedOfferings: MongoOffering[] = offerings.map(offering => {
+        const category = (() => {
           if (typeof (offering as any).category === 'string') {
             return (offering as any).category;
           } else if (Array.isArray(offering.category) && offering.category[0]) {
@@ -273,21 +283,31 @@ export default function CreateOrder() {
           } else {
             return 'Other';
           }
-        })(),
-        lifecycleStatus: offering.lifecycleStatus as 'Active' | 'Draft' | 'Retired',
-        isBundle: offering.isBundle || false,
-        isSellable: offering.isSellable !== false,
-        customAttributes: (offering as any).customAttributes || [],
-        pricing: (offering as any).pricing || {
-          amount: 0,
-          currency: 'LKR',
-          period: 'per month',
-          setupFee: 0,
-          deposit: 0
-        },
-        createdAt: (offering as any).createdAt || new Date().toISOString(),
-        updatedAt: (offering as any).updatedAt,
-      }));
+        })();
+        
+        console.log(`📦 Offering "${offering.name}" has category: "${category}"`);
+        
+        return {
+          _id: (offering as any)._id,
+          id: offering.id,
+          name: offering.name,
+          description: offering.description || '',
+          category,
+          lifecycleStatus: offering.lifecycleStatus as 'Active' | 'Draft' | 'Retired',
+          isBundle: offering.isBundle || false,
+          isSellable: offering.isSellable !== false,
+          customAttributes: (offering as any).customAttributes || [],
+          pricing: (offering as any).pricing || {
+            amount: 0,
+            currency: 'LKR',
+            period: 'per month',
+            setupFee: 0,
+            deposit: 0
+          },
+          createdAt: (offering as any).createdAt || new Date().toISOString(),
+          updatedAt: (offering as any).updatedAt,
+        };
+      });
 
       setAvailableOfferings(mongoFormattedOfferings);
       console.log('✅ Loaded MongoDB offerings:', mongoFormattedOfferings.length);
@@ -330,10 +350,16 @@ export default function CreateOrder() {
       subSubCategories: SubSubCategory[];
     }>;
   }) => {
+    console.log('🎯 Hierarchical category selection:', selection);
     setSelectedHierarchicalCategory(selection);
     
-    // Create a comprehensive category description that includes all selected sub-categories
-    let categoryDescription = selection.mainCategory.name || selection.mainCategory.label;
+    // Use the main category name for matching with offerings
+    const mainCategoryName = selection.mainCategory.name || selection.mainCategory.label || selection.mainCategory.value;
+    console.log('🏷️ Main category name for filtering:', mainCategoryName);
+    console.log('🔍 Main category object:', selection.mainCategory);
+    
+    // Create a comprehensive category description for display purposes
+    let categoryDescription = mainCategoryName;
     
     if (selection.subCategories.length > 0) {
       const subCategoryDescriptions = selection.subCategories.map(item => {
@@ -350,20 +376,27 @@ export default function CreateOrder() {
       categoryDescription += ` - ${subCategoryDescriptions}`;
     }
     
-    setFormData(prev => ({
-      ...prev,
-      category: categoryDescription,
-      // Reset product items when category changes
-      productOrderItem: [{
-        action: 'add',
-        quantity: 1,
-        productOffering: {
-          id: '',
-          name: '',
-          '@type': 'ProductOfferingRef'
-        }
-      }]
-    }));
+    console.log('📝 Full category description:', categoryDescription);
+    
+    setFormData(prev => {
+      const newFormData = {
+        ...prev,
+        category: mainCategoryName, // Use main category name for filtering
+        categoryDescription: categoryDescription, // Store full description separately
+        // Reset product items when category changes
+        productOrderItem: [{
+          action: 'add',
+          quantity: 1,
+          productOffering: {
+            id: '',
+            name: '',
+            '@type': 'ProductOfferingRef'
+          }
+        }]
+      };
+      console.log('📝 Updated form data:', newFormData);
+      return newFormData;
+    });
     // Reset search terms when category changes
     setOfferingSearchTerms({});
   };
@@ -525,10 +558,12 @@ export default function CreateOrder() {
       return;
     }
 
-    if (formData.productOrderItem.some(item => !item.productOffering?.id || !item.productOffering?.name)) {
+    // Check if any product items don't have valid offerings selected
+    const invalidItems = formData.productOrderItem.filter(item => !item.productOffering?.id || !item.productOffering?.name);
+    if (invalidItems.length > 0) {
       toast({
         title: "Validation Error", 
-        description: "All product items must have valid product offering selected",
+        description: `${invalidItems.length} product item(s) don't have valid product offerings selected. Please select offerings for all items.`,
         variant: "destructive"
       });
       return;
