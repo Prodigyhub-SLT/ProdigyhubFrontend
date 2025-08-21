@@ -479,7 +479,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                   onClick={handleCreateOffering}
                   disabled={!validateCurrentStep()}
                 >
-                  Save to MongoDB
+                  Save
                 </Button>
               )}
             </div>

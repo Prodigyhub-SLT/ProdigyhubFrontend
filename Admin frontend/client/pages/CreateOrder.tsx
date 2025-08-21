@@ -185,6 +185,9 @@ export default function CreateOrder() {
       subSubCategories: SubSubCategory[];
     }>;
   } | null>(null);
+
+  // Computed selected category for easier access
+  const selectedCategory = selectedHierarchicalCategory?.mainCategory;
   
   const [formData, setFormData] = useState<CreateProductOrderRequest>({
     category: '',
