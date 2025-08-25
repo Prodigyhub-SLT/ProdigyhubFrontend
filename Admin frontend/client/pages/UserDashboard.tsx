@@ -35,7 +35,8 @@ import {
   Palette,
   MessageSquare,
   Search,
-  Filter
+  Filter,
+  X
 } from 'lucide-react';
 
 interface ServiceData {
@@ -214,29 +215,42 @@ export default function UserDashboard() {
         return false;
       }
       
-      const matchesSearch = offering.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Search filter
+      const matchesSearch = searchTerm === '' || 
+                           offering.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            offering.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || offering.category === categoryFilter;
-      const matchesConnectionType = connectionTypeFilter === 'all' || 
-        offering.displayData.connectionType === connectionTypeFilter;
-      const matchesUsageType = usageTypeFilter === 'all' || 
-        offering.displayData.packageType === usageTypeFilter;
       
-      return matchesSearch && matchesCategory && matchesConnectionType && matchesUsageType;
+      // Connection Type filter (subSubCategory)
+      const matchesConnectionType = connectionTypeFilter === 'all' || 
+        offering.subSubCategory === connectionTypeFilter ||
+        offering.subCategory === connectionTypeFilter ||
+        offering.category === connectionTypeFilter;
+      
+      // Package Type filter (technology type)
+      const matchesPackageType = categoryFilter === 'all' || 
+        offering.displayData.connectionType === categoryFilter ||
+        offering.packageType === categoryFilter;
+      
+      // Usage Type filter
+      const matchesUsageType = usageTypeFilter === 'all' || 
+        offering.displayData.packageType === usageTypeFilter ||
+        offering.packageUsageType === usageTypeFilter;
+      
+      return matchesSearch && matchesConnectionType && matchesPackageType && matchesUsageType;
     } catch (error) {
       console.error('Error filtering offering:', error);
       return false;
     }
   });
 
-  // Group offerings by subSubCategory (like PublicOfferings) for better organization
+  // Group offerings by Connection Type (subSubCategory) like PublicOfferings
   const groupedOfferings = filteredOfferings.reduce((groups: any, offering) => {
     try {
       if (!offering) {
         return groups;
       }
       
-      // Try to get subSubCategory first, then fall back to category
+      // Get the Connection Type (subSubCategory) which represents the main grouping
       let groupKey = 'Other';
       
       if (offering.subSubCategory) {
@@ -712,57 +726,116 @@ export default function UserDashboard() {
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Broadband Packages</h2>
               
-              {/* Filter Bar */}
-              <Card className="bg-white shadow-lg border-0 mb-6">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex items-center space-x-2 flex-1">
-                      <Search className="w-4 h-4 text-gray-500" />
-                      <Input
-                        placeholder="Search offerings..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex-1"
-                      />
-                    </div>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue placeholder="All Categories" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="Broadband">Broadband</SelectItem>
-                        <SelectItem value="PEOTV">PEOTV</SelectItem>
-                        <SelectItem value="Voice">Voice</SelectItem>
-                        <SelectItem value="Mobile">Mobile</SelectItem>
-                        <SelectItem value="Promotion">Promotion</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={connectionTypeFilter} onValueChange={setConnectionTypeFilter}>
-                      <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue placeholder="All Connection Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Connection Types</SelectItem>
-                        <SelectItem value="Fiber">Fiber</SelectItem>
-                        <SelectItem value="Copper">Copper</SelectItem>
-                        <SelectItem value="Wireless">Wireless</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={usageTypeFilter} onValueChange={setUsageTypeFilter}>
-                      <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue placeholder="All Usage Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Usage Types</SelectItem>
-                        <SelectItem value="Any Time">Any Time</SelectItem>
-                        <SelectItem value="Night Time">Night Time</SelectItem>
-                        <SelectItem value="Weekend">Weekend</SelectItem>
-                      </SelectContent>
-                    </Select>
+              {/* Filter Bar - Matching PublicOfferings Design */}
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <span className="text-sm font-medium text-gray-700">Filter By:</span>
+                  
+                  {/* Connection Type Filter (subSubCategory) */}
+                  <Select 
+                    value={connectionTypeFilter} 
+                    onValueChange={setConnectionTypeFilter}
+                  >
+                    <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
+                      <SelectValue placeholder="All Connection Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Connection Types</SelectItem>
+                      <SelectItem value="Data/PEOTV & Voice Packages">Data/PEOTV & Voice Packages</SelectItem>
+                      <SelectItem value="Data Packages">Data Packages</SelectItem>
+                      <SelectItem value="Data & Voice">Data & Voice</SelectItem>
+                      <SelectItem value="Broadband">Broadband</SelectItem>
+                      <SelectItem value="PEOTV">PEOTV</SelectItem>
+                      <SelectItem value="Voice">Voice</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Package Usage Type Filter */}
+                  <Select 
+                    value={usageTypeFilter} 
+                    onValueChange={setUsageTypeFilter}
+                  >
+                    <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
+                      <SelectValue placeholder="All Usage Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Usage Types</SelectItem>
+                      <SelectItem value="Any Time">Any Time</SelectItem>
+                      <SelectItem value="Time Based">Time Based</SelectItem>
+                      <SelectItem value="Unlimited">Unlimited</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Package Type Filter */}
+                  <Select 
+                    value={categoryFilter} 
+                    onValueChange={setCategoryFilter}
+                  >
+                    <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
+                      <SelectValue placeholder="All Package Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Package Types</SelectItem>
+                      <SelectItem value="4G">4G</SelectItem>
+                      <SelectItem value="ADSL">ADSL</SelectItem>
+                      <SelectItem value="Fiber">Fiber</SelectItem>
+                      <SelectItem value="Copper">Copper</SelectItem>
+                      <SelectItem value="Wireless">Wireless</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Data Bundle Filter */}
+                  <Select 
+                    value={searchTerm} 
+                    onValueChange={(value) => setSearchTerm(value)}
+                  >
+                    <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
+                      <SelectValue placeholder="All Data Bundles" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Data Bundles</SelectItem>
+                      <SelectItem value="40GB">40GB</SelectItem>
+                      <SelectItem value="50GB">50GB</SelectItem>
+                      <SelectItem value="85GB">85GB</SelectItem>
+                      <SelectItem value="100GB">100GB</SelectItem>
+                      <SelectItem value="115GB">115GB</SelectItem>
+                      <SelectItem value="200GB">200GB</SelectItem>
+                      <SelectItem value="400GB">400GB</SelectItem>
+                      <SelectItem value="Unlimited">Unlimited</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Search Input */}
+                  <div className="flex items-center space-x-2 flex-1">
+                    <Search className="w-4 h-4 text-gray-500" />
+                    <Input
+                      placeholder="Search offerings..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="flex-1 max-w-xs"
+                    />
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Reset Button */}
+                  {(connectionTypeFilter !== 'all' || usageTypeFilter !== 'all' || 
+                    categoryFilter !== 'all' || searchTerm !== '') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setConnectionTypeFilter('all');
+                        setUsageTypeFilter('all');
+                        setCategoryFilter('all');
+                        setSearchTerm('');
+                      }}
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
 
               {/* Offerings by Category */}
               {loadingOfferings ? (
@@ -775,7 +848,12 @@ export default function UserDashboard() {
                   <div key={category} className="mb-8">
                     <div className="flex items-center gap-2 mb-4">
                       <Filter className="h-5 w-5 text-blue-600" />
-                      <h3 className="text-xl font-semibold text-gray-800">{category}</h3>
+                      <h3 className="text-xl font-semibold text-gray-800">
+                        {category === 'Data/PEOTV & Voice Packages' ? 'Data/PEOTV & Voice Packages' :
+                         category === 'Data Packages' ? 'Data Packages' :
+                         category === 'Data & Voice' ? 'Data & Voice' :
+                         category}
+                      </h3>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
