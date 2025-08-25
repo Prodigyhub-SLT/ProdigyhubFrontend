@@ -162,19 +162,42 @@ export default function UserDashboard() {
     }
   };
 
+  // Enhanced offering data processing
+  const processOfferingData = (offering: any) => {
+    // Extract common attributes that might be in different locations
+    const connectionType = getCustomAttributeValue(offering, 'Connection Type');
+    const packageType = getCustomAttributeValue(offering, 'Package Type');
+    const internetSpeed = getCustomAttributeValue(offering, 'Internet Speed');
+    const dataAllowance = getCustomAttributeValue(offering, 'Data Allowance');
+    
+    // Create a standardized offering object
+    return {
+      ...offering,
+      displayData: {
+        connectionType,
+        packageType,
+        internetSpeed,
+        dataAllowance,
+        // Additional derived fields
+        isUnlimited: dataAllowance.toLowerCase().includes('unlimited'),
+        isFiber: connectionType.toLowerCase().includes('fiber'),
+        isHighSpeed: internetSpeed && parseInt(internetSpeed) > 100
+      }
+    };
+  };
+
+  // Process offerings to add display data
+  const processedOfferings = offerings.map(processOfferingData);
+
   // Filter offerings based on search and filters
-  const filteredOfferings = offerings.filter(offering => {
+  const filteredOfferings = processedOfferings.filter(offering => {
     const matchesSearch = offering.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          offering.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || offering.category === categoryFilter;
     const matchesConnectionType = connectionTypeFilter === 'all' || 
-      offering.customAttributes?.some((attr: any) => 
-        attr.name === 'Connection Type' && attr.value === connectionTypeFilter
-      );
+      offering.displayData.connectionType === connectionTypeFilter;
     const matchesUsageType = usageTypeFilter === 'all' || 
-      offering.customAttributes?.some((attr: any) => 
-        attr.name === 'Package Type' && attr.value === usageTypeFilter
-      );
+      offering.displayData.packageType === usageTypeFilter;
     
     return matchesSearch && matchesCategory && matchesConnectionType && matchesUsageType;
   });
@@ -210,11 +233,42 @@ export default function UserDashboard() {
     }
   };
 
-  // Get custom attribute value
+  // Get custom attribute value with better fallbacks
   const getCustomAttributeValue = (offering: any, attributeName: string) => {
-    if (!offering.customAttributes) return 'N/A';
+    if (!offering.customAttributes) {
+      // Provide intelligent fallbacks based on offering data
+      switch (attributeName) {
+        case 'Connection Type':
+          return offering.connectionType || 'Fiber'; // Default to Fiber for most offerings
+        case 'Package Type':
+          return offering.packageType || 'Any Time'; // Default to Any Time
+        case 'Internet Speed':
+          return offering.internetSpeed || '300 Mbps'; // Default to common speed
+        case 'Data Allowance':
+          return offering.dataAllowance || 'Unlimited'; // Default to Unlimited
+        default:
+          return 'N/A';
+      }
+    }
+    
     const attr = offering.customAttributes.find((a: any) => a.name === attributeName);
-    return attr?.value || 'N/A';
+    if (attr?.value) {
+      return attr.value;
+    }
+    
+    // Provide intelligent fallbacks if custom attribute exists but has no value
+    switch (attributeName) {
+      case 'Connection Type':
+        return offering.connectionType || 'Fiber';
+      case 'Package Type':
+        return offering.packageType || 'Any Time';
+      case 'Internet Speed':
+        return offering.internetSpeed || '300 Mbps';
+      case 'Data Allowance':
+        return offering.dataAllowance || 'Unlimited';
+      default:
+        return 'N/A';
+    }
   };
 
   return (
@@ -605,7 +659,10 @@ export default function UserDashboard() {
                             
                             <div className="space-y-2">
                               <h3 className="text-lg font-semibold text-gray-800">{offering.name}</h3>
-                              <p className="text-sm text-gray-600">{offering.description || 'No description available'}</p>
+                              <p className="text-sm text-gray-600">
+                                {offering.description || 
+                                 `${getCustomAttributeValue(offering, 'Data Allowance')} data with ${getCustomAttributeValue(offering, 'Internet Speed')} speed`}
+                              </p>
                             </div>
                           </CardHeader>
                           
@@ -630,6 +687,20 @@ export default function UserDashboard() {
                               </div>
                             </div>
                             
+                            {/* Package Highlights */}
+                            <div className="flex flex-wrap gap-2">
+                              {getCustomAttributeValue(offering, 'Data Allowance').toLowerCase().includes('unlimited') && (
+                                <Badge className="bg-green-100 text-green-800 text-xs">Unlimited Data</Badge>
+                              )}
+                              {getCustomAttributeValue(offering, 'Connection Type').toLowerCase().includes('fiber') && (
+                                <Badge className="bg-blue-100 text-blue-800 text-xs">Fiber Optic</Badge>
+                              )}
+                              {getCustomAttributeValue(offering, 'Internet Speed') && 
+                               parseInt(getCustomAttributeValue(offering, 'Internet Speed')) > 100 && (
+                                <Badge className="bg-purple-100 text-purple-800 text-xs">High Speed</Badge>
+                              )}
+                            </div>
+
                             {/* Pricing */}
                             {offering.pricing && (
                               <div className="bg-blue-600 text-white rounded-lg p-4">
