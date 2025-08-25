@@ -9,7 +9,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { auth, googleProvider } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
-import { createUserProfile } from '@/lib/firebase';
+import { dbOperations } from '@/lib/firebase';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -106,7 +106,7 @@ export default function SignUp() {
         lastLogin: Date.now()
       };
       
-      await createUserProfile(userProfile);
+      await dbOperations.createUserProfile(userProfile);
       
       toast({
         title: "Account Created Successfully!",
@@ -160,7 +160,7 @@ export default function SignUp() {
         lastLogin: Date.now()
       };
       
-      await createUserProfile(userProfile);
+      await dbOperations.createUserProfile(userProfile);
       
       toast({
         title: "Google Sign-up Successful!",
