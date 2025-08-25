@@ -1,6 +1,6 @@
 // client/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { authOperations } from '@/lib/firebase';
+import { authOperations, auth, dbOperations } from '@/lib/firebase';
 
 // Enhanced User interface to match what your pages expect
 export interface User {
@@ -167,36 +167,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      console.log('🔐 Attempting login with:', { email, password: '***' });
+      console.log('🔐 Attempting Firebase login with:', { email, password: '***' });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use Firebase authentication
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
       
-      // Mock authentication - replace with real API call
-      const mockUser = MOCK_USERS[email as keyof typeof MOCK_USERS];
-      console.log('🔍 Found mock user:', mockUser ? 'Yes' : 'No');
+      console.log('✅ Firebase authentication successful for:', email);
       
-      if (!mockUser) {
-        console.error('❌ No mock user found for email:', email);
-        throw new Error('Invalid email or password');
+      // Check if this is an admin user (you can customize this logic)
+      let userRole: 'admin' | 'user' = 'user';
+      let userDepartment = 'General';
+      
+      // Check if it's the admin email
+      if (email === 'admin@company.com') {
+        userRole = 'admin';
+        userDepartment = 'Engineering';
       }
       
-      if (password !== 'admin123') {
-        console.error('❌ Password mismatch. Expected: admin123, Got:', password);
-        throw new Error('Invalid email or password');
-      }
-      
-      console.log('✅ Authentication successful for:', email);
-      
+      // Create user data from Firebase user
       const userData: User = {
-        ...mockUser,
-        lastLogin: new Date().toISOString()
+        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
+        name: firebaseUser.displayName || email.split('@')[0],
+        email: firebaseUser.email || email,
+        role: userRole,
+        department: userDepartment,
+        lastLogin: new Date().toISOString(),
+        avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
+        permissions: userRole === 'admin' ? [
+          'tmf620:read', 'tmf620:write', 'tmf620:delete',
+          'tmf622:read', 'tmf622:write', 'tmf622:delete', 
+          'tmf637:read', 'tmf637:write', 'tmf637:delete',
+          'tmf679:read', 'tmf679:write', 'tmf679:delete',
+          'tmf688:read', 'tmf688:write', 'tmf688:delete',
+          'tmf760:read', 'tmf760:write', 'tmf760:delete',
+          'dashboard:read', 'users:manage', 'settings:manage'
+        ] : [
+          'tmf620:read', 'tmf622:read', 'tmf637:read', 
+          'tmf679:read', 'tmf688:read', 'dashboard:read'
+        ],
+        preferences: {
+          theme: 'light',
+          language: 'en-US',
+          timezone: 'UTC+00:00'
+        },
+        profile: {
+          phone: '',
+          location: '',
+          bio: 'User authenticated via Firebase.',
+        }
       };
       
       setUser(userData);
       console.log('👤 User set in context:', userData);
       
-      // Store user data (handle gracefully if localStorage not available)
+      // Store user data in localStorage
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
           localStorage.setItem('auth_user', JSON.stringify(userData));
@@ -206,9 +233,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('Failed to store auth data:', error);
       }
       
-    } catch (error) {
-      console.error('❌ Login error:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Firebase login error:', error);
+      let errorMessage = 'Invalid email or password';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later';
+      }
+      
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -218,15 +257,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     
     try {
-      console.log('🔐 Attempting sign-up with:', { email, firstName, lastName, phone });
+      console.log('🔐 Attempting Firebase sign-up with:', { email, firstName, lastName, phone });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use Firebase authentication
+      const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
       
-      // Mock user creation - replace with real API call
-      const newUser: User = {
-        id: `user_${Date.now()}`,
-        uid: `uid_${Date.now()}`,
+      // Update user profile with display name
+      await updateProfile(firebaseUser, {
+        displayName: `${firstName} ${lastName}`
+      });
+      
+      // Create user profile in database
+      const userProfile = {
+        uid: firebaseUser.uid,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        role: 'user',
+        department: 'General',
+        createdAt: Date.now(),
+        lastLogin: Date.now()
+      };
+      
+      await dbOperations.createUserProfile(userProfile);
+      
+      // Create user data for context
+      const userData: User = {
+        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
         name: `${firstName} ${lastName}`,
         email: email,
         role: 'user',
@@ -244,32 +305,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         profile: {
           phone: phone,
-          location: '',
           bio: 'New user account.',
         }
       };
       
-      // Add to mock users (in real app, this would be stored in database)
-      MOCK_USERS[email] = newUser;
-      
-      setUser(newUser);
-      console.log('👤 New user created and set in context:', newUser);
+      setUser(userData);
+      console.log('👤 New user created and set in context:', userData);
       
       // Store user data in localStorage
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem('auth_user', JSON.stringify(newUser));
+          localStorage.setItem('auth_user', JSON.stringify(userData));
           console.log('💾 New user data stored in localStorage');
         }
       } catch (error) {
         console.warn('Failed to store new user data:', error);
       }
       
-      console.log('✅ Sign-up completed successfully');
+      console.log('✅ Firebase sign-up completed successfully');
       
-    } catch (error) {
-      console.error('❌ Sign-up error:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Firebase sign-up error:', error);
+      let errorMessage = 'Failed to create account';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      }
+      
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
