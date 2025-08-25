@@ -168,7 +168,7 @@ export default function UserDashboard() {
         setOfferings(offeringsData);
       } else {
         console.log('⚠️ No offerings from API, using fallback data');
-        // Fallback data if API returns empty
+        // Fallback data if API returns empty - with broadbandSelections like PublicOfferings
         const fallbackOfferings = [
           {
             id: 'fallback-1',
@@ -176,6 +176,11 @@ export default function UserDashboard() {
             description: 'Daily 25GB up to 300Mbps (Thereafter 1Mbps)',
             category: 'Broadband',
             subSubCategory: 'Data Packages',
+            broadbandSelections: [
+              { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+              { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
+              { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+            ],
             pricing: { currency: 'LKR', amount: 10390, period: 'per month', setupFee: 1000, deposit: 100 }
           },
           {
@@ -184,6 +189,11 @@ export default function UserDashboard() {
             description: 'Free data from 12 midnight to 7 am.',
             category: 'Broadband',
             subSubCategory: 'Data Packages',
+            broadbandSelections: [
+              { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+              { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+              { subCategory: 'Package Type', subSubCategory: '4G' }
+            ],
             pricing: { currency: 'LKR', amount: 7990, period: 'per month', setupFee: 1000, deposit: 100 }
           },
           {
@@ -192,6 +202,11 @@ export default function UserDashboard() {
             description: 'Free data from 12 midnight to 7 am.',
             category: 'Broadband',
             subSubCategory: 'Data Packages',
+            broadbandSelections: [
+              { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+              { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
+              { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+            ],
             pricing: { currency: 'LKR', amount: 75000, period: 'per month', setupFee: 1000, deposit: 100 }
           }
         ];
@@ -200,7 +215,7 @@ export default function UserDashboard() {
     } catch (error) {
       console.error('❌ Error loading offerings:', error);
       console.log('🔄 Using fallback data due to API error');
-      // Fallback data on API error
+      // Fallback data on API error - with broadbandSelections like PublicOfferings
       const fallbackOfferings = [
         {
           id: 'fallback-1',
@@ -208,6 +223,11 @@ export default function UserDashboard() {
           description: 'Daily 25GB up to 300Mbps (Thereafter 1Mbps)',
           category: 'Broadband',
           subSubCategory: 'Data Packages',
+          broadbandSelections: [
+            { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+            { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
+            { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+          ],
           pricing: { currency: 'LKR', amount: 10390, period: 'per month', setupFee: 1000, deposit: 100 }
         },
         {
@@ -216,6 +236,11 @@ export default function UserDashboard() {
           description: 'Free data from 12 midnight to 7 am.',
           category: 'Broadband',
           subSubCategory: 'Data Packages',
+          broadbandSelections: [
+            { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+            { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
+            { subCategory: 'Package Type', subSubCategory: '4G' }
+          ],
           pricing: { currency: 'LKR', amount: 7990, period: 'per month', setupFee: 1000, deposit: 100 }
         },
         {
@@ -224,6 +249,11 @@ export default function UserDashboard() {
           description: 'Free data from 12 midnight to 7 am.',
           category: 'Broadband',
           subSubCategory: 'Data Packages',
+          broadbandSelections: [
+            { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
+            { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
+            { subCategory: 'Package Type', subSubCategory: 'Fiber' }
+          ],
           pricing: { currency: 'LKR', amount: 75000, period: 'per month', setupFee: 1000, deposit: 100 }
         }
       ];
@@ -243,65 +273,66 @@ export default function UserDashboard() {
     offeringsType: typeof offerings
   });
 
-  // Filter offerings based on search and filters with safety checks
+  // Filter offerings using EXACTLY the same logic as PublicOfferings
   let filteredOfferings: any[] = [];
   
   try {
     if (Array.isArray(processedOfferings) && processedOfferings.length > 0) {
-      filteredOfferings = processedOfferings.filter(offering => {
-        try {
-          if (!offering || typeof offering !== 'object') {
-            return false;
-          }
-          
-          // Get specs for filtering with error handling
-          let specs;
-          try {
-            specs = getOfferingSpecs(offering);
-          } catch (specsError) {
-            console.error('Error getting specs for offering:', offering?.id || 'unknown', specsError);
-            specs = {
-              connectionType: 'Broadband',
-              packageType: 'Unlimited',
-              dataAllowance: 'Unlimited',
-              data: 'Unlimited',
-              internetSpeed: '300 Mbps',
-              voice: 'Unlimited Calls'
-            };
-          }
-          
-          // Search filter
-          const matchesSearch = searchTerm === '' || 
-                               (offering.name && typeof offering.name === 'string' && offering.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                               (offering.description && typeof offering.description === 'string' && offering.description.toLowerCase().includes(searchTerm.toLowerCase()));
-          
-          // Connection Type filter (subSubCategory) - filters by main category groups
-          const matchesConnectionType = connectionTypeFilter === 'all' || 
-            (offering.subSubCategory && offering.subSubCategory === connectionTypeFilter) ||
-            (offering.subCategory && offering.subCategory === connectionTypeFilter) ||
-            (offering.category && offering.category === connectionTypeFilter);
-          
-          // Package Type filter (technology type) - filters by Fiber/ADSL/4G
-          const matchesPackageType = categoryFilter === 'all' || 
-            (specs && specs.connectionType && specs.connectionType === categoryFilter) ||
-            (offering.packageType && offering.packageType === categoryFilter);
-          
-          // Usage Type filter - filters by Unlimited/Any Time/Time Based
-          const matchesUsageType = usageTypeFilter === 'all' || 
-            (specs && specs.packageType && specs.packageType === usageTypeFilter) ||
-            (offering.packageUsageType && offering.packageUsageType === usageTypeFilter);
-          
-          // Data Bundle filter - filters by data allowance
-          const matchesDataBundle = dataBundleFilter === 'all' || 
-            (specs && specs.dataAllowance && specs.dataAllowance === dataBundleFilter) ||
-            (specs && specs.data && specs.data === dataBundleFilter);
-          
-          return matchesSearch && matchesConnectionType && matchesPackageType && matchesUsageType && matchesDataBundle;
-        } catch (filterError) {
-          console.error('Error in individual offering filter:', offering?.id || 'unknown', filterError);
-          return false;
-        }
-      });
+      let filtered = processedOfferings;
+
+      // Filter by search term (exactly like PublicOfferings)
+      if (searchTerm) {
+        filtered = filtered.filter(offering =>
+          offering.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          offering.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      // Filter by Connection Type (subSubCategory) - exactly like PublicOfferings
+      if (connectionTypeFilter !== 'all') {
+        filtered = filtered.filter(offering => {
+          const offeringSubSubCategory = offering.subSubCategory;
+          return offeringSubSubCategory === connectionTypeFilter;
+        });
+      }
+
+      // Filter by Package Type (technology) - exactly like PublicOfferings
+      if (categoryFilter !== 'all') {
+        filtered = filtered.filter(offering => {
+          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
+          // Check if any broadband selection has the matching package type
+          return offeringBroadbandSelections.some((selection: any) => 
+            selection.subCategory === 'Package Type' && 
+            selection.subSubCategory === categoryFilter
+          );
+        });
+      }
+
+      // Filter by Usage Type - exactly like PublicOfferings
+      if (usageTypeFilter !== 'all') {
+        filtered = filtered.filter(offering => {
+          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
+          // Check if any broadband selection has the matching package usage type
+          return offeringBroadbandSelections.some((selection: any) => 
+            selection.subCategory === 'Package Usage Type' && 
+            selection.subSubCategory === usageTypeFilter
+          );
+        });
+      }
+
+      // Filter by Data Bundle - exactly like PublicOfferings
+      if (dataBundleFilter !== 'all') {
+        filtered = filtered.filter(offering => {
+          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
+          // Check if any broadband selection has the matching data bundle
+          return offeringBroadbandSelections.some((selection: any) => 
+            selection.subCategory === 'Package Usage Type' && 
+            selection.subSubCategory === dataBundleFilter
+          );
+        });
+      }
+
+      filteredOfferings = filtered;
     }
   } catch (filterError) {
     console.error('Error in main filtering process:', filterError);
