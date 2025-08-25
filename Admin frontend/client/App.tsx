@@ -18,6 +18,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 // Pages
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Index from "./pages/Index";
 import CreateOrder from "./pages/CreateOrder";
 import OrderDetail from "./pages/OrderDetail";
@@ -66,6 +67,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<PublicOfferings />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
             
             {/* Dashboard Redirect Route */}
             <Route path="/dashboard" element={

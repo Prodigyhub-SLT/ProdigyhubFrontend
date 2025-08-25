@@ -35,6 +35,7 @@ export interface AuthContextType {
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, phone: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   
@@ -213,6 +214,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, phone: string): Promise<void> => {
+    setIsLoading(true);
+    
+    try {
+      console.log('🔐 Attempting sign-up with:', { email, firstName, lastName, phone });
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock user creation - replace with real API call
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        uid: `uid_${Date.now()}`,
+        name: `${firstName} ${lastName}`,
+        email: email,
+        role: 'user',
+        department: 'General',
+        lastLogin: new Date().toISOString(),
+        avatar: '/api/placeholder/150/150',
+        permissions: [
+          'tmf620:read', 'tmf622:read', 'tmf637:read', 
+          'tmf679:read', 'tmf688:read', 'dashboard:read'
+        ],
+        preferences: {
+          theme: 'light',
+          language: 'en-US',
+          timezone: 'UTC+00:00'
+        },
+        profile: {
+          phone: phone,
+          location: '',
+          bio: 'New user account.',
+        }
+      };
+      
+      // Add to mock users (in real app, this would be stored in database)
+      MOCK_USERS[email] = newUser;
+      
+      setUser(newUser);
+      console.log('👤 New user created and set in context:', newUser);
+      
+      // Store user data in localStorage
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('auth_user', JSON.stringify(newUser));
+          console.log('💾 New user data stored in localStorage');
+        }
+      } catch (error) {
+        console.warn('Failed to store new user data:', error);
+      }
+      
+      console.log('✅ Sign-up completed successfully');
+      
+    } catch (error) {
+      console.error('❌ Sign-up error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const loginWithGoogle = async (): Promise<void> => {
     setIsLoading(true);
     
@@ -378,6 +440,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Actions
     login,
     loginWithGoogle,
+    signUp,
     logout,
     updateUser,
     

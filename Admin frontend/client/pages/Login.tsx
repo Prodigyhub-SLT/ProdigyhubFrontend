@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -269,9 +269,9 @@ export default function Login() {
         <div className="text-center mt-4">
           <p className="text-white text-sm">
             Don't have an account?{" "}
-            <a href="#" className="text-blue-400 hover:underline font-medium">
+            <Link to="/signup" className="text-blue-400 hover:underline font-medium">
               Sign up here
-            </a>
+            </Link>
           </p>
         </div>
       </div>
