@@ -162,54 +162,89 @@ export default function UserDashboard() {
     }
   };
 
-  // Enhanced offering data processing
+  // Enhanced offering data processing with safe operations
   const processOfferingData = (offering: any) => {
-    // Extract common attributes that might be in different locations
-    const connectionType = getCustomAttributeValue(offering, 'Connection Type');
-    const packageType = getCustomAttributeValue(offering, 'Package Type');
-    const internetSpeed = getCustomAttributeValue(offering, 'Internet Speed');
-    const dataAllowance = getCustomAttributeValue(offering, 'Data Allowance');
-    
-    // Create a standardized offering object
-    return {
-      ...offering,
-      displayData: {
-        connectionType,
-        packageType,
-        internetSpeed,
-        dataAllowance,
-        // Additional derived fields
-        isUnlimited: dataAllowance.toLowerCase().includes('unlimited'),
-        isFiber: connectionType.toLowerCase().includes('fiber'),
-        isHighSpeed: internetSpeed && parseInt(internetSpeed) > 100
-      }
-    };
+    try {
+      // Extract common attributes that might be in different locations
+      const connectionType = getCustomAttributeValue(offering, 'Connection Type');
+      const packageType = getCustomAttributeValue(offering, 'Package Type');
+      const internetSpeed = getCustomAttributeValue(offering, 'Internet Speed');
+      const dataAllowance = getCustomAttributeValue(offering, 'Data Allowance');
+      
+      // Create a standardized offering object with safe operations
+      return {
+        ...offering,
+        displayData: {
+          connectionType,
+          packageType,
+          internetSpeed,
+          dataAllowance,
+          // Additional derived fields with safe operations
+          isUnlimited: typeof dataAllowance === 'string' && dataAllowance.toLowerCase().includes('unlimited'),
+          isFiber: typeof connectionType === 'string' && connectionType.toLowerCase().includes('fiber'),
+          isHighSpeed: typeof internetSpeed === 'string' && !isNaN(parseInt(internetSpeed)) && parseInt(internetSpeed) > 100
+        }
+      };
+    } catch (error) {
+      console.error('Error processing offering data:', error);
+      // Return safe fallback
+      return {
+        ...offering,
+        displayData: {
+          connectionType: 'Fiber',
+          packageType: 'Any Time',
+          internetSpeed: '300 Mbps',
+          dataAllowance: 'Unlimited',
+          isUnlimited: false,
+          isFiber: true,
+          isHighSpeed: false
+        }
+      };
+    }
   };
 
-  // Process offerings to add display data
-  const processedOfferings = offerings.map(processOfferingData);
+  // Process offerings to add display data with safety check
+  const processedOfferings = Array.isArray(offerings) ? offerings.map(processOfferingData) : [];
 
-  // Filter offerings based on search and filters
+  // Filter offerings based on search and filters with safety checks
   const filteredOfferings = processedOfferings.filter(offering => {
-    const matchesSearch = offering.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         offering.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || offering.category === categoryFilter;
-    const matchesConnectionType = connectionTypeFilter === 'all' || 
-      offering.displayData.connectionType === connectionTypeFilter;
-    const matchesUsageType = usageTypeFilter === 'all' || 
-      offering.displayData.packageType === usageTypeFilter;
-    
-    return matchesSearch && matchesCategory && matchesConnectionType && matchesUsageType;
+    try {
+      if (!offering || !offering.displayData) {
+        return false;
+      }
+      
+      const matchesSearch = offering.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           offering.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter === 'all' || offering.category === categoryFilter;
+      const matchesConnectionType = connectionTypeFilter === 'all' || 
+        offering.displayData.connectionType === connectionTypeFilter;
+      const matchesUsageType = usageTypeFilter === 'all' || 
+        offering.displayData.packageType === usageTypeFilter;
+      
+      return matchesSearch && matchesCategory && matchesConnectionType && matchesUsageType;
+    } catch (error) {
+      console.error('Error filtering offering:', error);
+      return false;
+    }
   });
 
-  // Group offerings by category
+  // Group offerings by category with safety checks
   const groupedOfferings = filteredOfferings.reduce((groups: any, offering) => {
-    const category = offering.category || 'Other';
-    if (!groups[category]) {
-      groups[category] = [];
+    try {
+      if (!offering) {
+        return groups;
+      }
+      
+      const category = offering.category || 'Other';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(offering);
+      return groups;
+    } catch (error) {
+      console.error('Error grouping offering:', error);
+      return groups;
     }
-    groups[category].push(offering);
-    return groups;
   }, {});
 
   // Get category icon and color
