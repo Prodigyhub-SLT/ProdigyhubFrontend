@@ -34,7 +34,8 @@ import {
   Award,
   Palette,
   MessageSquare,
-  Search
+  Search,
+  Filter
 } from 'lucide-react';
 
 interface ServiceData {
@@ -228,18 +229,28 @@ export default function UserDashboard() {
     }
   });
 
-  // Group offerings by category with safety checks
+  // Group offerings by subSubCategory (like PublicOfferings) for better organization
   const groupedOfferings = filteredOfferings.reduce((groups: any, offering) => {
     try {
       if (!offering) {
         return groups;
       }
       
-      const category = offering.category || 'Other';
-      if (!groups[category]) {
-        groups[category] = [];
+      // Try to get subSubCategory first, then fall back to category
+      let groupKey = 'Other';
+      
+      if (offering.subSubCategory) {
+        groupKey = offering.subSubCategory;
+      } else if (offering.subCategory) {
+        groupKey = offering.subCategory;
+      } else if (offering.category) {
+        groupKey = offering.category;
       }
-      groups[category].push(offering);
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(offering);
       return groups;
     } catch (error) {
       console.error('Error grouping offering:', error);
@@ -247,25 +258,66 @@ export default function UserDashboard() {
     }
   }, {});
 
-  // Get category icon and color
-  const getCategoryIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'broadband':
-      case 'internet':
-        return <Wifi className="w-4 h-4 text-orange-500" />;
-      case 'peotv':
-      case 'tv':
-        return <Tv className="w-4 h-4 text-purple-500" />;
-      case 'voice':
-      case 'telephony':
-        return <Phone className="w-4 h-4 text-green-500" />;
-      case 'mobile':
-        return <Smartphone className="w-4 h-4 text-blue-500" />;
-      case 'promotion':
-        return <Gift className="w-4 h-4 text-red-500" />;
-      default:
-        return <Package className="w-4 h-4 text-gray-500" />;
+  // Sort categories in logical order (like PublicOfferings)
+  const sortedGroupedOfferings = Object.entries(groupedOfferings).sort(([a], [b]) => {
+    // Define priority order for categories
+    const categoryOrder = [
+      'Data/PEOTV & Voice Packages',
+      'Data Packages',
+      'Data & Voice',
+      'Broadband',
+      'PEOTV',
+      'Voice',
+      'Mobile',
+      'Promotion'
+    ];
+    
+    const aIndex = categoryOrder.indexOf(a);
+    const bIndex = categoryOrder.indexOf(b);
+    
+    // If both categories are in the order array, sort by their position
+    if (aIndex !== -1 && bIndex !== -1) {
+      return aIndex - bIndex;
     }
+    // If only one is in the order array, prioritize it
+    if (aIndex !== -1) return -1;
+    if (bIndex !== -1) return 1;
+    // If neither is in the order array, maintain alphabetical order
+    return a.localeCompare(b);
+  });
+
+  // Get category icon and color for subSubCategory grouping
+  const getCategoryIcon = (category: string) => {
+    const categoryLower = category.toLowerCase();
+    
+    // Handle subSubCategory patterns like "Data/PEOTV & Voice Packages"
+    if (categoryLower.includes('data') && categoryLower.includes('peotv')) {
+      return <Wifi className="w-4 h-4 text-orange-500" />;
+    }
+    if (categoryLower.includes('data') && categoryLower.includes('voice')) {
+      return <Phone className="w-4 h-4 text-green-500" />;
+    }
+    if (categoryLower.includes('data packages')) {
+      return <Wifi className="w-4 h-4 text-blue-500" />;
+    }
+    if (categoryLower.includes('peotv')) {
+      return <Tv className="w-4 h-4 text-purple-500" />;
+    }
+    if (categoryLower.includes('voice')) {
+      return <Phone className="w-4 h-4 text-green-500" />;
+    }
+    if (categoryLower.includes('mobile')) {
+      return <Smartphone className="w-4 h-4 text-blue-500" />;
+    }
+    if (categoryLower.includes('promotion')) {
+      return <Gift className="w-4 h-4 text-red-500" />;
+    }
+    if (categoryLower.includes('broadband') || categoryLower.includes('internet')) {
+      return <Wifi className="w-4 h-4 text-orange-500" />;
+    }
+    
+    // Default fallback
+    return <Package className="w-4 h-4 text-gray-500" />;
   };
 
   // Get custom attribute value with better fallbacks and error handling
@@ -719,10 +771,10 @@ export default function UserDashboard() {
                   <p className="text-gray-600 mt-4">Loading packages...</p>
                 </div>
               ) : (
-                Object.entries(groupedOfferings).map(([category, categoryOfferings]: [string, any]) => (
+                sortedGroupedOfferings.map(([category, categoryOfferings]: [string, any]) => (
                   <div key={category} className="mb-8">
                     <div className="flex items-center gap-2 mb-4">
-                      {getCategoryIcon(category)}
+                      <Filter className="h-5 w-5 text-blue-600" />
                       <h3 className="text-xl font-semibold text-gray-800">{category}</h3>
                     </div>
                     
