@@ -78,6 +78,7 @@ export default function UserDashboard() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [connectionTypeFilter, setConnectionTypeFilter] = useState('all');
   const [usageTypeFilter, setUsageTypeFilter] = useState('all');
+  const [dataBundleFilter, setDataBundleFilter] = useState('all');
 
   const handleSignOut = async () => {
     try {
@@ -175,28 +176,36 @@ export default function UserDashboard() {
         return false;
       }
       
+      // Get specs for filtering
+      const specs = getOfferingSpecs(offering);
+      
       // Search filter
       const matchesSearch = searchTerm === '' || 
                            offering.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            offering.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Connection Type filter (subSubCategory)
+      // Connection Type filter (subSubCategory) - filters by main category groups
       const matchesConnectionType = connectionTypeFilter === 'all' || 
         offering.subSubCategory === connectionTypeFilter ||
         offering.subCategory === connectionTypeFilter ||
         offering.category === connectionTypeFilter;
       
-      // Package Type filter (technology type)
+      // Package Type filter (technology type) - filters by Fiber/ADSL/4G
       const matchesPackageType = categoryFilter === 'all' || 
-        offering.connectionType === categoryFilter ||
+        specs.connectionType === categoryFilter ||
         offering.packageType === categoryFilter;
       
-      // Usage Type filter
+      // Usage Type filter - filters by Unlimited/Any Time/Time Based
       const matchesUsageType = usageTypeFilter === 'all' || 
-        offering.packageType === usageTypeFilter ||
+        specs.packageType === usageTypeFilter ||
         offering.packageUsageType === usageTypeFilter;
       
-      return matchesSearch && matchesConnectionType && matchesPackageType && matchesUsageType;
+      // Data Bundle filter - filters by data allowance
+      const matchesDataBundle = dataBundleFilter === 'all' || 
+        specs.dataAllowance === dataBundleFilter ||
+        specs.data === dataBundleFilter;
+      
+      return matchesSearch && matchesConnectionType && matchesPackageType && matchesUsageType && matchesDataBundle;
     } catch (error) {
       console.error('Error filtering offering:', error);
       return false;
@@ -730,8 +739,8 @@ export default function UserDashboard() {
 
                   {/* Data Bundle Filter */}
                   <Select 
-                    value={searchTerm} 
-                    onValueChange={(value) => setSearchTerm(value)}
+                    value={dataBundleFilter} 
+                    onValueChange={setDataBundleFilter}
                   >
                     <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
                       <SelectValue placeholder="All Data Bundles" />
@@ -762,7 +771,7 @@ export default function UserDashboard() {
 
                   {/* Reset Button */}
                   {(connectionTypeFilter !== 'all' || usageTypeFilter !== 'all' || 
-                    categoryFilter !== 'all' || searchTerm !== '') && (
+                    categoryFilter !== 'all' || searchTerm !== '' || dataBundleFilter !== 'all') && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -771,6 +780,7 @@ export default function UserDashboard() {
                         setUsageTypeFilter('all');
                         setCategoryFilter('all');
                         setSearchTerm('');
+                        setDataBundleFilter('all');
                       }}
                       className="text-gray-600 hover:text-gray-800"
                     >
