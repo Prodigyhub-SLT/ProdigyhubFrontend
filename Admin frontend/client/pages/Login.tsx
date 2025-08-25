@@ -140,7 +140,7 @@ export default function Login() {
             variant="outline"
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading}
-            className="w-full bg-white text-gray-700 hover:bg-gray-50 border-gray-300 h-12 rounded-lg"
+            className="w-full bg-white text-gray-800 hover:text-gray-800 focus:text-gray-800 active:text-gray-900 hover:bg-blue-50 hover:border-blue-400 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 border-gray-300 h-12 rounded-lg font-medium"
           >
             {isGoogleLoading ? (
               <>
