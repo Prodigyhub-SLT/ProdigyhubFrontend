@@ -233,41 +233,89 @@ export default function UserDashboard() {
     }
   };
 
-  // Get custom attribute value with better fallbacks
+  // Get custom attribute value with better fallbacks and error handling
   const getCustomAttributeValue = (offering: any, attributeName: string) => {
-    if (!offering.customAttributes) {
-      // Provide intelligent fallbacks based on offering data
+    try {
+      if (!offering || typeof offering !== 'object') {
+        return 'N/A';
+      }
+
+      if (!offering.customAttributes || !Array.isArray(offering.customAttributes)) {
+        // Provide intelligent fallbacks based on offering data
+        switch (attributeName) {
+          case 'Connection Type':
+            return offering.connectionType || 'Fiber'; // Default to Fiber for most offerings
+          case 'Package Type':
+            return offering.packageType || 'Any Time'; // Default to Any Time
+          case 'Internet Speed':
+            return offering.internetSpeed || '300 Mbps'; // Default to common speed
+          case 'Data Allowance':
+            return offering.dataAllowance || 'Unlimited'; // Default to Unlimited
+          default:
+            return 'N/A';
+        }
+      }
+      
+      const attr = offering.customAttributes.find((a: any) => a && a.name === attributeName);
+      if (attr && attr.value) {
+        return attr.value;
+      }
+      
+      // Provide intelligent fallbacks if custom attribute exists but has no value
       switch (attributeName) {
         case 'Connection Type':
-          return offering.connectionType || 'Fiber'; // Default to Fiber for most offerings
+          return offering.connectionType || 'Fiber';
         case 'Package Type':
-          return offering.packageType || 'Any Time'; // Default to Any Time
+          return offering.packageType || 'Any Time';
         case 'Internet Speed':
-          return offering.internetSpeed || '300 Mbps'; // Default to common speed
+          return offering.internetSpeed || '300 Mbps';
         case 'Data Allowance':
-          return offering.dataAllowance || 'Unlimited'; // Default to Unlimited
+          return offering.dataAllowance || 'Unlimited';
+        default:
+          return 'N/A';
+      }
+    } catch (error) {
+      console.error(`Error getting custom attribute value for ${attributeName}:`, error);
+      // Return safe fallback values
+      switch (attributeName) {
+        case 'Connection Type':
+          return 'Fiber';
+        case 'Package Type':
+          return 'Any Time';
+        case 'Internet Speed':
+          return '300 Mbps';
+        case 'Data Allowance':
+          return 'Unlimited';
         default:
           return 'N/A';
       }
     }
-    
-    const attr = offering.customAttributes.find((a: any) => a.name === attributeName);
-    if (attr?.value) {
-      return attr.value;
+  };
+
+  // Safe string operations helper
+  const safeStringOperation = (str: any, operation: (s: string) => boolean, fallback: boolean) => {
+    try {
+      if (typeof str === 'string' && str.trim()) {
+        return operation(str);
+      }
+      return fallback;
+    } catch (error) {
+      console.error('Error in string operation:', error);
+      return fallback;
     }
-    
-    // Provide intelligent fallbacks if custom attribute exists but has no value
-    switch (attributeName) {
-      case 'Connection Type':
-        return offering.connectionType || 'Fiber';
-      case 'Package Type':
-        return offering.packageType || 'Any Time';
-      case 'Internet Speed':
-        return offering.internetSpeed || '300 Mbps';
-      case 'Data Allowance':
-        return offering.dataAllowance || 'Unlimited';
-      default:
-        return 'N/A';
+  };
+
+  // Safe integer parsing helper
+  const safeParseInt = (str: any, fallback: number) => {
+    try {
+      if (typeof str === 'string') {
+        const parsed = parseInt(str);
+        return isNaN(parsed) ? fallback : parsed;
+      }
+      return fallback;
+    } catch (error) {
+      console.error('Error parsing integer:', error);
+      return fallback;
     }
   };
 
@@ -644,8 +692,14 @@ export default function UserDashboard() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {categoryOfferings.map((offering: any) => (
-                        <Card key={offering.id} className="bg-white shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      {Array.isArray(categoryOfferings) && categoryOfferings.map((offering: any) => {
+                        // Skip invalid offerings
+                        if (!offering || !offering.id) {
+                          return null;
+                        }
+                        
+                        return (
+                          <Card key={offering.id} className="bg-white shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-105">
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
                               <Badge className="bg-green-100 text-green-800" variant="outline">
@@ -689,14 +743,24 @@ export default function UserDashboard() {
                             
                             {/* Package Highlights */}
                             <div className="flex flex-wrap gap-2">
-                              {getCustomAttributeValue(offering, 'Data Allowance').toLowerCase().includes('unlimited') && (
+                              {safeStringOperation(
+                                getCustomAttributeValue(offering, 'Data Allowance'),
+                                (str) => str.toLowerCase().includes('unlimited'),
+                                false
+                              ) && (
                                 <Badge className="bg-green-100 text-green-800 text-xs">Unlimited Data</Badge>
                               )}
-                              {getCustomAttributeValue(offering, 'Connection Type').toLowerCase().includes('fiber') && (
+                              {safeStringOperation(
+                                getCustomAttributeValue(offering, 'Connection Type'),
+                                (str) => str.toLowerCase().includes('fiber'),
+                                false
+                              ) && (
                                 <Badge className="bg-blue-100 text-blue-800 text-xs">Fiber Optic</Badge>
                               )}
-                              {getCustomAttributeValue(offering, 'Internet Speed') && 
-                               parseInt(getCustomAttributeValue(offering, 'Internet Speed')) > 100 && (
+                              {safeParseInt(
+                                getCustomAttributeValue(offering, 'Internet Speed'),
+                                0
+                              ) > 100 && (
                                 <Badge className="bg-purple-100 text-purple-800 text-xs">High Speed</Badge>
                               )}
                             </div>
@@ -731,7 +795,8 @@ export default function UserDashboard() {
                             )}
                           </CardContent>
                         </Card>
-                      ))}
+                      );
+                      })}
                     </div>
                   </div>
                 ))
