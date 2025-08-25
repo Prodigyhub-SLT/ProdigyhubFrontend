@@ -220,160 +220,213 @@ export default function UserDashboard() {
 
   // Helper to group offerings by subSubCategory
   const groupOfferingsBySubSubCategory = (offerings: any[]) => {
-    const grouped: { [key: string]: any[] } = {};
-    offerings.forEach(offering => {
-      const subSubCategory = offering.subSubCategory || offering.subCategory || offering.category;
-      if (!grouped[subSubCategory]) {
-        grouped[subSubCategory] = [];
+    try {
+      if (!Array.isArray(offerings)) {
+        return {};
       }
-      grouped[subSubCategory].push(offering);
-    });
-    return grouped;
+      
+      const grouped: { [key: string]: any[] } = {};
+      offerings.forEach(offering => {
+        if (!offering || typeof offering !== 'object') {
+          return; // Skip invalid offerings
+        }
+        
+        const subSubCategory = offering.subSubCategory || offering.subCategory || offering.category || 'Other';
+        if (!grouped[subSubCategory]) {
+          grouped[subSubCategory] = [];
+        }
+        grouped[subSubCategory].push(offering);
+      });
+      return grouped;
+    } catch (error) {
+      console.error('Error in groupOfferingsBySubSubCategory:', error);
+      return {};
+    }
   };
 
   // Helper to get offering price
   const getOfferingPrice = (offering: any) => {
-    if (!offering.pricing) return null;
-    return {
-      currency: offering.pricing.currency || 'LKR',
-      amount: offering.pricing.amount || 0,
-      period: offering.pricing.period || 'per month'
-    };
+    try {
+      if (!offering || typeof offering !== 'object' || !offering.pricing) {
+        return null;
+      }
+      return {
+        currency: offering.pricing.currency || 'LKR',
+        amount: offering.pricing.amount || 0,
+        period: offering.pricing.period || 'per month'
+      };
+    } catch (error) {
+      console.error('Error in getOfferingPrice:', error);
+      return null;
+    }
   };
 
   // Helper to get offering category
   const getOfferingCategory = (offering: any) => {
-    const broadbandSelections = (offering as any).broadbandSelections || [];
-    const connectionTypeSelection = broadbandSelections.find((selection: any) => 
-      selection.subCategory === 'Connection Type'
-    );
-    return connectionTypeSelection ? connectionTypeSelection.subSubCategory : offering.category;
+    try {
+      if (!offering || typeof offering !== 'object') {
+        return 'Broadband';
+      }
+      
+      const broadbandSelections = (offering as any).broadbandSelections || [];
+      const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+        selection && selection.subCategory === 'Connection Type'
+      );
+      return connectionTypeSelection ? connectionTypeSelection.subSubCategory : offering.category || 'Broadband';
+    } catch (error) {
+      console.error('Error in getOfferingCategory:', error);
+      return 'Broadband';
+    }
   };
 
   // Helper to get offering specifications - EXACTLY like PublicOfferings
   const getOfferingSpecs = (offering: any) => {
-    // Try to get actual specifications from the offering data
-    const customAttributes = (offering as any).customAttributes || [];
+    try {
+      if (!offering || typeof offering !== 'object') {
+        return {
+          connectionType: 'Broadband',
+          packageType: 'Unlimited',
+          dataAllowance: 'Unlimited',
+          data: 'Unlimited',
+          internetSpeed: '300 Mbps',
+          voice: 'Unlimited Calls'
+        };
+      }
 
-    // Broadband-specific selections if present
-    const broadbandSelections = (offering as any).broadbandSelections || [];
+      // Try to get actual specifications from the offering data
+      const customAttributes = (offering as any).customAttributes || [];
 
-    // Technology (Fiber/ADSL/4G) comes from 'Package Type'
-    const technologySelection = broadbandSelections.find((selection: any) =>
-      selection.subCategory === 'Package Type'
-    );
-    let connectionTechnology = technologySelection?.subSubCategory as string | undefined;
+      // Broadband-specific selections if present
+      const broadbandSelections = (offering as any).broadbandSelections || [];
 
-    // Package type (Unlimited/Any Time/Time Based) comes from 'Package Usage Type'
-    const packageUsageSelection = broadbandSelections.find((selection: any) =>
-      selection.subCategory === 'Package Usage Type'
-    );
-    const packageType = packageUsageSelection?.subSubCategory as string | undefined;
-
-    // Service group (Data Packages / Data & Voice / Data/PEOTV & Voice Packages)
-    const serviceGroupSelection = broadbandSelections.find((selection: any) =>
-      selection.subCategory === 'Connection Type'
-    );
-    const serviceGroup = serviceGroupSelection?.subSubCategory as string | undefined;
-
-    // Fallbacks from custom attributes / name
-    if (!connectionTechnology) {
-      const connectionTypeAttr = customAttributes.find((attr: any) =>
-        attr.name.toLowerCase().includes('connection') ||
-        attr.name.toLowerCase().includes('technology') ||
-        attr.name.toLowerCase().includes('type')
+      // Technology (Fiber/ADSL/4G) comes from 'Package Type'
+      const technologySelection = broadbandSelections.find((selection: any) =>
+        selection && selection.subCategory === 'Package Type'
       );
-      connectionTechnology = connectionTypeAttr?.value;
-    }
-    if (!connectionTechnology) {
-      const lowerName = (offering.name || '').toLowerCase();
-      if (lowerName.includes('fibre') || lowerName.includes('fiber')) connectionTechnology = 'Fiber';
-      if (lowerName.includes('adsl')) connectionTechnology = 'ADSL';
-      if (lowerName.includes('lte') || lowerName.includes('4g')) connectionTechnology = '4G';
-    }
+      let connectionTechnology = technologySelection?.subSubCategory as string | undefined;
 
-    // Data allowance
-    const dataAttr = customAttributes.find((attr: any) =>
-      attr.name.toLowerCase().includes('data') ||
-      attr.name.toLowerCase().includes('usage') ||
-      attr.name.toLowerCase().includes('allowance')
-    );
-    let dataAllowance = dataAttr?.value;
-    
-    // Fallback from name if still empty
-    if (!dataAllowance) {
-      const lowerName = (offering.name || '').toLowerCase();
-      if (lowerName.includes('unlimited')) dataAllowance = 'Unlimited';
-      if (lowerName.includes('8')) dataAllowance = '8 GB';
-      if (lowerName.includes('10')) dataAllowance = '10 GB';
-      if (lowerName.includes('25')) dataAllowance = '25 GB';
-      if (lowerName.includes('40')) dataAllowance = '40 GB';
-      if (lowerName.includes('85')) dataAllowance = '85 GB';
-      if (lowerName.includes('100')) dataAllowance = '100 GB';
-      if (lowerName.includes('115')) dataAllowance = '115 GB';
-      if (lowerName.includes('200')) dataAllowance = '200 GB';
-      if (lowerName.includes('400')) dataAllowance = '400 GB';
-    }
-    
-    if (!dataAllowance) dataAllowance = 'Unlimited';
+      // Package type (Unlimited/Any Time/Time Based) comes from 'Package Usage Type'
+      const packageUsageSelection = broadbandSelections.find((selection: any) =>
+        selection && selection.subCategory === 'Package Usage Type'
+      );
+      const packageType = packageUsageSelection?.subSubCategory as string | undefined;
 
-    // Internet speed
-    const speedAttr = customAttributes.find((attr: any) =>
-      attr.name.toLowerCase().includes('speed') ||
-      attr.name.toLowerCase().includes('bandwidth') ||
-      attr.name.toLowerCase().includes('mbps')
-    );
-    let internetSpeed = speedAttr?.value;
-    
-    // Fallback from name if still empty
-    if (!internetSpeed) {
-      const lowerName = (offering.name || '').toLowerCase();
-      if (lowerName.includes('8')) internetSpeed = '8 Mbps';
-      if (lowerName.includes('10')) internetSpeed = '10 Mbps';
-      if (lowerName.includes('25')) internetSpeed = '25 Mbps';
-      if (lowerName.includes('100')) internetSpeed = '100 Mbps';
-      if (lowerName.includes('300')) internetSpeed = '300 Mbps';
-      if (lowerName.includes('1gbps') || lowerName.includes('1 gbps')) internetSpeed = '1 Gbps';
-    }
-    
-    if (!internetSpeed) internetSpeed = '300 Mbps';
+      // Service group (Data Packages / Data & Voice / Data/PEOTV & Voice Packages)
+      const serviceGroupSelection = broadbandSelections.find((selection: any) =>
+        selection && selection.subCategory === 'Connection Type'
+      );
+      const serviceGroup = serviceGroupSelection?.subSubCategory as string | undefined;
 
-    // Voice (optional)
-    const voiceAttr = customAttributes.find((attr: any) =>
-      attr.name.toLowerCase().includes('voice') ||
-      attr.name.toLowerCase().includes('calls')
-    );
-    const voice = voiceAttr?.value || 'Unlimited Calls';
+      // Fallbacks from custom attributes / name
+      if (!connectionTechnology) {
+        const connectionTypeAttr = customAttributes.find((attr: any) =>
+          attr && attr.name && attr.name.toLowerCase().includes('connection') ||
+          attr && attr.name && attr.name.toLowerCase().includes('technology') ||
+          attr && attr.name && attr.name.toLowerCase().includes('type')
+        );
+        connectionTechnology = connectionTypeAttr?.value;
+      }
+      if (!connectionTechnology) {
+        const lowerName = (offering.name || '').toLowerCase();
+        if (lowerName.includes('fibre') || lowerName.includes('fiber')) connectionTechnology = 'Fiber';
+        if (lowerName.includes('adsl')) connectionTechnology = 'ADSL';
+        if (lowerName.includes('lte') || lowerName.includes('4g')) connectionTechnology = '4G';
+      }
 
-    const category = getOfferingCategory(offering);
-    const name = (offering.name || '').toLowerCase();
+      // Data allowance
+      const dataAttr = customAttributes.find((attr: any) =>
+        attr && attr.name && attr.name.toLowerCase().includes('data') ||
+        attr && attr.name && attr.name.toLowerCase().includes('usage') ||
+        attr && attr.name && attr.name.toLowerCase().includes('allowance')
+      );
+      let dataAllowance = dataAttr?.value;
+      
+      // Fallback from name if still empty
+      if (!dataAllowance) {
+        const lowerName = (offering.name || '').toLowerCase();
+        if (lowerName.includes('unlimited')) dataAllowance = 'Unlimited';
+        if (lowerName.includes('8')) dataAllowance = '8 GB';
+        if (lowerName.includes('10')) dataAllowance = '10 GB';
+        if (lowerName.includes('25')) dataAllowance = '25 GB';
+        if (lowerName.includes('40')) dataAllowance = '40 GB';
+        if (lowerName.includes('85')) dataAllowance = '85 GB';
+        if (lowerName.includes('100')) dataAllowance = '100 GB';
+        if (lowerName.includes('115')) dataAllowance = '115 GB';
+        if (lowerName.includes('200')) dataAllowance = '200 GB';
+        if (lowerName.includes('400')) dataAllowance = '400 GB';
+      }
+      
+      if (!dataAllowance) dataAllowance = 'Unlimited';
 
-    if (category === 'Broadband' || name.includes('fibre') || name.includes('broadband') || name.includes('adsl') || name.includes('lte')) {
+      // Internet speed
+      const speedAttr = customAttributes.find((attr: any) =>
+        attr && attr.name && attr.name.toLowerCase().includes('speed') ||
+        attr && attr.name && attr.name.toLowerCase().includes('bandwidth') ||
+        attr && attr.name && attr.name.toLowerCase().includes('mbps')
+      );
+      let internetSpeed = speedAttr?.value;
+      
+      // Fallback from name if still empty
+      if (!internetSpeed) {
+        const lowerName = (offering.name || '').toLowerCase();
+        if (lowerName.includes('8')) internetSpeed = '8 Mbps';
+        if (lowerName.includes('10')) internetSpeed = '10 Mbps';
+        if (lowerName.includes('25')) internetSpeed = '25 Mbps';
+        if (lowerName.includes('100')) internetSpeed = '100 Mbps';
+        if (lowerName.includes('300')) internetSpeed = '300 Mbps';
+        if (lowerName.includes('1gbps') || lowerName.includes('1 gbps')) internetSpeed = '1 Gbps';
+      }
+      
+      if (!internetSpeed) internetSpeed = '300 Mbps';
+
+      // Voice (optional)
+      const voiceAttr = customAttributes.find((attr: any) =>
+        attr && attr.name && attr.name.toLowerCase().includes('voice') ||
+        attr && attr.name && attr.name.toLowerCase().includes('calls')
+      );
+      const voice = voiceAttr?.value || 'Unlimited Calls';
+
+      const category = getOfferingCategory(offering);
+      const name = (offering.name || '').toLowerCase();
+
+      if (category === 'Broadband' || name.includes('fibre') || name.includes('broadband') || name.includes('adsl') || name.includes('lte')) {
+        return {
+          connectionType: connectionTechnology || serviceGroup || 'Broadband',
+          packageType: packageType || 'Unlimited',
+          dataAllowance: dataAllowance,
+          data: dataAllowance,
+          internetSpeed: internetSpeed,
+          voice: voice
+        };
+      } else if (category === 'Mobile' || name.includes('mobile')) {
+        return {
+          connectionType: 'Mobile',
+          packageType: packageType || 'Standard',
+          dataAllowance: dataAllowance,
+          data: dataAllowance,
+          internetSpeed: '4G/5G',
+          voice: voice
+        };
+      } else {
+        return {
+          connectionType: connectionTechnology || serviceGroup || 'Broadband',
+          packageType: packageType || 'Unlimited',
+          dataAllowance: dataAllowance,
+          data: dataAllowance,
+          internetSpeed: internetSpeed,
+          voice: voice
+        };
+      }
+    } catch (error) {
+      console.error('Error in getOfferingSpecs:', error);
+      // Return safe fallback values
       return {
-        connectionType: connectionTechnology || serviceGroup || 'Broadband',
-        packageType: packageType || 'Unlimited',
-        dataAllowance: dataAllowance,
-        data: dataAllowance,
-        internetSpeed: internetSpeed,
-        voice: voice
-      };
-    } else if (category === 'Mobile' || name.includes('mobile')) {
-      return {
-        connectionType: 'Mobile',
-        packageType: packageType || 'Standard',
-        dataAllowance: dataAllowance,
-        data: dataAllowance,
-        internetSpeed: '4G/5G',
-        voice: voice
-      };
-    } else {
-      return {
-        connectionType: connectionTechnology || serviceGroup || 'Broadband',
-        packageType: packageType || 'Unlimited',
-        dataAllowance: dataAllowance,
-        data: dataAllowance,
-        internetSpeed: internetSpeed,
-        voice: voice
+        connectionType: 'Broadband',
+        packageType: 'Unlimited',
+        dataAllowance: 'Unlimited',
+        data: 'Unlimited',
+        internetSpeed: '300 Mbps',
+        voice: 'Unlimited Calls'
       };
     }
   };
