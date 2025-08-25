@@ -269,6 +269,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         displayName: `${firstName} ${lastName}`
       });
       
+      // Check if this should be an admin user
+      const isAdmin = email === 'admin@company.com';
+      const userRole = isAdmin ? 'admin' : 'user';
+      const userDepartment = isAdmin ? 'Engineering' : 'General';
+      
       // Create user profile in database
       const userProfile = {
         uid: firebaseUser.uid,
@@ -276,8 +281,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         lastName: lastName,
         email: email,
         phone: phone,
-        role: 'user',
-        department: 'General',
+        role: userRole,
+        department: userDepartment,
         createdAt: Date.now(),
         lastLogin: Date.now()
       };
@@ -290,11 +295,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         uid: firebaseUser.uid,
         name: `${firstName} ${lastName}`,
         email: email,
-        role: 'user',
-        department: 'General',
+        role: userRole,
+        department: userDepartment,
         lastLogin: new Date().toISOString(),
         avatar: '/api/placeholder/150/150',
-        permissions: [
+        permissions: isAdmin ? [
+          'tmf620:read', 'tmf620:write', 'tmf620:delete',
+          'tmf622:read', 'tmf622:write', 'tmf622:delete', 
+          'tmf637:read', 'tmf637:write', 'tmf637:delete',
+          'tmf679:read', 'tmf679:write', 'tmf679:delete',
+          'tmf688:read', 'tmf688:write', 'tmf688:delete',
+          'tmf760:read', 'tmf760:write', 'tmf760:delete',
+          'dashboard:read', 'users:manage', 'settings:manage'
+        ] : [
           'tmf620:read', 'tmf622:read', 'tmf637:read', 
           'tmf679:read', 'tmf688:read', 'dashboard:read'
         ],
