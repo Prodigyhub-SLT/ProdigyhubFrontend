@@ -36,7 +36,8 @@ import {
   MessageSquare,
   Search,
   Filter,
-  X
+  X,
+  Eye
 } from 'lucide-react';
 
 interface ServiceData {
@@ -164,54 +165,13 @@ export default function UserDashboard() {
     }
   };
 
-  // Enhanced offering data processing with safe operations
-  const processOfferingData = (offering: any) => {
-    try {
-      // Extract common attributes that might be in different locations
-      const connectionType = getCustomAttributeValue(offering, 'Connection Type');
-      const packageType = getCustomAttributeValue(offering, 'Package Type');
-      const internetSpeed = getCustomAttributeValue(offering, 'Internet Speed');
-      const dataAllowance = getCustomAttributeValue(offering, 'Data Allowance');
-      
-      // Create a standardized offering object with safe operations
-      return {
-        ...offering,
-        displayData: {
-          connectionType,
-          packageType,
-          internetSpeed,
-          dataAllowance,
-          // Additional derived fields with safe operations
-          isUnlimited: typeof dataAllowance === 'string' && dataAllowance.toLowerCase().includes('unlimited'),
-          isFiber: typeof connectionType === 'string' && connectionType.toLowerCase().includes('fiber'),
-          isHighSpeed: typeof internetSpeed === 'string' && !isNaN(parseInt(internetSpeed)) && parseInt(internetSpeed) > 100
-        }
-      };
-    } catch (error) {
-      console.error('Error processing offering data:', error);
-      // Return safe fallback
-      return {
-        ...offering,
-        displayData: {
-          connectionType: 'Fiber',
-          packageType: 'Any Time',
-          internetSpeed: '300 Mbps',
-          dataAllowance: 'Unlimited',
-          isUnlimited: false,
-          isFiber: true,
-          isHighSpeed: false
-        }
-      };
-    }
-  };
-
   // Process offerings to add display data with safety check
-  const processedOfferings = Array.isArray(offerings) ? offerings.map(processOfferingData) : [];
+  const processedOfferings = Array.isArray(offerings) ? offerings : [];
 
   // Filter offerings based on search and filters with safety checks
   const filteredOfferings = processedOfferings.filter(offering => {
     try {
-      if (!offering || !offering.displayData) {
+      if (!offering) {
         return false;
       }
       
@@ -228,12 +188,12 @@ export default function UserDashboard() {
       
       // Package Type filter (technology type)
       const matchesPackageType = categoryFilter === 'all' || 
-        offering.displayData.connectionType === categoryFilter ||
+        offering.connectionType === categoryFilter ||
         offering.packageType === categoryFilter;
       
       // Usage Type filter
       const matchesUsageType = usageTypeFilter === 'all' || 
-        offering.displayData.packageType === usageTypeFilter ||
+        offering.packageType === usageTypeFilter ||
         offering.packageUsageType === usageTypeFilter;
       
       return matchesSearch && matchesConnectionType && matchesPackageType && matchesUsageType;
@@ -243,181 +203,67 @@ export default function UserDashboard() {
     }
   });
 
-  // Group offerings by Connection Type (subSubCategory) like PublicOfferings
-  const groupedOfferings = filteredOfferings.reduce((groups: any, offering) => {
-    try {
-      if (!offering) {
-        return groups;
-      }
-      
-      // Get the Connection Type (subSubCategory) which represents the main grouping
-      let groupKey = 'Other';
-      
-      if (offering.subSubCategory) {
-        groupKey = offering.subSubCategory;
-      } else if (offering.subCategory) {
-        groupKey = offering.subCategory;
-      } else if (offering.category) {
-        groupKey = offering.category;
-      }
-      
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(offering);
-      return groups;
-    } catch (error) {
-      console.error('Error grouping offering:', error);
-      return groups;
-    }
-  }, {});
 
-  // Sort categories in logical order (like PublicOfferings)
-  const sortedGroupedOfferings = Object.entries(groupedOfferings).sort(([a], [b]) => {
-    // Define priority order for categories
-    const categoryOrder = [
-      'Data/PEOTV & Voice Packages',
-      'Data Packages',
-      'Data & Voice',
-      'Broadband',
-      'PEOTV',
-      'Voice',
-      'Mobile',
-      'Promotion'
-    ];
-    
-    const aIndex = categoryOrder.indexOf(a);
-    const bIndex = categoryOrder.indexOf(b);
-    
-    // If both categories are in the order array, sort by their position
-    if (aIndex !== -1 && bIndex !== -1) {
-      return aIndex - bIndex;
-    }
-    // If only one is in the order array, prioritize it
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-    // If neither is in the order array, maintain alphabetical order
-    return a.localeCompare(b);
-  });
 
-  // Get category icon and color for subSubCategory grouping
-  const getCategoryIcon = (category: string) => {
-    const categoryLower = category.toLowerCase();
-    
-    // Handle subSubCategory patterns like "Data/PEOTV & Voice Packages"
-    if (categoryLower.includes('data') && categoryLower.includes('peotv')) {
-      return <Wifi className="w-4 h-4 text-orange-500" />;
-    }
-    if (categoryLower.includes('data') && categoryLower.includes('voice')) {
-      return <Phone className="w-4 h-4 text-green-500" />;
-    }
-    if (categoryLower.includes('data packages')) {
-      return <Wifi className="w-4 h-4 text-blue-500" />;
-    }
-    if (categoryLower.includes('peotv')) {
-      return <Tv className="w-4 h-4 text-purple-500" />;
-    }
-    if (categoryLower.includes('voice')) {
-      return <Phone className="w-4 h-4 text-green-500" />;
-    }
-    if (categoryLower.includes('mobile')) {
-      return <Smartphone className="w-4 h-4 text-blue-500" />;
-    }
-    if (categoryLower.includes('promotion')) {
-      return <Gift className="w-4 h-4 text-red-500" />;
-    }
-    if (categoryLower.includes('broadband') || categoryLower.includes('internet')) {
-      return <Wifi className="w-4 h-4 text-orange-500" />;
-    }
-    
-    // Default fallback
-    return <Package className="w-4 h-4 text-gray-500" />;
+
+
+
+
+  // Helper to group offerings by subSubCategory
+  const groupOfferingsBySubSubCategory = (offerings: any[]) => {
+    const grouped: { [key: string]: any[] } = {};
+    offerings.forEach(offering => {
+      const subSubCategory = offering.subSubCategory || offering.subCategory || offering.category;
+      if (!grouped[subSubCategory]) {
+        grouped[subSubCategory] = [];
+      }
+      grouped[subSubCategory].push(offering);
+    });
+    return grouped;
   };
 
-  // Get custom attribute value with better fallbacks and error handling
-  const getCustomAttributeValue = (offering: any, attributeName: string) => {
-    try {
-      if (!offering || typeof offering !== 'object') {
-        return 'N/A';
-      }
-
-      if (!offering.customAttributes || !Array.isArray(offering.customAttributes)) {
-        // Provide intelligent fallbacks based on offering data
-        switch (attributeName) {
-          case 'Connection Type':
-            return offering.connectionType || 'Fiber'; // Default to Fiber for most offerings
-          case 'Package Type':
-            return offering.packageType || 'Any Time'; // Default to Any Time
-          case 'Internet Speed':
-            return offering.internetSpeed || '300 Mbps'; // Default to common speed
-          case 'Data Allowance':
-            return offering.dataAllowance || 'Unlimited'; // Default to Unlimited
-          default:
-            return 'N/A';
-        }
-      }
-      
-      const attr = offering.customAttributes.find((a: any) => a && a.name === attributeName);
-      if (attr && attr.value) {
-        return attr.value;
-      }
-      
-      // Provide intelligent fallbacks if custom attribute exists but has no value
-      switch (attributeName) {
-        case 'Connection Type':
-          return offering.connectionType || 'Fiber';
-        case 'Package Type':
-          return offering.packageType || 'Any Time';
-        case 'Internet Speed':
-          return offering.internetSpeed || '300 Mbps';
-        case 'Data Allowance':
-          return offering.dataAllowance || 'Unlimited';
-        default:
-          return 'N/A';
-      }
-    } catch (error) {
-      console.error(`Error getting custom attribute value for ${attributeName}:`, error);
-      // Return safe fallback values
-      switch (attributeName) {
-        case 'Connection Type':
-          return 'Fiber';
-        case 'Package Type':
-          return 'Any Time';
-        case 'Internet Speed':
-          return '300 Mbps';
-        case 'Data Allowance':
-          return 'Unlimited';
-        default:
-          return 'N/A';
-      }
-    }
+  // Helper to get offering price
+  const getOfferingPrice = (offering: any) => {
+    if (!offering.pricing) return null;
+    return {
+      currency: offering.pricing.currency || 'LKR',
+      amount: offering.pricing.amount || 0,
+      period: offering.pricing.period || 'per month'
+    };
   };
 
-  // Safe string operations helper
-  const safeStringOperation = (str: any, operation: (s: string) => boolean, fallback: boolean) => {
-    try {
-      if (typeof str === 'string' && str.trim()) {
-        return operation(str);
-      }
-      return fallback;
-    } catch (error) {
-      console.error('Error in string operation:', error);
-      return fallback;
-    }
+  // Helper to get offering category
+  const getOfferingCategory = (offering: any) => {
+    const broadbandSelections = (offering as any).broadbandSelections || [];
+    const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+      selection.subCategory === 'Connection Type'
+    );
+    return connectionTypeSelection ? connectionTypeSelection.subSubCategory : offering.category;
   };
 
-  // Safe integer parsing helper
-  const safeParseInt = (str: any, fallback: number) => {
-    try {
-      if (typeof str === 'string') {
-        const parsed = parseInt(str);
-        return isNaN(parsed) ? fallback : parsed;
-      }
-      return fallback;
-    } catch (error) {
-      console.error('Error parsing integer:', error);
-      return fallback;
-    }
+  // Helper to get offering specifications
+  const getOfferingSpecs = (offering: any) => {
+    const broadbandSelections = (offering as any).broadbandSelections || [];
+    const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+      selection.subCategory === 'Connection Type'
+    );
+    const packageTypeSelection = broadbandSelections.find((selection: any) => 
+      selection.subCategory === 'Package Type'
+    );
+    const internetSpeedSelection = broadbandSelections.find((selection: any) => 
+      selection.subCategory === 'Internet Speed'
+    );
+    const dataAllowanceSelection = broadbandSelections.find((selection: any) => 
+      selection.subCategory === 'Data Allowance'
+    );
+
+    return {
+      connectionType: connectionTypeSelection ? connectionTypeSelection.subSubCategory : offering.connectionType,
+      packageType: packageTypeSelection ? packageTypeSelection.subSubCategory : offering.packageType,
+      internetSpeed: internetSpeedSelection ? internetSpeedSelection.subSubCategory : offering.internetSpeed,
+      dataAllowance: dataAllowanceSelection ? dataAllowanceSelection.subSubCategory : offering.dataAllowance,
+      data: offering.dataAllowance // Assuming 'data' is the custom attribute name for dataAllowance
+    };
   };
 
   return (
@@ -726,7 +572,7 @@ export default function UserDashboard() {
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Broadband Packages</h2>
               
-              {/* Filter Bar - Matching PublicOfferings Design */}
+              {/* Filter Bar - Exactly like PublicOfferings */}
               <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
                 <div className="flex flex-wrap gap-3 items-center">
                   <span className="text-sm font-medium text-gray-700">Filter By:</span>
@@ -744,9 +590,6 @@ export default function UserDashboard() {
                       <SelectItem value="Data/PEOTV & Voice Packages">Data/PEOTV & Voice Packages</SelectItem>
                       <SelectItem value="Data Packages">Data Packages</SelectItem>
                       <SelectItem value="Data & Voice">Data & Voice</SelectItem>
-                      <SelectItem value="Broadband">Broadband</SelectItem>
-                      <SelectItem value="PEOTV">PEOTV</SelectItem>
-                      <SelectItem value="Voice">Voice</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -779,8 +622,6 @@ export default function UserDashboard() {
                       <SelectItem value="4G">4G</SelectItem>
                       <SelectItem value="ADSL">ADSL</SelectItem>
                       <SelectItem value="Fiber">Fiber</SelectItem>
-                      <SelectItem value="Copper">Copper</SelectItem>
-                      <SelectItem value="Wireless">Wireless</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -837,148 +678,161 @@ export default function UserDashboard() {
                 </div>
               </div>
 
-              {/* Offerings by Category */}
+              {/* Offerings Display - Exactly like PublicOfferings */}
               {loadingOfferings ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                   <p className="text-gray-600 mt-4">Loading packages...</p>
                 </div>
+              ) : filteredOfferings.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No packages found</h3>
+                  <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+                </div>
               ) : (
-                sortedGroupedOfferings.map(([category, categoryOfferings]: [string, any]) => (
-                  <div key={category} className="mb-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Filter className="h-5 w-5 text-blue-600" />
-                      <h3 className="text-xl font-semibold text-gray-800">
-                        {category === 'Data/PEOTV & Voice Packages' ? 'Data/PEOTV & Voice Packages' :
-                         category === 'Data Packages' ? 'Data Packages' :
-                         category === 'Data & Voice' ? 'Data & Voice' :
-                         category}
-                      </h3>
-                    </div>
+                // Grouped display exactly like PublicOfferings
+                <div className="space-y-8">
+                  {(() => {
+                    const groupedOfferings = groupOfferingsBySubSubCategory(filteredOfferings);
+                    // Define the desired order for categories exactly like PublicOfferings
+                    const categoryOrder = [
+                      'Data/PEOTV & Voice Packages',
+                      'Data Packages', 
+                      'Data & Voice'
+                    ];
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {Array.isArray(categoryOfferings) && categoryOfferings.map((offering: any) => {
-                        // Skip invalid offerings
-                        if (!offering || !offering.id) {
-                          return null;
-                        }
-                        
-                        return (
-                          <Card key={offering.id} className="bg-white shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-105">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between">
-                              <Badge className="bg-green-100 text-green-800" variant="outline">
-                                ACTIVE
-                              </Badge>
-                              <div className="flex items-center gap-1 text-sm text-gray-600">
-                                {getCategoryIcon(category)}
-                                <span>{category}</span>
-                              </div>
-                            </div>
+                    // Sort the entries based on the defined order exactly like PublicOfferings
+                    const sortedEntries = Object.entries(groupedOfferings).sort(([a], [b]) => {
+                      const aIndex = categoryOrder.indexOf(a);
+                      const bIndex = categoryOrder.indexOf(b);
+                      // If both categories are in the order array, sort by their position
+                      if (aIndex !== -1 && bIndex !== -1) {
+                        return aIndex - bIndex;
+                      }
+                      // If only one is in the order array, prioritize it
+                      if (aIndex !== -1) return -1;
+                      if (bIndex !== -1) return 1;
+                      // If neither is in the order array, maintain alphabetical order
+                      return a.localeCompare(b);
+                    });
+                    
+                    return sortedEntries.map(([subSubCategory, categoryOfferings]) => (
+                      <div key={subSubCategory} className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-5 w-5 text-blue-600" />
+                          <h2 className="text-xl font-semibold text-gray-900">{subSubCategory}</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {categoryOfferings.map((offering: any) => {
+                            const price = getOfferingPrice(offering);
+                            const category = getOfferingCategory(offering);
+                            const specs = getOfferingSpecs(offering);
                             
-                            <div className="space-y-2">
-                              <h3 className="text-lg font-semibold text-gray-800">{offering.name}</h3>
-                              <p className="text-sm text-gray-600">
-                                {offering.description || 
-                                 `${getCustomAttributeValue(offering, 'Data Allowance')} data with ${getCustomAttributeValue(offering, 'Internet Speed')} speed`}
-                              </p>
-                            </div>
-                          </CardHeader>
-                          
-                          <CardContent className="space-y-4">
-                            {/* Specifications */}
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center text-sm">
-                                <span className="font-medium text-gray-700">Connection Type:</span>
-                                <span className="text-gray-600">{getCustomAttributeValue(offering, 'Connection Type')}</span>
-                              </div>
-                              <div className="flex justify-between items-center text-sm">
-                                <span className="font-medium text-gray-700">Package Type:</span>
-                                <span className="text-gray-600">{getCustomAttributeValue(offering, 'Package Type')}</span>
-                              </div>
-                              <div className="flex justify-between items-center text-sm">
-                                <span className="font-medium text-gray-700">Internet Speed:</span>
-                                <span className="text-gray-600">{getCustomAttributeValue(offering, 'Internet Speed')}</span>
-                              </div>
-                              <div className="flex justify-between items-center text-sm">
-                                <span className="font-medium text-gray-700">Data Allowance:</span>
-                                <span className="text-gray-600">{getCustomAttributeValue(offering, 'Data Allowance')}</span>
-                              </div>
-                            </div>
-                            
-                            {/* Package Highlights */}
-                            <div className="flex flex-wrap gap-2">
-                              {safeStringOperation(
-                                getCustomAttributeValue(offering, 'Data Allowance'),
-                                (str) => str.toLowerCase().includes('unlimited'),
-                                false
-                              ) && (
-                                <Badge className="bg-green-100 text-green-800 text-xs">Unlimited Data</Badge>
-                              )}
-                              {safeStringOperation(
-                                getCustomAttributeValue(offering, 'Connection Type'),
-                                (str) => str.toLowerCase().includes('fiber'),
-                                false
-                              ) && (
-                                <Badge className="bg-blue-100 text-blue-800 text-xs">Fiber Optic</Badge>
-                              )}
-                              {safeParseInt(
-                                getCustomAttributeValue(offering, 'Internet Speed'),
-                                0
-                              ) > 100 && (
-                                <Badge className="bg-purple-100 text-purple-800 text-xs">High Speed</Badge>
-                              )}
-                            </div>
-
-                            {/* Pricing */}
-                            {offering.pricing && (
-                              <div className="bg-blue-600 text-white rounded-lg p-4">
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-2xl font-bold">
-                                    {offering.pricing.currency || 'LKR'} {(offering.pricing.amount || 0).toLocaleString()}
-                                  </span>
-                                  <span className="text-blue-100 text-sm">
-                                    {offering.pricing.period || 'per month'}
-                                  </span>
+                            return (
+                              <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-[500px] flex flex-col max-w-xs bg-white/80 backdrop-blur-sm border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
+                                {/* Header Section */}
+                                <div className="p-6 pb-4 flex-1">
+                                  <div className="mb-3">
+                                    <div className="flex-1">
+                                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                        {offering.name}
+                                      </h3>
+                                      <p className="text-sm text-gray-600 mb-3">
+                                        {offering.description || 'No description available'}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center justify-end">
+                                      <Badge 
+                                        variant="outline" 
+                                        className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs font-semibold shadow-sm"
+                                      >
+                                        ACTIVE
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Category and Service Type */}
+                                  <div className="flex items-center space-x-2 mb-4">
+                                    <div className="flex items-center space-x-1 text-sm text-gray-600">
+                                      <Wifi className="h-4 w-4 text-orange-500" />
+                                      <span>{category}</span>
+                                    </div>
+                                    <span className="text-sm text-gray-600">•</span>
+                                    <span className="text-sm text-gray-600">
+                                      {(() => {
+                                        const broadbandSelections = (offering as any).broadbandSelections || [];
+                                        const connectionTypeSelection = broadbandSelections.find((selection: any) => 
+                                          selection.subCategory === 'Connection Type'
+                                        );
+                                        return connectionTypeSelection ? connectionTypeSelection.subSubCategory : 'Data & Voice';
+                                      })()}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Specifications */}
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700">Connection Type:</span>
+                                      <span className="text-gray-900">{(specs as any).connectionType}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700">Package Type:</span>
+                                      <span className="text-gray-900">{(specs as any).packageType || '-'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700">Internet Speed:</span>
+                                      <span className="text-gray-900">{specs.internetSpeed}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700">Data Allowance:</span>
+                                      <span className="text-gray-900">{(specs as any).dataAllowance || specs.data}</span>
+                                    </div>
+                                  </div>
                                 </div>
-                                
-                                {((offering.pricing.setupFee || 0) > 0 || (offering.pricing.deposit || 0) > 0) && (
-                                  <div className="mt-2 text-right">
-                                    {(offering.pricing.setupFee || 0) > 0 && (
-                                      <div className="text-sm text-blue-100">
-                                        Setup: {offering.pricing.currency || 'LKR'} {(offering.pricing.setupFee || 0).toLocaleString()}
+
+                                {/* Pricing Section with Solid Blue */}
+                                {price && (
+                                  <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-white/10"></div>
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
+                                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                                    <div className="text-center relative z-10">
+                                      <div className="text-2xl font-bold mb-1 drop-shadow-sm">
+                                        {price.currency} {price.amount.toLocaleString()}
                                       </div>
-                                    )}
-                                    {(offering.pricing.deposit || 0) > 0 && (
-                                      <div className="text-sm text-blue-100">
-                                        Security Deposit: {offering.pricing.currency || 'LKR'} {(offering.pricing.deposit || 0).toLocaleString()}
+                                      <div className="text-sm opacity-90 mb-3">
+                                        {price.period}
                                       </div>
-                                    )}
+                                      <div className="text-xs space-y-1 opacity-80">
+                                        <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
+                                        <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                      })}
-                    </div>
-                  </div>
-                ))
-              )}
 
-              {filteredOfferings.length === 0 && !loadingOfferings && (
-                <Card className="bg-white shadow-lg border-0">
-                  <CardContent className="text-center py-12">
-                    <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Packages Found</h3>
-                    <p className="text-gray-600 mb-4">
-                      {searchTerm || categoryFilter !== 'all' || connectionTypeFilter !== 'all' || usageTypeFilter !== 'all'
-                        ? 'No packages match your current filters.'
-                        : 'No packages are currently available.'}
-                    </p>
-                  </CardContent>
-                </Card>
+                                {/* Footer Actions */}
+                                <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
+                                  <div className="flex items-center justify-center">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
+                                    >
+                                      <Eye className="h-4 h-4 mr-2" />
+                                      View
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
               )}
             </div>
           </div>
