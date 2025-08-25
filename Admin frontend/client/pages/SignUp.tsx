@@ -172,10 +172,18 @@ export default function SignUp() {
       
     } catch (err: any) {
       console.error('Google Sign-up failed:', err);
-      setError('Google sign-up failed. Please try again.');
+      let errorMessage = 'Google sign-up failed. Please try again.';
+      
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-up was cancelled. Please try again.';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = 'Pop-up was blocked. Please allow pop-ups and try again.';
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Google Sign-up Failed",
-        description: "Please try again",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
