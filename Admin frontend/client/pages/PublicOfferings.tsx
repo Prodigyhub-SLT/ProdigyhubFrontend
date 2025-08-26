@@ -202,11 +202,18 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
     // Broadband-specific filters (only apply if main category is Broadband)
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
+      // Helper function to check if any value in a + separated string matches the filter
+      const checkValueMatch = (fieldValue: string, filterValue: string): boolean => {
+        if (!fieldValue || !filterValue) return false;
+        const values = fieldValue.split(' + ').map(v => v.trim().toLowerCase());
+        return values.some(value => value === filterValue.toLowerCase());
+      };
+
       // Filter by Connection Type (sub-category)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
           const subCategory = (offering as any).subCategory || '';
-          return subCategory.toLowerCase() === broadbandFilters.connectionType.toLowerCase();
+          return checkValueMatch(subCategory, broadbandFilters.connectionType);
         });
       }
 
@@ -214,7 +221,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
           const subSubCategory = (offering as any).subSubCategory || '';
-          return subSubCategory.toLowerCase() === broadbandFilters.packageUsageType.toLowerCase();
+          return checkValueMatch(subSubCategory, broadbandFilters.packageUsageType);
         });
       }
 
@@ -222,7 +229,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
           const subCategory = (offering as any).subCategory || '';
-          return subCategory.toLowerCase() === broadbandFilters.packageType.toLowerCase();
+          return checkValueMatch(subCategory, broadbandFilters.packageType);
         });
       }
 
@@ -230,7 +237,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
           const subSubCategory = (offering as any).subSubCategory || '';
-          return subSubCategory.toLowerCase() === broadbandFilters.dataBundle.toLowerCase();
+          return checkValueMatch(subSubCategory, broadbandFilters.dataBundle);
         });
       }
     }
