@@ -232,41 +232,51 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           return { connectionTypes, usageTypes, packageTypes };
         }
         
-        // Fallback: Extract from flat fields and customAttributes
-        const subCategory = offering.subCategory || '';
-        const subSubCategory = offering.subSubCategory || '';
-        const customAttributes = offering.customAttributes || [];
-        
-        // Extract connection types from customAttributes or subSubCategory
-        const connectionTypes: string[] = [];
-        const connectionAttr = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('connection') || 
-          attr.name.toLowerCase().includes('channels')
-        );
-        if (connectionAttr?.value) {
-          connectionTypes.push(connectionAttr.value);
-        }
-        
-        // Extract usage types from customAttributes or subSubCategory
-        const usageTypes: string[] = [];
-        const packageAttr = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('package') || 
-          attr.name.toLowerCase().includes('anytime')
-        );
-        if (packageAttr?.value) {
-          usageTypes.push(packageAttr.value);
-        }
-        
-        // Extract package types from customAttributes or subSubCategory
-        const packageTypes: string[] = [];
-        const technologyAttr = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('fibre') || 
-          attr.name.toLowerCase().includes('adsl') ||
-          attr.name.toLowerCase().includes('4g')
-        );
-        if (technologyAttr?.value) {
-          packageTypes.push(technologyAttr.value);
-        }
+                 // Fallback: Extract from flat fields and customAttributes
+         const subCategory = offering.subCategory || '';
+         const subSubCategory = offering.subSubCategory || '';
+         const customAttributes = offering.customAttributes || [];
+         
+         // Extract connection types from customAttributes
+         const connectionTypes: string[] = [];
+         const connectionAttr = customAttributes.find((attr: any) => 
+           attr.name.toLowerCase() === 'connection type' || 
+           attr.name.toLowerCase() === 'connection'
+         );
+         if (connectionAttr?.value) {
+           connectionTypes.push(connectionAttr.value);
+         }
+         
+         // Extract usage types from customAttributes
+         const usageTypes: string[] = [];
+         const packageAttr = customAttributes.find((attr: any) => 
+           attr.name.toLowerCase() === 'package type' || 
+           attr.name.toLowerCase() === 'package usage type'
+         );
+         if (packageAttr?.value) {
+           usageTypes.push(packageAttr.value);
+         }
+         
+         // Extract package types (technology) from customAttributes
+         const packageTypes: string[] = [];
+         // Look for technology-specific attributes
+         const technologyAttrs = customAttributes.filter((attr: any) => 
+           attr.name.toLowerCase() === 'connection' || 
+           attr.name.toLowerCase() === 'technology' ||
+           attr.name.toLowerCase() === 'connection type'
+         );
+         
+         technologyAttrs.forEach(attr => {
+           if (attr.value) {
+             // Check if the value matches our expected technology types
+             const value = attr.value.toLowerCase();
+             if (value.includes('fibre') || value.includes('fiber') || 
+                 value.includes('adsl') || value.includes('4g') || 
+                 value.includes('5g') || value.includes('wireless')) {
+               packageTypes.push(attr.value);
+             }
+           }
+         });
         
         return { connectionTypes, usageTypes, packageTypes };
       };
@@ -287,13 +297,19 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         });
       }
 
-      // Filter by Package Type (sub-sub-category)
-      if (broadbandFilters.packageType !== 'all') {
-        filtered = filtered.filter(offering => {
-          const { packageTypes } = extractValuesFromHierarchicalCategory(offering);
-          return packageTypes.some(type => type === broadbandFilters.packageType);
-        });
-      }
+             // Filter by Package Type (sub-sub-category)
+       if (broadbandFilters.packageType !== 'all') {
+         filtered = filtered.filter(offering => {
+           const { packageTypes } = extractValuesFromHierarchicalCategory(offering);
+           // Debug logging
+           console.log(`🔍 Filtering offering "${offering.name}":`, {
+             filterValue: broadbandFilters.packageType,
+             extractedPackageTypes: packageTypes,
+             customAttributes: (offering as any).customAttributes
+           });
+           return packageTypes.some(type => type === broadbandFilters.packageType);
+         });
+       }
 
       // Filter by Data Bundle (sub-sub-category)
       if (broadbandFilters.dataBundle !== 'all') {
