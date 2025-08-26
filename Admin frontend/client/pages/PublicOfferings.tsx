@@ -829,45 +829,25 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                             </div>
                           </div>
                           
-                          {/* Category and Service Type */}
-                          <div className="flex items-center space-x-2 mb-4">
-                            <div className="flex items-center space-x-1 text-sm text-gray-600">
-                              <Wifi className="h-4 w-4 text-orange-500" />
-                              <span>{category}</span>
-                            </div>
-                            <span className="text-sm text-gray-600">•</span>
-                                                         <span className="text-sm text-gray-600">
-                               {(() => {
-                                 const customAttributes = (offering as any).customAttributes || [];
-                                 const connectionTypeAttr = customAttributes.find((attr: any) =>
-                                   attr.name.toLowerCase().includes('connection') ||
-                                   attr.name.toLowerCase().includes('technology') ||
-                                   attr.name.toLowerCase().includes('type')
-                                 );
-                                 return connectionTypeAttr?.value || 'Data & Voice';
-                               })()}
-                             </span>
-                          </div>
+                                                     {/* Category and Service Type */}
+                           <div className="flex items-center space-x-2 mb-4">
+                             <div className="flex items-center space-x-1 text-sm text-gray-600">
+                               <Wifi className="h-4 w-4 text-orange-500" />
+                               <span>{category}</span>
+                             </div>
+                           </div>
                           
-                          {/* Specifications */}
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Connection Type:</span>
-                              <span className="text-gray-900">{(specs as any).connectionType}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Package Type:</span>
-                              <span className="text-gray-900">{(specs as any).packageType || '-'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Internet Speed:</span>
-                              <span className="text-gray-900">{specs.internetSpeed}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Data Allowance:</span>
-                              <span className="text-gray-900">{(specs as any).dataAllowance || specs.data}</span>
-                            </div>
-                          </div>
+                                                     {/* Specifications */}
+                           <div className="space-y-2 text-sm">
+                             <div className="flex justify-between">
+                               <span className="font-medium text-gray-700">Internet Speed:</span>
+                               <span className="text-gray-900">{specs.internetSpeed}</span>
+                             </div>
+                             <div className="flex justify-between">
+                               <span className="font-medium text-gray-700">Data Allowance:</span>
+                               <span className="text-gray-900">{(specs as any).dataAllowance || specs.data}</span>
+                             </div>
+                           </div>
                         </div>
 
                         {/* Pricing Section with Solid Blue */}
@@ -944,21 +924,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </div>
                     </div>
                     
-                    {/* Category and Service Type */}
-                    <div className="flex items-center space-x-2 mb-4">
-                      <div className="flex items-center space-x-1 text-sm text-gray-600">
-                        {category === 'Product' ? (
-                          <Package className="h-4 w-4 text-indigo-500" />
-                        ) : (
-                          <Wifi className="h-4 w-4 text-orange-500" />
-                        )}
-                        <span>{category}</span>
-                      </div>
-                      <span className="text-sm text-gray-600">•</span>
-                      <span className="text-sm text-gray-600">
-                        {category === 'Product' ? 'Hardware & Software' : 'Data & Voice'}
-                      </span>
-                    </div>
+                                         {/* Category and Service Type */}
+                     <div className="flex items-center space-x-2 mb-4">
+                       <div className="flex items-center space-x-1 text-sm text-gray-600">
+                         {category === 'Product' ? (
+                           <Package className="h-4 w-4 text-indigo-500" />
+                         ) : (
+                           <Wifi className="h-4 w-4 text-orange-500" />
+                         )}
+                         <span>{category}</span>
+                       </div>
+                     </div>
                     
                     {/* Specifications */}
                     <div className="space-y-2 text-sm">
@@ -981,26 +957,18 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                             <span className="text-gray-900">{(offering as any).customAttributes?.find((attr: any) => attr.name.toLowerCase() === 'warranty')?.value || '-'}</span>
                           </div>
                         </>
-                      ) : (
-                        <>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Connection Type:</span>
-                            <span className="text-gray-900">{specs.connectionType}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Data:</span>
-                            <span className="text-gray-900">{specs.data}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Internet Speed:</span>
-                            <span className="text-gray-900">{specs.internetSpeed}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">Voice:</span>
-                            <span className="text-gray-900">{specs.voice}</span>
-                          </div>
-                        </>
-                      )}
+                                              ) : (
+                          <>
+                           <div className="flex justify-between">
+                             <span className="font-medium text-gray-700">Data:</span>
+                             <span className="text-gray-900">{specs.data}</span>
+                           </div>
+                           <div className="flex justify-between">
+                             <span className="font-medium text-gray-700">Internet Speed:</span>
+                             <span className="text-gray-900">{specs.internetSpeed}</span>
+                           </div>
+                         </>
+                       )}
                     </div>
                   </div>
 
