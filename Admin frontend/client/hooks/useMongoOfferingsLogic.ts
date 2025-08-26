@@ -578,15 +578,45 @@ export const useMongoOfferingsLogic = () => {
         return;
       }
 
+      // Extract sub-category names and sub-sub-category values from hierarchical structure
+      let subCategoryName = '';
+      let subSubCategoryValue = '';
+      let categoryDescription = '';
+
+      if (formData.hierarchicalCategory && formData.hierarchicalCategory.subCategories) {
+        // Get the first selected sub-category name and its selected sub-sub-category value
+        const firstSubCategory = formData.hierarchicalCategory.subCategories[0];
+        if (firstSubCategory) {
+          subCategoryName = firstSubCategory.subCategory.name || firstSubCategory.subCategory.id || '';
+          
+          // Get the first selected sub-sub-category value
+          if (firstSubCategory.subSubCategories && firstSubCategory.subSubCategories.length > 0) {
+            const firstSubSubCategory = firstSubCategory.subSubCategories[0];
+            subSubCategoryValue = firstSubSubCategory.name || firstSubSubCategory.id || '';
+          }
+        }
+      }
+
+      // Fallback to form data if hierarchical data is not available
+      if (!subCategoryName) {
+        subCategoryName = formData.subCategory || 'Other';
+      }
+      if (!subSubCategoryValue) {
+        subSubCategoryValue = formData.subSubCategory || 'Other';
+      }
+
+      // Create proper category description
+      categoryDescription = `${formData.category} - ${subCategoryName} - ${subSubCategoryValue}`;
+
       // Create MongoDB offering object with EXACT form data
       const mongoOffering: MongoProductOffering = {
         id: `mongo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: formData.name.trim(),
         description: formData.description.trim(),
         category: formData.category,
-        categoryDescription: formData.categoryDescription || `${formData.category} - ${formData.subCategory} - ${formData.subSubCategory}`,
-        subCategory: formData.subCategory,
-        subSubCategory: formData.subSubCategory,
+        categoryDescription: categoryDescription,
+        subCategory: subCategoryName,
+        subSubCategory: subSubCategoryValue,
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
         hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
         lifecycleStatus: formData.lifecycleStatus,
@@ -826,6 +856,36 @@ export const useMongoOfferingsLogic = () => {
         return;
       }
 
+      // Extract sub-category names and sub-sub-category values from hierarchical structure
+      let subCategoryName = '';
+      let subSubCategoryValue = '';
+      let categoryDescription = '';
+
+      if (formData.hierarchicalCategory && formData.hierarchicalCategory.subCategories) {
+        // Get the first selected sub-category name and its selected sub-sub-category value
+        const firstSubCategory = formData.hierarchicalCategory.subCategories[0];
+        if (firstSubCategory) {
+          subCategoryName = firstSubCategory.subCategory.name || firstSubCategory.subCategory.id || '';
+          
+          // Get the first selected sub-sub-category value
+          if (firstSubCategory.subSubCategories && firstSubCategory.subSubCategories.length > 0) {
+            const firstSubSubCategory = firstSubCategory.subSubCategories[0];
+            subSubCategoryValue = firstSubSubCategory.name || firstSubSubCategory.id || '';
+          }
+        }
+      }
+
+      // Fallback to form data if hierarchical data is not available
+      if (!subCategoryName) {
+        subCategoryName = formData.subCategory || 'Other';
+      }
+      if (!subSubCategoryValue) {
+        subSubCategoryValue = formData.subSubCategory || 'Other';
+      }
+
+      // Create proper category description
+      categoryDescription = `${formData.category} - ${subCategoryName} - ${subSubCategoryValue}`;
+
       // Create TMF620 update object with MongoDB extensions
       const updateData = {
         name: formData.name,
@@ -852,9 +912,9 @@ export const useMongoOfferingsLogic = () => {
         hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
         
         // CRITICAL: Add the three category fields for filtering
-        categoryDescription: formData.categoryDescription || `${formData.category} - ${formData.subCategory} - ${formData.subSubCategory}`,
-        subCategory: formData.subCategory,
-        subSubCategory: formData.subSubCategory,
+        categoryDescription: categoryDescription,
+        subCategory: subCategoryName,
+        subSubCategory: subSubCategoryValue,
         
         updatedAt: new Date().toISOString(),
         
@@ -1255,34 +1315,52 @@ export const useMongoOfferingsLogic = () => {
       let updatedCount = 0;
 
       for (const offering of mongoOfferings) {
-        const customAttributes = (offering as any).customAttributes || [];
+        // Try to get hierarchical category data first
+        const hierarchicalCategory = (offering as any).hierarchicalCategory;
+        let subCategory = '';
+        let subSubCategory = '';
 
-        // Derive fields from custom attributes
-        const connectionTypeAttr = customAttributes.find((attr: any) =>
-          typeof attr?.name === 'string' && (
-            attr.name.toLowerCase().includes('connection') ||
-            attr.name.toLowerCase().includes('technology') ||
-            attr.name.toLowerCase().includes('type')
-          )
-        );
-        const packageTypeAttr = customAttributes.find((attr: any) =>
-          typeof attr?.name === 'string' && (
-            attr.name.toLowerCase().includes('package') ||
-            attr.name.toLowerCase().includes('usage') ||
-            attr.name.toLowerCase().includes('type')
-          )
-        );
+        if (hierarchicalCategory && hierarchicalCategory.subCategories && hierarchicalCategory.subCategories.length > 0) {
+          // Extract from hierarchical structure
+          const firstSubCategory = hierarchicalCategory.subCategories[0];
+          subCategory = firstSubCategory.subCategory?.name || firstSubCategory.subCategory?.id || '';
+          
+          if (firstSubCategory.subSubCategories && firstSubCategory.subSubCategories.length > 0) {
+            const firstSubSubCategory = firstSubCategory.subSubCategories[0];
+            subSubCategory = firstSubSubCategory.name || firstSubSubCategory.id || '';
+          }
+        }
 
-        const subCategory = offering.subCategory && offering.subCategory !== 'Other'
-          ? offering.subCategory
-          : (connectionTypeAttr?.value || 'Other');
+        // Fallback to custom attributes if hierarchical data not available
+        if (!subCategory || !subSubCategory) {
+          const customAttributes = (offering as any).customAttributes || [];
+          
+          // Look for Connection Type as sub-category
+          const connectionTypeAttr = customAttributes.find((attr: any) =>
+            typeof attr?.name === 'string' && 
+            attr.name.toLowerCase().includes('connection type')
+          );
+          
+          // Look for Package Type as sub-sub-category
+          const packageTypeAttr = customAttributes.find((attr: any) =>
+            typeof attr?.name === 'string' && 
+            attr.name.toLowerCase().includes('package type')
+          );
 
-        const subSubCategory = offering.subSubCategory && offering.subSubCategory !== 'Other'
-          ? offering.subSubCategory
-          : (packageTypeAttr?.value || 'Other');
+          if (!subCategory && connectionTypeAttr) {
+            subCategory = 'Connection Type';
+          }
+          if (!subSubCategory && connectionTypeAttr) {
+            subSubCategory = connectionTypeAttr.value || 'Other';
+          }
+        }
+
+        // Set defaults if still empty
+        if (!subCategory) subCategory = 'Other';
+        if (!subSubCategory) subSubCategory = 'Other';
 
         const mainCategory = offering.category || 'Other';
-        const categoryDescription = (offering as any).categoryDescription || `${mainCategory} - ${subCategory || 'Other'} - ${subSubCategory || 'Other'}`;
+        const categoryDescription = `${mainCategory} - ${subCategory} - ${subSubCategory}`;
 
         // Skip update if nothing to change
         const needsUpdate = (
