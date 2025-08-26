@@ -166,13 +166,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const filterOfferings = () => {
     let filtered = [...offerings];
 
-    // Filter by main category
-    if (filters.mainCategory !== 'all') {
-      filtered = filtered.filter(offering => {
-        const category = getOfferingCategory(offering);
-        return category.toLowerCase() === filters.mainCategory.toLowerCase();
-      });
-    }
+         // Filter by main category
+     if (filters.mainCategory !== 'all') {
+       console.log(`🔍 Filtering by main category: ${filters.mainCategory}`);
+       filtered = filtered.filter(offering => {
+         const category = getOfferingCategory(offering);
+         const matches = category.toLowerCase() === filters.mainCategory.toLowerCase();
+         console.log(`  ${offering.name}: category="${category}" matches=${matches}`);
+         return matches;
+       });
+       console.log(`✅ After main category filter: ${filtered.length} offerings`);
+     }
 
     // Filter by sub category
     if (filters.subCategory !== 'all') {
@@ -351,16 +355,41 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     return null;
   };
 
-  const getOfferingCategory = (offering: ProductOffering) => {
-    if (Array.isArray(offering.category) && offering.category.length > 0) {
-      return offering.category[0].name || offering.category[0].id || 'Other';
-    } else if (typeof offering.category === 'object' && offering.category) {
-      return (offering.category as any).name || (offering.category as any).id || 'Other';
-    } else if (typeof offering.category === 'string') {
-      return offering.category;
-    }
-    return 'Other';
-  };
+     const getOfferingCategory = (offering: ProductOffering) => {
+     // Debug logging to see what's in the category field
+     console.log(`🔍 Getting category for "${offering.name}":`, {
+       category: offering.category,
+       categoryType: typeof offering.category,
+       isArray: Array.isArray(offering.category)
+     });
+     
+     if (Array.isArray(offering.category) && offering.category.length > 0) {
+       const categoryName = offering.category[0].name || offering.category[0].id || 'Other';
+       console.log(`✅ Found category from array: ${categoryName}`);
+       return categoryName;
+     } else if (typeof offering.category === 'object' && offering.category) {
+       const categoryName = (offering.category as any).name || (offering.category as any).id || 'Other';
+       console.log(`✅ Found category from object: ${categoryName}`);
+       return categoryName;
+     } else if (typeof offering.category === 'string') {
+       console.log(`✅ Found category from string: ${offering.category}`);
+       return offering.category;
+     }
+     
+     // Fallback: Check if it's a Broadband offering based on name or description
+     const name = (offering.name || '').toLowerCase();
+     const description = (offering.description || '').toLowerCase();
+     
+     if (name.includes('broadband') || description.includes('broadband') || 
+         name.includes('fibre') || name.includes('fiber') || 
+         name.includes('internet') || name.includes('data')) {
+       console.log(`✅ Detected Broadband from name/description: ${offering.name}`);
+       return 'Broadband';
+     }
+     
+     console.log(`❌ No category found, defaulting to Other`);
+     return 'Other';
+   };
 
   const getOfferingSpecs = (offering: ProductOffering) => {
     // Get specifications from MongoDB offering structure
