@@ -1156,15 +1156,16 @@ export const useMongoOfferingsLogic = () => {
     const firstSubCategory = selection.subCategories[0];
     const firstSubSubCategory = firstSubCategory?.subSubCategories[0];
     
+    const mainCategoryName = selection.mainCategory.name || selection.mainCategory.label || '';
     const defaultAttributes = getCategoryDefaultAttributes(
-      categoryDescription, 
+      mainCategoryName,
       firstSubCategory?.name || firstSubCategory?.label || '', 
       firstSubSubCategory?.name || firstSubSubCategory?.label || ''
     );
     
     setFormData(prev => ({
       ...prev,
-      category: selection.mainCategory.name || selection.mainCategory.label || '',
+      category: mainCategoryName,
       categoryDescription: categoryDescription,
       subCategory: firstSubCategory?.name || firstSubCategory?.label || '',
       subSubCategory: firstSubSubCategory?.name || firstSubSubCategory?.label || '',
