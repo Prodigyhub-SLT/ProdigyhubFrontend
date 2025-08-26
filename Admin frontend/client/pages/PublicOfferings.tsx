@@ -92,13 +92,21 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
   const filterOfferings = () => {
     let filtered = [...offerings];
+    
+    console.log('🔍 Starting filtering with:', { filters, broadbandFilters });
+    console.log('🔍 Total offerings to filter:', filtered.length);
 
     // Filter by main category
     if (filters.mainCategory !== 'all') {
       filtered = filtered.filter(offering => {
         const category = getOfferingCategory(offering);
-        return category.toLowerCase() === filters.mainCategory.toLowerCase();
+        const matches = category.toLowerCase() === filters.mainCategory.toLowerCase();
+        if (!matches) {
+          console.log('❌ Main category filter failed for:', offering.name, 'Expected:', filters.mainCategory, 'Got:', category);
+        }
+        return matches;
       });
+      console.log('🔍 After main category filter:', filtered.length);
     }
 
     // Filter by sub category
@@ -127,37 +135,59 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       });
     }
 
-    // Broadband-specific filters using simple text fields
+    // Broadband-specific filters using current data structure
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
+      console.log('🔍 Applying broadband filters to:', filtered.length, 'offerings');
+      
       // Filter by Connection Type
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
-          return (offering as any).connectionType === broadbandFilters.connectionType;
+          // Try simple text fields first, then fallback to customAttributes
+          const connectionType = (offering as any).connectionType || 
+            extractValueFromCustomAttributes(offering, 'connection') ||
+            extractValueFromCustomAttributes(offering, 'connection type');
+          const matches = connectionType === broadbandFilters.connectionType;
+          if (!matches) {
+            console.log('❌ Connection type filter failed for:', offering.name, 'Expected:', broadbandFilters.connectionType, 'Got:', connectionType);
+          }
+          return matches;
         });
+        console.log('🔍 After connection type filter:', filtered.length);
       }
 
       // Filter by Package Usage Type
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
-          return (offering as any).packageType === broadbandFilters.packageUsageType;
+          const packageType = (offering as any).packageType || 
+            extractValueFromCustomAttributes(offering, 'package') ||
+            extractValueFromCustomAttributes(offering, 'package type');
+          return packageType === broadbandFilters.packageUsageType;
         });
       }
 
       // Filter by Package Type
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
-          return (offering as any).packageType === broadbandFilters.packageType;
+          const packageType = (offering as any).packageType || 
+            extractValueFromCustomAttributes(offering, 'package') ||
+            extractValueFromCustomAttributes(offering, 'package type');
+          return packageType === broadbandFilters.packageType;
         });
       }
 
       // Filter by Data Bundle
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
-          return (offering as any).dataAllowance === broadbandFilters.dataBundle;
+          const dataAllowance = (offering as any).dataAllowance || 
+            extractValueFromCustomAttributes(offering, 'data') ||
+            extractValueFromCustomAttributes(offering, 'data allowance');
+          return dataAllowance === broadbandFilters.dataBundle;
         });
       }
     }
 
+    console.log('🔍 Final filtered result:', filtered.length, 'offerings');
+    console.log('🔍 Filtered offerings:', filtered.map(o => ({ name: o.name, category: getOfferingCategory(o) })));
     setFilteredOfferings(filtered);
   };
 
@@ -211,13 +241,28 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     return 'Other';
   };
 
+  const extractValueFromCustomAttributes = (offering: ProductOffering, attributeName: string): string => {
+    if (!(offering as any).customAttributes) return '';
+    
+    const attr = (offering as any).customAttributes.find((attr: any) => 
+      attr.name && attr.name.toLowerCase().includes(attributeName.toLowerCase())
+    );
+    
+    return attr ? attr.value : '';
+  };
+
   const getOfferingSpecs = (offering: ProductOffering) => {
-    // Use simple text fields directly
-    const connectionType = (offering as any).connectionType || 'Broadband';
-    const packageType = (offering as any).packageType || 'Unlimited';
-    const internetSpeed = (offering as any).internetSpeed || '300 Mbps';
-    const dataAllowance = (offering as any).dataAllowance || 'Unlimited';
-    const voice = (offering as any).calls || 'Unlimited Calls';
+    // Try simple text fields first, then fallback to customAttributes
+    const connectionType = (offering as any).connectionType || 
+      extractValueFromCustomAttributes(offering, 'connection') || 'Broadband';
+    const packageType = (offering as any).packageType || 
+      extractValueFromCustomAttributes(offering, 'package') || 'Unlimited';
+    const internetSpeed = (offering as any).internetSpeed || 
+      extractValueFromCustomAttributes(offering, 'speed') || '300 Mbps';
+    const dataAllowance = (offering as any).dataAllowance || 
+      extractValueFromCustomAttributes(offering, 'data') || 'Unlimited';
+    const voice = (offering as any).calls || 
+      extractValueFromCustomAttributes(offering, 'voice') || 'Unlimited Calls';
 
     return {
       connectionType,
@@ -624,28 +669,74 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </div>
               </div>
 
-              {/* Specifications */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Specifications</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Connection Type:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Package Type:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Internet Speed:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Data Allowance:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).dataAllowance}</span>
-                  </div>
-                </div>
-              </div>
+                             {/* Specifications */}
+               <div className="bg-white rounded-lg border border-gray-200 p-6">
+                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Specifications</h3>
+                 <div className="space-y-3">
+                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                     <span className="font-medium text-gray-700">Connection Type:</span>
+                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                   </div>
+                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                     <span className="font-medium text-gray-700">Package Type:</span>
+                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                   </div>
+                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                     <span className="font-medium text-gray-700">Internet Speed:</span>
+                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
+                   </div>
+                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                     <span className="font-medium text-gray-700">Data Allowance:</span>
+                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).dataAllowance}</span>
+                   </div>
+                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                     <span className="font-medium text-gray-700">Voice Service:</span>
+                     <span className="text-gray-900">{getOfferingSpecs(selectedOffering).voice}</span>
+                   </div>
+                 </div>
+               </div>
+
+               {/* Category Information */}
+               {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
+                 <div className="bg-white rounded-lg border border-gray-200 p-6">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Information</h3>
+                   <div className="space-y-3">
+                     {(selectedOffering as any).subCategory && (
+                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                         <span className="font-medium text-gray-700">Sub Category:</span>
+                         <span className="text-gray-900">{(selectedOffering as any).subCategory}</span>
+                       </div>
+                     )}
+                     {(selectedOffering as any).subSubCategory && (
+                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                         <span className="font-medium text-gray-700">Sub-Sub Category:</span>
+                         <span className="text-gray-900">{(selectedOffering as any).subSubCategory}</span>
+                       </div>
+                     )}
+                     {(selectedOffering as any).categoryDescription && (
+                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                         <span className="font-medium text-gray-700">Category Description:</span>
+                         <span className="text-gray-900">{(selectedOffering as any).categoryDescription}</span>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               ) : null}
+
+               {/* Custom Attributes */}
+               {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
+                 <div className="bg-white rounded-lg border border-gray-200 p-6">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Attributes</h3>
+                   <div className="space-y-3">
+                     {(selectedOffering as any).customAttributes.map((attr: any, index: number) => (
+                       <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                         <span className="font-medium text-gray-700">{attr.name}:</span>
+                         <span className="text-gray-900">{attr.value}</span>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               ) : null}
 
               {/* Pricing Information */}
               {getOfferingPrice(selectedOffering) && (
