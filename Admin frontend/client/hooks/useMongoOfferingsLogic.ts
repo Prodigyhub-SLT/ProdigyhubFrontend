@@ -1245,6 +1245,78 @@ export const useMongoOfferingsLogic = () => {
     console.log('setIsCreateDialogOpen called:', open);
   };
 
+  const backfillCategoryFields = async () => {
+    try {
+      if (!mongoOfferings || mongoOfferings.length === 0) {
+        console.log('No offerings to backfill.');
+        return { updated: 0 };
+      }
+
+      let updatedCount = 0;
+
+      for (const offering of mongoOfferings) {
+        const customAttributes = (offering as any).customAttributes || [];
+
+        // Derive fields from custom attributes
+        const connectionTypeAttr = customAttributes.find((attr: any) =>
+          typeof attr?.name === 'string' && (
+            attr.name.toLowerCase().includes('connection') ||
+            attr.name.toLowerCase().includes('technology') ||
+            attr.name.toLowerCase().includes('type')
+          )
+        );
+        const packageTypeAttr = customAttributes.find((attr: any) =>
+          typeof attr?.name === 'string' && (
+            attr.name.toLowerCase().includes('package') ||
+            attr.name.toLowerCase().includes('usage') ||
+            attr.name.toLowerCase().includes('type')
+          )
+        );
+
+        const subCategory = offering.subCategory && offering.subCategory !== 'Other'
+          ? offering.subCategory
+          : (connectionTypeAttr?.value || 'Other');
+
+        const subSubCategory = offering.subSubCategory && offering.subSubCategory !== 'Other'
+          ? offering.subSubCategory
+          : (packageTypeAttr?.value || 'Other');
+
+        const mainCategory = offering.category || 'Other';
+        const categoryDescription = (offering as any).categoryDescription || `${mainCategory} - ${subCategory || 'Other'} - ${subSubCategory || 'Other'}`;
+
+        // Skip update if nothing to change
+        const needsUpdate = (
+          (offering as any).subCategory !== subCategory ||
+          (offering as any).subSubCategory !== subSubCategory ||
+          (offering as any).categoryDescription !== categoryDescription
+        );
+
+        if (!needsUpdate) continue;
+
+        try {
+          await productCatalogApi.updateOffering(offering.id, {
+            subCategory,
+            subSubCategory,
+            categoryDescription,
+            updatedAt: new Date().toISOString(),
+            '@type': 'ProductOffering'
+          });
+          updatedCount += 1;
+        } catch (e) {
+          console.warn('Failed to backfill offering', offering.id, e);
+        }
+      }
+
+      // Reload after updates
+      await loadOfferingsFromTMF620();
+
+      return { updated: updatedCount };
+    } catch (err) {
+      console.error('Error during backfillCategoryFields:', err);
+      return { updated: 0, error: String(err) };
+    }
+  };
+
   return {
     mongoOfferings,
     formData,
@@ -1275,5 +1347,6 @@ export const useMongoOfferingsLogic = () => {
     loadOfferingsFromTMF620, // For manual refresh
     createSpecificationForOffering, // Export the direct spec creation function
     updateLinkedSpecification, // Export the spec update function
-    createPriceForOffering // Export the price creation function
+    createPriceForOffering, // Export the price creation function
+    backfillCategoryFields
   }};

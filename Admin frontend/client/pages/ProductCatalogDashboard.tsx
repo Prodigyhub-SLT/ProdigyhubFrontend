@@ -103,7 +103,8 @@ export default function ProductCatalogDashboard() {
     handleCategoryChange: handleOfferingsCategoryChange,
     handleBroadbandSelectionsChange,
     loadOfferingsFromTMF620,
-    deleteAllOfferings
+    deleteAllOfferings,
+    backfillCategoryFields
   } = useMongoOfferingsLogic();
 
   // MongoDB Specs Logic
@@ -312,6 +313,22 @@ export default function ProductCatalogDashboard() {
     setIsCreateDialogOpen(true);
   };
 
+  const handleBackfillCategoryFields = async () => {
+    try {
+      const result = await backfillCategoryFields();
+      toast({
+        title: "Backfill Complete",
+        description: `Backfilled ${result.updatedCount} offerings with category fields.`,
+      });
+    } catch (error) {
+      console.error('Error backfilling category fields:', error);
+      toast({
+        title: "Backfill Failed",
+        description: `Failed to backfill category fields: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  };
 
 
   return (
@@ -326,6 +343,31 @@ export default function ProductCatalogDashboard() {
           <Button variant="outline" onClick={fetchData} disabled={loading} className="w-full sm:w-auto">
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh All Data
+          </Button>
+          <Button
+            variant="default"
+            onClick={async () => {
+              setLoading(true);
+              try {
+                const result = await backfillCategoryFields();
+                toast({
+                  title: 'Backfill complete',
+                  description: `${result.updated || 0} offering(s) updated`,
+                });
+              } catch (e) {
+                toast({
+                  title: 'Backfill failed',
+                  description: 'Could not update offerings. See console for details.',
+                  variant: 'destructive',
+                });
+              } finally {
+                await fetchData();
+                setLoading(false);
+              }
+            }}
+            className="w-full sm:w-auto"
+          >
+            Backfill Categories
           </Button>
         </div>
       </div>
@@ -412,6 +454,7 @@ export default function ProductCatalogDashboard() {
             setIsCreateDialogOpen={setIsCreateDialogOpen}
             setCreateDialogType={setCreateDialogType}
             deleteAllOfferings={deleteAllOfferings}
+            backfillCategoryFields={handleBackfillCategoryFields}
           />
         </TabsContent>
 
