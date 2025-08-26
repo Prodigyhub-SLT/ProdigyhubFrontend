@@ -561,33 +561,25 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </div>
                     </div>
                     
-                    {/* Specifications */}
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Connection Type:</span>
-                        <span className="text-gray-900">{specs.connectionType}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Package Type:</span>
-                        <span className="text-gray-900">{specs.packageType}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Internet Speed:</span>
-                        <span className="text-gray-900">{specs.internetSpeed}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Data Allowance:</span>
-                        <span className="text-gray-900">{specs.dataAllowance}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Contract Term:</span>
-                        <span className="text-gray-900">{specs.contractTerm}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Installation:</span>
-                        <span className="text-gray-900">{specs.installation}</span>
-                      </div>
-                    </div>
+                                         {/* Specifications */}
+                     <div className="space-y-2 text-sm">
+                       <div className="flex justify-between">
+                         <span className="font-medium text-gray-700">Package Type:</span>
+                         <span className="text-gray-900">{specs.packageType}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="font-medium text-gray-700">Data Allowance:</span>
+                         <span className="text-gray-900">{specs.dataAllowance}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="font-medium text-gray-700">Contract Term:</span>
+                         <span className="text-gray-900">{specs.contractTerm}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="font-medium text-gray-700">Installation:</span>
+                         <span className="text-gray-900">{specs.installation}</span>
+                       </div>
+                     </div>
                   </div>
 
                   {/* Pricing Section */}
