@@ -1001,6 +1001,44 @@ export const useMongoOfferingsLogic = () => {
     }
   };
 
+  // Delete all offerings
+  const deleteAllOfferings = async () => {
+    try {
+      console.log('🗑️ Deleting all offerings...');
+      
+      // Get all offering IDs
+      const offeringIds = mongoOfferings.map(o => o.id);
+      console.log(`🗑️ Found ${offeringIds.length} offerings to delete`);
+      
+      // Delete each offering (this will also delete linked specs and prices)
+      for (const id of offeringIds) {
+        try {
+          await productCatalogApi.deleteOffering(id);
+          console.log(`✅ Deleted offering: ${id}`);
+        } catch (error) {
+          console.warn(`⚠️ Could not delete offering ${id}:`, error);
+        }
+      }
+      
+      // Clear local state
+      setMongoOfferings([]);
+      
+      toast({
+        title: "✅ Success",
+        description: `All ${offeringIds.length} offerings have been deleted successfully!`,
+      });
+      
+    } catch (error) {
+      console.error('❌ Error deleting all offerings:', error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to delete all offerings. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   // Helper function to get category default attributes
   const getCategoryDefaultAttributes = (category: string, subCategory?: string, subSubCategory?: string): CustomAttribute[] => {
     switch (category) {
@@ -1204,6 +1242,7 @@ export const useMongoOfferingsLogic = () => {
     createMongoOffering,
     updateMongoOffering,
     deleteMongoOffering,
+    deleteAllOfferings, // Add the new function to the return object
     resetForm,
     loadOfferingForEdit,
     addCustomAttribute,

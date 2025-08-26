@@ -102,7 +102,8 @@ export default function ProductCatalogDashboard() {
     removeCustomAttribute,
     handleCategoryChange: handleOfferingsCategoryChange,
     handleBroadbandSelectionsChange,
-    loadOfferingsFromTMF620
+    loadOfferingsFromTMF620,
+    deleteAllOfferings
   } = useMongoOfferingsLogic();
 
   // MongoDB Specs Logic
@@ -410,6 +411,7 @@ export default function ProductCatalogDashboard() {
             deleteMongoOffering={deleteMongoOffering}
             setIsCreateDialogOpen={setIsCreateDialogOpen}
             setCreateDialogType={setCreateDialogType}
+            deleteAllOfferings={deleteAllOfferings}
           />
         </TabsContent>
 

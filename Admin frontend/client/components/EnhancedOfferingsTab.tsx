@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Package, 
   Edit,
@@ -12,11 +13,13 @@ import {
   Plus,
   Search,
   Eye,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
 import { getCategoryLabel } from "../lib/utils";
+import { useState } from "react";
 
 interface EnhancedOfferingsTabProps {
   mongoOfferings: MongoProductOffering[];
@@ -33,6 +36,7 @@ interface EnhancedOfferingsTabProps {
   deleteMongoOffering: (id: string) => void;
   setIsCreateDialogOpen: (open: boolean) => void;
   setCreateDialogType: (type: 'category' | 'spec' | 'offering' | 'price') => void;
+  deleteAllOfferings: () => Promise<void>;
 }
 
 const getStatusColor = (status: string) => {
@@ -59,10 +63,12 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
   loadOfferingForEdit,
   deleteMongoOffering,
   setIsCreateDialogOpen,
-  setCreateDialogType
+  setCreateDialogType,
+  deleteAllOfferings
 }) => {
   // Ensure mongoOfferings is always an array
   const safeMongoOfferings = Array.isArray(mongoOfferings) ? mongoOfferings : [];
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const filteredMongoOfferings = safeMongoOfferings.filter(offering => {
     // Ensure offering has required properties
@@ -87,13 +93,26 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
           <h2 className="text-xl font-semibold">Product Offerings (MongoDB)</h2>
           <p className="text-muted-foreground text-sm">MongoDB-powered product offerings with advanced features</p>
         </div>
-        <Button onClick={() => {
-          setCreateDialogType('offering');
-          setIsCreateDialogOpen(true);
-        }} className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Create Offering
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button onClick={() => {
+            setCreateDialogType('offering');
+            setIsCreateDialogOpen(true);
+          }} className="flex-1 sm:flex-none">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Offering
+          </Button>
+          {safeMongoOfferings.length > 0 && (
+            <Button 
+              onClick={() => setShowDeleteAllConfirm(true)}
+              variant="destructive" 
+              size="sm"
+              className="flex-1 sm:flex-none"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete All
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Enhanced Stats */}
@@ -235,13 +254,13 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                   {offering.description || 'No description available'}
                 </p>
                 
-                                 {/* Category Description */}
-                 {offering.categoryDescription && (
-                   <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded border">
-                     <div className="font-medium mb-1">Category Details:</div>
-                     <div className="text-gray-700">{offering.categoryDescription}</div>
-                   </div>
-                 )}
+                {/* Category Description */}
+                {offering.categoryDescription && (
+                  <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded border">
+                    <div className="font-medium mb-1">Category Details:</div>
+                    <div className="text-gray-700">{offering.categoryDescription}</div>
+                  </div>
+                )}
                 
                 {/* Custom Attributes */}
                 {offering.customAttributes && Array.isArray(offering.customAttributes) && offering.customAttributes.length > 0 && (
@@ -334,6 +353,55 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
           </CardContent>
         </Card>
       )}
+
+      {/* Delete All Confirmation Dialog */}
+      <Dialog open={showDeleteAllConfirm} onOpenChange={setShowDeleteAllConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              Delete All Offerings
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete all {safeMongoOfferings.length} product offerings from the database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                <div className="text-sm text-red-800">
+                  <p className="font-medium mb-1">Warning:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>All {safeMongoOfferings.length} offerings will be permanently deleted</li>
+                    <li>Linked specifications and prices will also be deleted</li>
+                    <li>This action cannot be undone</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteAllConfirm(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={async () => {
+                try {
+                  await deleteAllOfferings();
+                  setShowDeleteAllConfirm(false);
+                } catch (error) {
+                  console.error('Error deleting all offerings:', error);
+                }
+              }}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete All {safeMongoOfferings.length} Offerings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
