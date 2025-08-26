@@ -829,13 +829,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                             </div>
                           </div>
                           
-                                                     {/* Category and Service Type */}
-                           <div className="flex items-center space-x-2 mb-4">
-                             <div className="flex items-center space-x-1 text-sm text-gray-600">
-                               <Wifi className="h-4 w-4 text-orange-500" />
-                               <span>{category}</span>
-                             </div>
-                           </div>
+                          
                           
                                                      {/* Specifications */}
                            <div className="space-y-2 text-sm">
@@ -924,17 +918,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </div>
                     </div>
                     
-                                         {/* Category and Service Type */}
-                     <div className="flex items-center space-x-2 mb-4">
-                       <div className="flex items-center space-x-1 text-sm text-gray-600">
-                         {category === 'Product' ? (
-                           <Package className="h-4 w-4 text-indigo-500" />
-                         ) : (
-                           <Wifi className="h-4 w-4 text-orange-500" />
-                         )}
-                         <span>{category}</span>
-                       </div>
-                     </div>
+                    
                     
                     {/* Specifications */}
                     <div className="space-y-2 text-sm">
