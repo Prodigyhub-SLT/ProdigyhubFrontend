@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
+import { getCategoryLabel } from "../lib/utils";
 
 interface EnhancedOfferingsTabProps {
   mongoOfferings: MongoProductOffering[];
@@ -70,7 +71,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
     const offeringName = offering.name || '';
     const offeringDescription = offering.description || '';
     const offeringStatus = offering.lifecycleStatus || '';
-    const offeringCategory = offering.category || '';
+    const offeringCategory = getCategoryLabel(offering.category) || '';
 
     const matchesSearch = offeringName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          offeringDescription.toLowerCase().includes(searchTerm.toLowerCase());
@@ -195,8 +196,9 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             return null;
           }
 
-          const CategoryIcon = CategoryIcons[offering.category as keyof typeof CategoryIcons]?.icon || Package;
-          const categoryColor = CategoryIcons[offering.category as keyof typeof CategoryIcons]?.color || 'text-gray-600';
+          const normalizedCategory = getCategoryLabel(offering.category);
+          const CategoryIcon = CategoryIcons[normalizedCategory as keyof typeof CategoryIcons]?.icon || Package;
+          const categoryColor = CategoryIcons[normalizedCategory as keyof typeof CategoryIcons]?.color || 'text-gray-600';
           
           return (
             <Card key={offering.id} className="relative overflow-hidden bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 group">
@@ -222,7 +224,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                     <span className="text-sm text-muted-foreground">
                       {offering.hierarchicalCategory?.mainCategory?.name || 
                        offering.hierarchicalCategory?.mainCategory?.label || 
-                       offering.category || 'No Category'}
+                       normalizedCategory || 'No Category'}
                     </span>
                   </div>
                 </div>

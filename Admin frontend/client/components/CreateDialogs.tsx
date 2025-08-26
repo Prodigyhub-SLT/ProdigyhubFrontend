@@ -23,6 +23,7 @@ import { CATEGORIES, CategoryIcons } from "./CategoryConfig";
 import { MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
 import { HierarchicalCategorySelector } from "./HierarchicalCategorySelector";
 import { CategoryHierarchy, SubCategory, SubSubCategory } from "../../shared/product-order-types";
+import { getCategoryLabel } from "../lib/utils";
 
 interface SubCategorySelection {
   subCategory: string;
@@ -586,11 +587,12 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                   <Label className="text-sm font-medium">Category</Label>
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const CategoryIcon = CategoryIcons[selectedOffering.category as keyof typeof CategoryIcons]?.icon || Package;
-                      const categoryColor = CategoryIcons[selectedOffering.category as keyof typeof CategoryIcons]?.color || 'text-gray-600';
+                      const normalizedCategory = getCategoryLabel(selectedOffering.category);
+                      const CategoryIcon = CategoryIcons[normalizedCategory as keyof typeof CategoryIcons]?.icon || Package;
+                      const categoryColor = CategoryIcons[normalizedCategory as keyof typeof CategoryIcons]?.color || 'text-gray-600';
                       return <CategoryIcon className={`w-4 h-4 ${categoryColor}`} />;
                     })()}
-                    <span className="text-sm text-muted-foreground">{selectedOffering.category}</span>
+                    <span className="text-sm text-muted-foreground">{getCategoryLabel(selectedOffering.category)}</span>
                   </div>
                 </div>
                 <div>

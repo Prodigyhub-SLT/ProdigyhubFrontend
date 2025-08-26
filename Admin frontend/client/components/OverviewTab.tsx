@@ -25,6 +25,7 @@ import {
 import { CategoryIcons, CATEGORIES } from "./CategoryConfig";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
 import { MongoProductSpec } from "../hooks/useMongoSpecsLogic";
+import { getCategoryLabel } from "../lib/utils";
 
 // Add custom CSS animations
 const styles = `
@@ -288,7 +289,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   // Calculate offering category breakdown
   const offeringCategoryBreakdown = CATEGORIES.reduce((acc, category) => {
-    acc[category.value] = mongoOfferings.filter(o => o.category === category.value).length;
+    acc[category.value] = mongoOfferings.filter(o => getCategoryLabel(o.category) === category.value).length;
     return acc;
   }, {} as Record<string, number>);
 
@@ -619,7 +620,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           {recentOfferings.length > 0 ? (
             <div className="space-y-4">
               {recentOfferings.map((offering, index) => {
-                const CategoryIcon = CategoryIcons[offering.category]?.icon || Package;
+                const normalizedCategory = getCategoryLabel(offering.category);
+                const CategoryIcon = CategoryIcons[normalizedCategory]?.icon || Package;
                 
                 return (
                   <div key={offering.id} className="relative group">
@@ -632,7 +634,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       </div>
                       <div className="flex-1">
                         <h4 className="font-bold text-gray-900 text-lg">{offering.name}</h4>
-                        <p className="text-gray-600">{offering.category}</p>
+                        <p className="text-gray-600">{normalizedCategory}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge className={`${getStatusColor(offering.lifecycleStatus)} shadow-md`}>

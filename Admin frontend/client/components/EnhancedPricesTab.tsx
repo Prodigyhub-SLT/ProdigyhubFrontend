@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { ProductOfferingPrice } from "../../shared/product-order-types";
 import { MongoProductOffering } from "../hooks/useMongoOfferingsLogic";
+import { getCategoryLabel } from "../lib/utils";
 
 interface EnhancedPricesTabProps {
   prices: ProductOfferingPrice[];
@@ -279,8 +280,8 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
                         <Badge className={getStatusColor(offering.lifecycleStatus)}>
                           {offering.lifecycleStatus}
                         </Badge>
-                        <Badge className={getCategoryColor(offering.category)}>
-                          {offering.category}
+                        <Badge className={getCategoryColor(getCategoryLabel(offering.category))}>
+                          {getCategoryLabel(offering.category)}
                         </Badge>
                       </div>
                     </div>
