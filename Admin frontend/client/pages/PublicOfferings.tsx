@@ -203,30 +203,70 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     // Broadband-specific filters (only apply if main category is Broadband)
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
 
-      // Helper function to extract values from hierarchicalCategory structure
+      // Helper function to extract values from hierarchicalCategory structure or fallback to flat fields
       const extractValuesFromHierarchicalCategory = (offering: any) => {
         const hierarchicalCategory = offering.hierarchicalCategory;
-        if (!hierarchicalCategory?.subCategories) return { connectionTypes: [], usageTypes: [], packageTypes: [] };
         
+        // If hierarchicalCategory exists, use it
+        if (hierarchicalCategory?.subCategories) {
+          const connectionTypes: string[] = [];
+          const usageTypes: string[] = [];
+          const packageTypes: string[] = [];
+          
+          hierarchicalCategory.subCategories.forEach((subCat: any) => {
+            if (subCat.subCategory?.name === 'Connection Type') {
+              subCat.subSubCategories?.forEach((subSub: any) => {
+                connectionTypes.push(subSub.name);
+              });
+            } else if (subCat.subCategory?.name === 'Package Usage Type') {
+              subCat.subSubCategories?.forEach((subSub: any) => {
+                usageTypes.push(subSub.name);
+              });
+            } else if (subCat.subCategory?.name === 'Package Type') {
+              subCat.subSubCategories?.forEach((subSub: any) => {
+                packageTypes.push(subSub.name);
+              });
+            }
+          });
+          
+          return { connectionTypes, usageTypes, packageTypes };
+        }
+        
+        // Fallback: Extract from flat fields and customAttributes
+        const subCategory = offering.subCategory || '';
+        const subSubCategory = offering.subSubCategory || '';
+        const customAttributes = offering.customAttributes || [];
+        
+        // Extract connection types from customAttributes or subSubCategory
         const connectionTypes: string[] = [];
-        const usageTypes: string[] = [];
-        const packageTypes: string[] = [];
+        const connectionAttr = customAttributes.find((attr: any) => 
+          attr.name.toLowerCase().includes('connection') || 
+          attr.name.toLowerCase().includes('channels')
+        );
+        if (connectionAttr?.value) {
+          connectionTypes.push(connectionAttr.value);
+        }
         
-        hierarchicalCategory.subCategories.forEach((subCat: any) => {
-          if (subCat.subCategory?.name === 'Connection Type') {
-            subCat.subSubCategories?.forEach((subSub: any) => {
-              connectionTypes.push(subSub.name);
-            });
-          } else if (subCat.subCategory?.name === 'Package Usage Type') {
-            subCat.subSubCategories?.forEach((subSub: any) => {
-              usageTypes.push(subSub.name);
-            });
-          } else if (subCat.subCategory?.name === 'Package Type') {
-            subCat.subSubCategories?.forEach((subSub: any) => {
-              packageTypes.push(subSub.name);
-            });
-          }
-        });
+        // Extract usage types from customAttributes or subSubCategory
+        const usageTypes: string[] = [];
+        const packageAttr = customAttributes.find((attr: any) => 
+          attr.name.toLowerCase().includes('package') || 
+          attr.name.toLowerCase().includes('anytime')
+        );
+        if (packageAttr?.value) {
+          usageTypes.push(packageAttr.value);
+        }
+        
+        // Extract package types from customAttributes or subSubCategory
+        const packageTypes: string[] = [];
+        const technologyAttr = customAttributes.find((attr: any) => 
+          attr.name.toLowerCase().includes('fibre') || 
+          attr.name.toLowerCase().includes('adsl') ||
+          attr.name.toLowerCase().includes('4g')
+        );
+        if (technologyAttr?.value) {
+          packageTypes.push(technologyAttr.value);
+        }
         
         return { connectionTypes, usageTypes, packageTypes };
       };
