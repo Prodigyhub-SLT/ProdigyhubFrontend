@@ -202,42 +202,64 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
     // Broadband-specific filters (only apply if main category is Broadband)
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
-      // Helper function to check if any value in a + separated string matches the filter
-      const checkValueMatch = (fieldValue: string, filterValue: string): boolean => {
-        if (!fieldValue || !filterValue) return false;
-        const values = fieldValue.split(' + ').map(v => v.trim().toLowerCase());
-        return values.some(value => value === filterValue.toLowerCase());
+
+      // Helper function to extract values from hierarchicalCategory structure
+      const extractValuesFromHierarchicalCategory = (offering: any) => {
+        const hierarchicalCategory = offering.hierarchicalCategory;
+        if (!hierarchicalCategory?.subCategories) return { connectionTypes: [], usageTypes: [], packageTypes: [] };
+        
+        const connectionTypes: string[] = [];
+        const usageTypes: string[] = [];
+        const packageTypes: string[] = [];
+        
+        hierarchicalCategory.subCategories.forEach((subCat: any) => {
+          if (subCat.subCategory?.name === 'Connection Type') {
+            subCat.subSubCategories?.forEach((subSub: any) => {
+              connectionTypes.push(subSub.name);
+            });
+          } else if (subCat.subCategory?.name === 'Package Usage Type') {
+            subCat.subSubCategories?.forEach((subSub: any) => {
+              usageTypes.push(subSub.name);
+            });
+          } else if (subCat.subCategory?.name === 'Package Type') {
+            subCat.subSubCategories?.forEach((subSub: any) => {
+              packageTypes.push(subSub.name);
+            });
+          }
+        });
+        
+        return { connectionTypes, usageTypes, packageTypes };
       };
 
-      // Filter by Connection Type (sub-category)
+      // Filter by Connection Type (sub-sub-category)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
-          const subCategory = (offering as any).subCategory || '';
-          return checkValueMatch(subCategory, broadbandFilters.connectionType);
+          const { connectionTypes } = extractValuesFromHierarchicalCategory(offering);
+          return connectionTypes.some(type => type === broadbandFilters.connectionType);
         });
       }
 
       // Filter by Package Usage Type (sub-sub-category)
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const subSubCategory = (offering as any).subSubCategory || '';
-          return checkValueMatch(subSubCategory, broadbandFilters.packageUsageType);
+          const { usageTypes } = extractValuesFromHierarchicalCategory(offering);
+          return usageTypes.some(type => type === broadbandFilters.packageUsageType);
         });
       }
 
-      // Filter by Package Type (sub-category)
+      // Filter by Package Type (sub-sub-category)
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const subCategory = (offering as any).subCategory || '';
-          return checkValueMatch(subCategory, broadbandFilters.packageType);
+          const { packageTypes } = extractValuesFromHierarchicalCategory(offering);
+          return packageTypes.some(type => type === broadbandFilters.packageType);
         });
       }
 
       // Filter by Data Bundle (sub-sub-category)
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
-          const subSubCategory = (offering as any).subSubCategory || '';
-          return checkValueMatch(subSubCategory, broadbandFilters.dataBundle);
+          const { connectionTypes } = extractValuesFromHierarchicalCategory(offering);
+          return connectionTypes.some(type => type === broadbandFilters.dataBundle);
         });
       }
     }
