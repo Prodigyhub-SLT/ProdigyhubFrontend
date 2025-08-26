@@ -130,6 +130,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   }, []);
 
   useEffect(() => {
+    console.log('🔍 Current offerings:', offerings);
+    console.log('🔍 Filtered offerings:', filteredOfferings);
+    console.log('🔍 Current filters:', filters);
+  }, [offerings, filteredOfferings, filters]);
+
+  useEffect(() => {
     filterOfferings();
   }, [offerings, filters, broadbandFilters]);
 
@@ -137,416 +143,94 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     try {
       setLoading(true);
       const offeringsData = await productCatalogApi.getOfferings({ limit: 100 });
+      console.log('📥 Raw offerings from API:', offeringsData);
+      
+      // Filter only active offerings
       const activeOfferings = offeringsData.filter(
-        (offering: ProductOffering) => offering.lifecycleStatus === 'Active'
+        (offering: any) => offering.lifecycleStatus === 'Active'
       );
       
-      // If no offerings from API, add mock data for testing
-      if (activeOfferings.length === 0) {
-        const mockOfferings: ProductOffering[] = [
-          {
-            id: 'broadband-1',
-            name: 'TRIO VIBE',
-            description: '40GB Anytime Data & 40GB Anytime Upload + PEOTV 75 Channels + Unlimited',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-1',
-              price: {
-                taxIncludedAmount: { value: 3530, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-2',
-            name: 'TRIO VIBE PLUS',
-            description: '40GB Anytime Data & 40GB Anytime Upload + PEOTV 75 Channels + Unlimited',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-2',
-              price: {
-                taxIncludedAmount: { value: 4100, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-3',
-            name: 'TRIO SHINE',
-            description: '100GB Anytime Data & 100GB Anytime Upload + PEOTV 75 Channels + Unlimited',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-3',
-              price: {
-                taxIncludedAmount: { value: 4950, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-4',
-            name: 'HBB ANYTIME 50GB',
-            description: '50GB Anytime Data with 4G connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-4',
-              price: {
-                taxIncludedAmount: { value: 1290, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-5',
-            name: 'ANY BEAT',
-            description: '36GB Anytime Data with ADSL connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-5',
-              price: {
-                taxIncludedAmount: { value: 1550, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-6',
-            name: 'HBB ANYTIME 85GB',
-            description: '85GB Anytime Data with 4G connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-6',
-              price: {
-                taxIncludedAmount: { value: 1890, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-7',
-            name: 'ANY FLIX',
-            description: '50GB Anytime Data with Fiber connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-7',
-              price: {
-                taxIncludedAmount: { value: 2150, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-8',
-            name: 'HBB ANYTIME 115GB',
-            description: '115GB Anytime Data with 4G connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-8',
-              price: {
-                taxIncludedAmount: { value: 2590, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-9',
-            name: 'ANY TIDE',
-            description: '130GB Fiber + 100GB ADSL data',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-9',
-              price: {
-                taxIncludedAmount: { value: 3890, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-10',
-            name: 'HBB ANYTIME 200GB',
-            description: '200GB Anytime Data with 4G connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-10',
-              price: {
-                taxIncludedAmount: { value: 3990, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-11',
-            name: 'HBB ANYTIME 400GB',
-            description: '400GB Anytime Data with 4G connection',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-11',
-              price: {
-                taxIncludedAmount: { value: 7990, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-12',
-            name: 'ULTRA FLASH PRIME',
-            description: '200GB per day + unlimited Entertainment Bundle + Unlimited Calls',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-12',
-              price: {
-                taxIncludedAmount: { value: 75000, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any,
-          {
-            id: 'broadband-13',
-            name: 'ULTRA PRIME',
-            description: '5TB + unlimited Entertainment Bundle + Unlimited Calls',
-            lifecycleStatus: 'Active',
-            category: [{ name: 'Broadband', id: 'broadband' }],
-            productOfferingPrice: [{
-              id: 'price-13',
-              price: {
-                taxIncludedAmount: { value: 75000, unit: 'LKR' },
-                priceType: 'recurring'
-              }
-            }],
-            '@type': 'ProductOffering'
-          } as any
-        ];
-
-        // Add hierarchical category data to mock offerings
-        (mockOfferings[0] as any).subCategory = 'Connection Type';
-        (mockOfferings[0] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
-        (mockOfferings[0] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: '4G' }
-        ];
-        
-        (mockOfferings[1] as any).subCategory = 'Connection Type';
-        (mockOfferings[1] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
-        (mockOfferings[1] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Time Based' },
-          { subCategory: 'Package Type', subSubCategory: 'ADSL' }
-        ];
-        
-        (mockOfferings[2] as any).subCategory = 'Connection Type';
-        (mockOfferings[2] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
-        (mockOfferings[2] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
-          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
-        ];
-        
-        (mockOfferings[3] as any).subCategory = 'Connection Type';
-        (mockOfferings[3] as any).subSubCategory = 'Data Packages';
-        (mockOfferings[3] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: '4G' }
-        ];
-        
-        (mockOfferings[4] as any).subCategory = 'Connection Type';
-        (mockOfferings[4] as any).subSubCategory = 'Data & Voice';
-        (mockOfferings[4] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data & Voice' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Time Based' },
-          { subCategory: 'Package Type', subSubCategory: 'ADSL' }
-        ];
-
-        (mockOfferings[5] as any).subCategory = 'Connection Type';
-        (mockOfferings[5] as any).subSubCategory = 'Data Packages';
-        (mockOfferings[5] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: '4G' }
-        ];
-
-        (mockOfferings[6] as any).subCategory = 'Connection Type';
-        (mockOfferings[6] as any).subSubCategory = 'Data Packages';
-        (mockOfferings[6] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
-        ];
-
-        (mockOfferings[7] as any).subCategory = 'Connection Type';
-        (mockOfferings[7] as any).subSubCategory = 'Data Packages';
-        (mockOfferings[7] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: '4G' }
-        ];
-
-        (mockOfferings[8] as any).subCategory = 'Connection Type';
-        (mockOfferings[8] as any).subSubCategory = 'Data & Voice';
-        (mockOfferings[8] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data & Voice' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Time Based' },
-          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
-        ];
-
-        (mockOfferings[9] as any).subCategory = 'Connection Type';
-        (mockOfferings[9] as any).subSubCategory = 'Data Packages';
-        (mockOfferings[9] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: '4G' }
-        ];
-
-        (mockOfferings[10] as any).subCategory = 'Connection Type';
-        (mockOfferings[10] as any).subSubCategory = 'Data Packages';
-        (mockOfferings[10] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Any Time' },
-          { subCategory: 'Package Type', subSubCategory: '4G' }
-        ];
-
-        (mockOfferings[11] as any).subCategory = 'Connection Type';
-        (mockOfferings[11] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
-        (mockOfferings[11] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
-          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
-        ];
-
-        (mockOfferings[12] as any).subCategory = 'Connection Type';
-        (mockOfferings[12] as any).subSubCategory = 'Data/PEOTV & Voice Packages';
-        (mockOfferings[12] as any).broadbandSelections = [
-          { subCategory: 'Connection Type', subSubCategory: 'Data/PEOTV & Voice Packages' },
-          { subCategory: 'Package Usage Type', subSubCategory: 'Unlimited' },
-          { subCategory: 'Package Type', subSubCategory: 'Fiber' }
-        ];
-
-        // Add pricing data
-        mockOfferings.forEach((offering, index) => {
-          (offering as any).pricing = {
-            setupFee: 1000,
-            deposit: 100
-          };
-        });
-
-        setOfferings(mockOfferings);
-      } else {
-        setOfferings(activeOfferings);
-      }
+      console.log('✅ Active offerings found:', activeOfferings.length);
+      
+      // Use real offerings data, no mock data fallback
+      setOfferings(activeOfferings);
+      
     } catch (error) {
-      console.error('Error loading offerings:', error);
+      console.error('❌ Error loading offerings:', error);
+      setOfferings([]);
     } finally {
       setLoading(false);
     }
   };
 
   const filterOfferings = () => {
-    let filtered = offerings;
+    let filtered = [...offerings];
+
+    // Filter by main category
+    if (filters.mainCategory !== 'all') {
+      filtered = filtered.filter(offering => {
+        const category = getOfferingCategory(offering);
+        return category.toLowerCase() === filters.mainCategory.toLowerCase();
+      });
+    }
+
+    // Filter by sub category
+    if (filters.subCategory !== 'all') {
+      filtered = filtered.filter(offering => {
+        const subCategory = (offering as any).subCategory || '';
+        return subCategory.toLowerCase() === filters.subCategory.toLowerCase();
+      });
+    }
+
+    // Filter by sub-sub category
+    if (filters.subSubCategory !== 'all') {
+      filtered = filtered.filter(offering => {
+        const subSubCategory = (offering as any).subSubCategory || '';
+        return subSubCategory.toLowerCase() === filters.subSubCategory.toLowerCase();
+      });
+    }
 
     // Filter by search term
     if (filters.searchTerm) {
-      filtered = filtered.filter(offering =>
-        offering.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        offering.description?.toLowerCase().includes(filters.searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by main category
-    if (filters.mainCategory && filters.mainCategory !== 'all') {
       filtered = filtered.filter(offering => {
-        const offeringCategory = getOfferingCategory(offering);
-        return offeringCategory === filters.mainCategory;
+        const name = offering.name?.toLowerCase() || '';
+        const description = offering.description?.toLowerCase() || '';
+        return name.includes(filters.searchTerm.toLowerCase()) || 
+               description.includes(filters.searchTerm.toLowerCase());
       });
     }
 
-    // Filter by sub-category
-    if (filters.subCategory && filters.subCategory !== 'all') {
-      filtered = filtered.filter(offering => {
-        const offeringSubCategory = (offering as any).subCategory;
-        return offeringSubCategory === filters.subCategory;
-      });
-    }
-
-    // Filter by sub-sub-category
-    if (filters.subSubCategory && filters.subSubCategory !== 'all') {
-      filtered = filtered.filter(offering => {
-        const offeringSubSubCategory = (offering as any).subSubCategory;
-        return offeringSubSubCategory === filters.subSubCategory;
-      });
-    }
-
-    // Broadband specific filters
-    if (filters.mainCategory === 'Broadband') {
-      // Filter by Connection Type (sub-sub-category under "Connection Type" sub-category)
+    // Broadband-specific filters (only apply if main category is Broadband)
+    if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
+      // Filter by Connection Type (sub-category)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
-          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
-          // Check if any broadband selection has the matching connection type
-          return offeringBroadbandSelections.some((selection: any) => 
-            selection.subCategory === 'Connection Type' && 
-            selection.subSubCategory === broadbandFilters.connectionType
-          );
+          const subCategory = (offering as any).subCategory || '';
+          return subCategory.toLowerCase() === broadbandFilters.connectionType.toLowerCase();
         });
       }
 
-      // Filter by Package Usage Type (sub-sub-category under "Package Usage Type" sub-category)
+      // Filter by Package Usage Type (sub-sub-category)
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
-          // Check if any broadband selection has the matching package usage type
-          return offeringBroadbandSelections.some((selection: any) => 
-            selection.subCategory === 'Package Usage Type' && 
-            selection.subSubCategory === broadbandFilters.packageUsageType
-          );
+          const subSubCategory = (offering as any).subSubCategory || '';
+          return subSubCategory.toLowerCase() === broadbandFilters.packageUsageType.toLowerCase();
         });
       }
 
-      // Filter by Package Type (sub-sub-category under "Package Type" sub-category)
+      // Filter by Package Type (sub-category)
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
-          // Check if any broadband selection has the matching package type
-          return offeringBroadbandSelections.some((selection: any) => 
-            selection.subCategory === 'Package Type' && 
-            selection.subSubCategory === broadbandFilters.packageType
-          );
+          const subCategory = (offering as any).subCategory || '';
+          return subCategory.toLowerCase() === broadbandFilters.packageType.toLowerCase();
         });
       }
 
-      // Filter by Data Bundle (sub-sub-category under "Package Usage Type" sub-category)
+      // Filter by Data Bundle (sub-sub-category)
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
-          const offeringBroadbandSelections = (offering as any).broadbandSelections || [];
-          // Check if any broadband selection has the matching data bundle
-          return offeringBroadbandSelections.some((selection: any) => 
-            selection.subCategory === 'Package Usage Type' && 
-            selection.subSubCategory === broadbandFilters.dataBundle
-          );
+          const subSubCategory = (offering as any).subSubCategory || '';
+          return subSubCategory.toLowerCase() === broadbandFilters.dataBundle.toLowerCase();
         });
       }
     }
@@ -594,45 +278,37 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   };
 
   const getOfferingSpecs = (offering: ProductOffering) => {
-    // Try to get actual specifications from the offering data
+    // Get specifications from MongoDB offering structure
     const customAttributes = (offering as any).customAttributes || [];
+    
+    // Get category info from MongoDB fields
+    const subCategory = (offering as any).subCategory || '';
+    const subSubCategory = (offering as any).subSubCategory || '';
+    const categoryDescription = (offering as any).categoryDescription || '';
 
-    // Broadband-specific selections if present
-    const broadbandSelections = (offering as any).broadbandSelections || [];
-
-    // Technology (Fiber/ADSL/4G) comes from 'Package Type'
-    const technologySelection = broadbandSelections.find((selection: any) =>
-      selection.subCategory === 'Package Type'
-    );
-    let connectionTechnology = technologySelection?.subSubCategory as string | undefined;
-
-    // Package type (Unlimited/Any Time/Time Based) comes from 'Package Usage Type'
-    const packageUsageSelection = broadbandSelections.find((selection: any) =>
-      selection.subCategory === 'Package Usage Type'
-    );
-    const packageType = packageUsageSelection?.subSubCategory as string | undefined;
-
-    // Service group (Data Packages / Data & Voice / Data/PEOTV & Voice Packages)
-    const serviceGroupSelection = broadbandSelections.find((selection: any) =>
-      selection.subCategory === 'Connection Type'
-    );
-    const serviceGroup = serviceGroupSelection?.subSubCategory as string | undefined;
-
-    // Fallbacks from custom attributes / name
-    if (!connectionTechnology) {
+    // Extract connection type from subCategory or custom attributes
+    let connectionType = subCategory;
+    if (!connectionType) {
       const connectionTypeAttr = customAttributes.find((attr: any) =>
         attr.name.toLowerCase().includes('connection') ||
         attr.name.toLowerCase().includes('technology') ||
         attr.name.toLowerCase().includes('type')
       );
-      connectionTechnology = connectionTypeAttr?.value;
-    }
-    if (!connectionTechnology) {
-      const lowerName = (offering.name || '').toLowerCase();
-      if (lowerName.includes('fibre') || lowerName.includes('fiber')) connectionTechnology = 'Fiber';
+      connectionType = connectionTypeAttr?.value || 'Broadband';
     }
 
-    // Data allowance
+    // Extract package type from subSubCategory or custom attributes
+    let packageType = subSubCategory;
+    if (!packageType) {
+      const packageTypeAttr = customAttributes.find((attr: any) =>
+        attr.name.toLowerCase().includes('package') ||
+        attr.name.toLowerCase().includes('usage') ||
+        attr.name.toLowerCase().includes('type')
+      );
+      packageType = packageTypeAttr?.value || 'Unlimited';
+    }
+
+    // Data allowance from custom attributes
     const dataAttr = customAttributes.find((attr: any) =>
       attr.name.toLowerCase().includes('data') ||
       attr.name.toLowerCase().includes('usage') ||
@@ -640,7 +316,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     );
     const dataAllowance = dataAttr?.value || 'Unlimited';
 
-    // Internet speed
+    // Internet speed from custom attributes
     const speedAttr = customAttributes.find((attr: any) =>
       attr.name.toLowerCase().includes('speed') ||
       attr.name.toLowerCase().includes('bandwidth') ||
@@ -648,7 +324,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     );
     const internetSpeed = speedAttr?.value || '300 Mbps';
 
-    // Voice (optional)
+    // Voice from custom attributes
     const voiceAttr = customAttributes.find((attr: any) =>
       attr.name.toLowerCase().includes('voice') ||
       attr.name.toLowerCase().includes('calls')
@@ -660,7 +336,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
     if (category === 'Broadband' || name.includes('fibre') || name.includes('broadband')) {
       return {
-        connectionType: connectionTechnology || serviceGroup || 'Broadband',
+        connectionType: connectionType || 'Broadband',
         packageType: packageType || 'Unlimited',
         dataAllowance: dataAllowance,
         data: dataAllowance,
@@ -697,7 +373,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     }
 
     return {
-      connectionType: connectionTechnology || serviceGroup || 'Other',
+      connectionType: connectionType || 'Other',
       packageType: packageType || 'Standard',
       dataAllowance: dataAllowance,
       data: dataAllowance,
@@ -768,22 +444,13 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     const groups: { [key: string]: ProductOffering[] } = {};
     
     offerings.forEach(offering => {
-      // Get the connection type from broadband selections or fallback to subSubCategory
+      // Get the connection type from MongoDB fields
       let connectionType = 'Data/PEOTV & Voice Packages'; // Default category
       
-      const broadbandSelections = (offering as any).broadbandSelections || [];
-      const connectionTypeSelection = broadbandSelections.find((selection: any) => 
-        selection.subCategory === 'Connection Type'
-      );
-      
-      if (connectionTypeSelection) {
-        connectionType = connectionTypeSelection.subSubCategory;
-      } else {
-        // Fallback to subSubCategory if no broadband selections
-        const subSubCategory = (offering as any).subSubCategory;
-        if (subSubCategory && subSubCategory !== 'Other') {
-          connectionType = subSubCategory;
-        }
+      // Use subSubCategory from MongoDB structure
+      const subSubCategory = (offering as any).subSubCategory;
+      if (subSubCategory && subSubCategory !== 'Other') {
+        connectionType = subSubCategory;
       }
       
       // Map any remaining "Other" categories to "Data/PEOTV & Voice Packages"
