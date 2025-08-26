@@ -444,13 +444,19 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     const groups: { [key: string]: ProductOffering[] } = {};
     
     offerings.forEach(offering => {
-      // Get the connection type from MongoDB fields
+      // Since subSubCategory doesn't exist in MongoDB, group by connection type from custom attributes
       let connectionType = 'Data/PEOTV & Voice Packages'; // Default category
       
-      // Use subSubCategory from MongoDB structure
-      const subSubCategory = (offering as any).subSubCategory;
-      if (subSubCategory && subSubCategory !== 'Other') {
-        connectionType = subSubCategory;
+      // Try to get connection type from custom attributes
+      const customAttributes = (offering as any).customAttributes || [];
+      const connectionTypeAttr = customAttributes.find((attr: any) =>
+        attr.name.toLowerCase().includes('connection') ||
+        attr.name.toLowerCase().includes('technology') ||
+        attr.name.toLowerCase().includes('type')
+      );
+      
+      if (connectionTypeAttr?.value) {
+        connectionType = connectionTypeAttr.value;
       }
       
       // Map any remaining "Other" categories to "Data/PEOTV & Voice Packages"
@@ -761,15 +767,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                               <span>{category}</span>
                             </div>
                             <span className="text-sm text-gray-600">•</span>
-                            <span className="text-sm text-gray-600">
-                              {(() => {
-                                const broadbandSelections = (offering as any).broadbandSelections || [];
-                                const connectionTypeSelection = broadbandSelections.find((selection: any) => 
-                                  selection.subCategory === 'Connection Type'
-                                );
-                                return connectionTypeSelection ? connectionTypeSelection.subSubCategory : 'Data & Voice';
-                              })()}
-                            </span>
+                                                         <span className="text-sm text-gray-600">
+                               {(() => {
+                                 const customAttributes = (offering as any).customAttributes || [];
+                                 const connectionTypeAttr = customAttributes.find((attr: any) =>
+                                   attr.name.toLowerCase().includes('connection') ||
+                                   attr.name.toLowerCase().includes('technology') ||
+                                   attr.name.toLowerCase().includes('type')
+                                 );
+                                 return connectionTypeAttr?.value || 'Data & Voice';
+                               })()}
+                             </span>
                           </div>
                           
                           {/* Specifications */}
@@ -807,8 +815,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                 {price.period}
                               </div>
                               <div className="text-xs space-y-1 opacity-80">
-                                <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
-                                <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
+                                <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
+                                <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
                               </div>
                             </div>
                           </div>
@@ -941,8 +949,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           {price.period}
                         </div>
                         <div className="text-xs space-y-1 opacity-80">
-                          <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
-                          <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
+                          <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
+                          <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
                         </div>
                       </div>
                     </div>
@@ -1074,10 +1082,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       <div className="text-lg opacity-90 mb-4">
                         {getOfferingPrice(selectedOffering)!.period}
                       </div>
-                      <div className="space-y-2 opacity-80">
-                        <div className="text-sm">Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
-                        <div className="text-sm">Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
-                      </div>
+                                               <div className="space-y-2 opacity-80">
+                           <div className="text-sm">Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
+                           <div className="text-sm">Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
+                         </div>
                     </div>
                   </div>
                 </div>
@@ -1089,15 +1097,15 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <span className="font-medium text-gray-700">Created:</span>
-                    <span className="text-gray-900 ml-2">
-                      {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : '8/8/2025, 11:31:45 AM'}
-                    </span>
+                                         <span className="text-gray-900 ml-2">
+                       {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : 'N/A'}
+                     </span>
                   </div>
                   <div>
                     <span className="font-medium text-gray-700">Last Updated:</span>
-                    <span className="text-gray-900 ml-2">
-                      {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : '8/8/2025, 11:31:45 AM'}
-                    </span>
+                                         <span className="text-gray-900 ml-2">
+                       {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : 'N/A'}
+                     </span>
                   </div>
                 </div>
               </div>

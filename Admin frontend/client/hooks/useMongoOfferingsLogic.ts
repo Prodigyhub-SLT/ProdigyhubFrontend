@@ -166,7 +166,17 @@ export const useMongoOfferingsLogic = () => {
               return 'Other';
             }
           })(),
-          categoryDescription: (offering as any).categoryDescription || '', // Extract category description
+          categoryDescription: (offering as any).categoryDescription || `${(() => {
+            if (typeof (offering as any).category === 'string') {
+              return (offering as any).category;
+            } else if (Array.isArray(offering.category) && offering.category[0]) {
+              return offering.category[0].name || offering.category[0].id || 'Other';
+            } else if (offering.category && typeof offering.category === 'object') {
+              return (offering.category as any).name || (offering.category as any).id || 'Other';
+            } else {
+              return 'Other';
+            }
+          })()} - Other - Other`, // Extract category description or create default
           subCategory: (() => {
             if (typeof (offering as any).subCategory === 'string') {
               return (offering as any).subCategory;
@@ -175,7 +185,7 @@ export const useMongoOfferingsLogic = () => {
             } else if ((offering as any).subCategory && typeof (offering as any).subCategory === 'object') {
               return ((offering as any).subCategory as any).name || ((offering as any).subCategory as any).id || 'Other';
             } else {
-              return undefined;
+              return 'Other'; // Default value instead of undefined
             }
           })(),
           subSubCategory: (() => {
@@ -186,7 +196,7 @@ export const useMongoOfferingsLogic = () => {
             } else if ((offering as any).subSubCategory && typeof (offering as any).subSubCategory === 'object') {
               return ((offering as any).subSubCategory as any).name || ((offering as any).subSubCategory[0] as any).id || 'Other';
             } else {
-              return undefined;
+              return 'Other'; // Default value instead of undefined
             }
           })(),
           broadbandSelections: (offering as any).broadbandSelections || [], // Extract broadband selections
@@ -574,7 +584,7 @@ export const useMongoOfferingsLogic = () => {
         name: formData.name.trim(),
         description: formData.description.trim(),
         category: formData.category,
-        categoryDescription: formData.categoryDescription,
+        categoryDescription: formData.categoryDescription || `${formData.category} - ${formData.subCategory} - ${formData.subSubCategory}`,
         subCategory: formData.subCategory,
         subSubCategory: formData.subSubCategory,
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
@@ -659,6 +669,11 @@ export const useMongoOfferingsLogic = () => {
         pricing: mongoOffering.pricing,
         createdAt: mongoOffering.createdAt,
         broadbandSelections: mongoOffering.broadbandSelections, // Include broadband selections
+        
+        // CRITICAL: Add the three category fields for filtering
+        categoryDescription: mongoOffering.categoryDescription,
+        subCategory: mongoOffering.subCategory,
+        subSubCategory: mongoOffering.subSubCategory,
 
         '@type': 'ProductOffering'
       };
@@ -835,6 +850,12 @@ export const useMongoOfferingsLogic = () => {
         },
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
         hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
+        
+        // CRITICAL: Add the three category fields for filtering
+        categoryDescription: formData.categoryDescription || `${formData.category} - ${formData.subCategory} - ${formData.subSubCategory}`,
+        subCategory: formData.subCategory,
+        subSubCategory: formData.subSubCategory,
+        
         updatedAt: new Date().toISOString(),
         
         '@type': 'ProductOffering'
