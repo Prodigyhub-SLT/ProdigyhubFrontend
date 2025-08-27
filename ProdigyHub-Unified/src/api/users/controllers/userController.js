@@ -1,7 +1,6 @@
 // userController.js - Controller for User Management API
 const { User } = require('../../../models/AllTMFModels');
 const bcrypt = require('bcryptjs');
-const { firebaseAuth } = require('../../../config/firebase-auth');
 
 const userController = {
   // POST /api/users - Create new user
@@ -43,36 +42,21 @@ const userController = {
         });
       }
 
-      // Create Firebase user account
-      const displayName = `${userData.firstName} ${userData.lastName}`;
-      const firebaseResult = await firebaseAuth.createUser(userData.email, userData.password, displayName);
-      
-      if (!firebaseResult.success) {
-        return res.status(400).json({
-          error: 'Firebase Error',
-          message: firebaseResult.error
-        });
-      }
-      
-      const firebaseUser = firebaseResult.user;
-      console.log('🔥 Firebase user created successfully:', firebaseUser.uid);
-
-      // Hash password for MongoDB storage (additional security layer)
-      const saltRounds = 12;
+      // Hash password for security
+      const saltRounds = 12; // Higher number = more secure but slower
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
       console.log('🔐 Password hashed successfully for user:', userData.email);
       
-      // Create new user in MongoDB
+      // Create new user with basic info
       const newUser = new User({
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         phoneNumber: userData.phoneNumber,
-        password: hashedPassword, // ✅ Stored as hashed password
-        userId: firebaseUser.uid, // Firebase UID
+        password: hashedPassword, // ✅ Now stored as hashed password
+        userId: userData.userId || null, // Firebase UID if available
         userEmail: userData.email,
-        status: 'unverified', // Start as unverified (Firebase will handle verification)
-        isEmailVerified: false,
+        status: 'active', // Start as active (no email verification required)
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -295,7 +279,7 @@ const userController = {
     }
   },
 
-  // POST /api/users/login - User login with Firebase authentication
+  // POST /api/users/login - User login with password verification
   loginUser: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -307,43 +291,30 @@ const userController = {
         });
       }
 
-      // Authenticate with Firebase
-      const firebaseResult = await firebaseAuth.signInUser(email, password);
-      
-      if (!firebaseResult.success) {
-        if (firebaseResult.needsVerification) {
-          return res.status(403).json({
-            error: 'Email Not Verified',
-            message: 'Please verify your email address before logging in. Check your inbox for the verification email.',
-            needsVerification: true
-          });
-        }
-        
+      // Find user by email
+      const user = await User.findOne({ email });
+      if (!user) {
         return res.status(401).json({
           error: 'Authentication Failed',
-          message: firebaseResult.error
+          message: 'Invalid email or password'
         });
       }
 
-      const firebaseUser = firebaseResult.user;
-      
-      // Find user in MongoDB
-      const mongoUser = await User.findOne({ email });
-      if (!mongoUser) {
-        return res.status(404).json({
-          error: 'User Not Found',
-          message: 'User account not found in database'
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          error: 'Authentication Failed',
+          message: 'Invalid email or password'
         });
       }
 
       // Update last login
-      mongoUser.lastLogin = new Date();
-      mongoUser.isEmailVerified = firebaseUser.emailVerified;
-      mongoUser.status = firebaseUser.emailVerified ? 'active' : 'unverified';
-      await mongoUser.save();
+      user.lastLogin = new Date();
+      await user.save();
 
       // Return user data (without password)
-      const userResponse = mongoUser.toObject();
+      const userResponse = user.toObject();
       delete userResponse.password;
       delete userResponse._id;
       delete userResponse.__v;
@@ -398,58 +369,22 @@ const userController = {
     }
   },
 
-  // GET /api/users/verify-email/:token - Firebase handles email verification automatically
+  // GET /api/users/verify-email/:token - Verify email with token
   verifyEmail: async (req, res) => {
     res.status(200).json({
-      message: 'Firebase handles email verification automatically',
-      note: 'Users should click the verification link in their email, which will be handled by Firebase directly.',
-      instructions: 'Check your email inbox and click the verification link to verify your account.'
+      message: 'Email verification endpoint',
+      note: 'This endpoint is available but email verification is not currently implemented.',
+      instructions: 'Users can sign up and login without email verification for now.'
     });
   },
 
-  // POST /api/users/resend-verification - Resend verification email via Firebase
+  // POST /api/users/resend-verification - Resend verification email
   resendVerification: async (req, res) => {
-    try {
-      const { email } = req.body;
-      
-      if (!email) {
-        return res.status(400).json({
-          error: 'Validation Error',
-          message: 'Email is required'
-        });
-      }
-
-      // Find user by email
-      const mongoUser = await User.findOne({ email });
-      if (!mongoUser) {
-        return res.status(404).json({
-          error: 'Not Found',
-          message: 'User not found'
-        });
-      }
-
-      // Check if email is already verified
-      if (mongoUser.isEmailVerified) {
-        return res.status(200).json({
-          message: 'Email is already verified'
-        });
-      }
-
-      // Get Firebase user to resend verification
-      // Note: This requires the user to be signed in or we need to implement a different approach
-      // For now, we'll return a message directing them to the frontend
-      res.status(200).json({
-        message: 'Please use the resend verification option in the frontend application',
-        note: 'Firebase handles email verification automatically. Use the frontend to resend verification emails.'
-      });
-
-    } catch (error) {
-      console.error('Error in resendVerification:', error);
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: error.message
-      });
-    }
+    res.status(200).json({
+      message: 'Resend verification endpoint',
+      note: 'Email verification is not currently implemented.',
+      instructions: 'Users can sign up and login without email verification for now.'
+    });
   },
 
   // POST /api/users/hash-existing-passwords - Hash all existing plain text passwords (one-time use)

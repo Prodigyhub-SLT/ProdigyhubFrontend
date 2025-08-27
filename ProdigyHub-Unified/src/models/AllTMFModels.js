@@ -400,12 +400,7 @@ const UserSchema = new mongoose.Schema({
     }
   },
   areaData: mongoose.Schema.Types.Mixed, // Reference to area data if found
-  
-  // Email verification status (Firebase handles verification)
-  isEmailVerified: { type: Boolean, default: false },
-  emailVerificationDate: Date,
-  
-  status: { type: String, enum: ['active', 'inactive', 'pending', 'unverified'], default: 'unverified' },
+  status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   '@type': { type: String, default: 'User' }
