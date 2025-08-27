@@ -139,61 +139,61 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
       console.log('🔍 Applying broadband filters to:', filtered.length, 'offerings');
       
-      // Filter by Connection Type (from customAttributes)
+      // Filter by Connection Type (from categoryDescription)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
-          const connectionType = extractValueFromCustomAttributes(offering, 'Connection Type');
+          const categoryDescription = (offering as any).categoryDescription || '';
           let matches = false;
           
           if (broadbandFilters.connectionType === 'Data/PEOTV & Voice Packages') {
-            matches = connectionType === 'Fibre' || connectionType === 'Fiber';
+            matches = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
           } else if (broadbandFilters.connectionType === 'Data Packages') {
-            matches = connectionType === '4G' || connectionType === 'ADSL';
+            matches = categoryDescription.includes('4G') || categoryDescription.includes('ADSL');
           } else if (broadbandFilters.connectionType === 'Data & Voice') {
-            matches = connectionType === 'Fibre' || connectionType === 'Fiber';
+            matches = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
           }
           
           if (!matches) {
-            console.log('❌ Connection type filter failed for:', offering.name, 'Expected:', broadbandFilters.connectionType, 'Got:', connectionType);
+            console.log('❌ Connection type filter failed for:', offering.name, 'Expected:', broadbandFilters.connectionType, 'Got:', categoryDescription);
           }
           return matches;
         });
         console.log('🔍 After connection type filter:', filtered.length);
       }
 
-      // Filter by Package Usage Type (from customAttributes)
+      // Filter by Package Usage Type (from categoryDescription)
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const packageUsageType = extractValueFromCustomAttributes(offering, 'Package Type');
+          const categoryDescription = (offering as any).categoryDescription || '';
           let matches = false;
           
           if (broadbandFilters.packageUsageType === 'Any Time') {
-            matches = packageUsageType === 'Anytime' || packageUsageType === 'Anytime Data';
+            matches = categoryDescription.includes('Any Time') || categoryDescription.includes('Anytime');
           } else if (broadbandFilters.packageUsageType === 'Time Based') {
-            matches = packageUsageType === 'Time Based';
+            matches = categoryDescription.includes('Time Based');
           } else if (broadbandFilters.packageUsageType === 'Unlimited') {
-            matches = packageUsageType === 'Unlimited';
+            matches = categoryDescription.includes('Unlimited');
           }
           
           return matches;
         });
       }
 
-      // Filter by Package Type (from customAttributes - Connection Type field)
+      // Filter by Package Type (from categoryDescription)
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const connectionType = extractValueFromCustomAttributes(offering, 'Connection Type');
-          return connectionType === broadbandFilters.packageType;
+          const categoryDescription = (offering as any).categoryDescription || '';
+          return categoryDescription.includes(broadbandFilters.packageType);
         });
       }
 
-      // Filter by Data Bundle (from customAttributes)
+      // Filter by Data Bundle (from categoryDescription)
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
-          const dataAllowance = extractValueFromCustomAttributes(offering, 'Data Allowance');
+          const categoryDescription = (offering as any).categoryDescription || '';
           // Convert "40 GB" to "40GB" for matching
-          const normalizedDataAllowance = dataAllowance.replace(' ', '');
-          return normalizedDataAllowance === broadbandFilters.dataBundle;
+          const normalizedDataBundle = broadbandFilters.dataBundle.replace(' ', '');
+          return categoryDescription.includes(normalizedDataBundle);
         });
       }
     }
@@ -253,37 +253,30 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     return 'Other';
   };
 
-  const extractValueFromCustomAttributes = (offering: ProductOffering, attributeName: string): string => {
-    if (!(offering as any).customAttributes) return '';
-    
-    // EXACT name matching to prevent conflicts between different attributes
-    const attr = (offering as any).customAttributes.find((attr: any) => 
-      attr.name === attributeName
-    );
-    
-    return attr ? attr.value : '';
-  };
 
-  const extractValueFromProductSpec = (offering: ProductOffering, specName: string): string => {
-    if (!(offering as any).productSpecification?.productSpecCharacteristic) return '';
-    
-    const spec = (offering as any).productSpecification.productSpecCharacteristic.find((spec: any) => 
-      spec.name && spec.name.toLowerCase() === specName.toLowerCase()
-    );
-    
-    if (spec && spec.productSpecCharacteristicValue && spec.productSpecCharacteristicValue.length > 0) {
-      return spec.productSpecCharacteristicValue[0].value || '';
-    }
-    
-    return '';
-  };
+
+
 
   const getOfferingSpecs = (offering: ProductOffering) => {
-    // Extract values from customAttributes using EXACT names to prevent conflicts
-    const connectionType = extractValueFromCustomAttributes(offering, 'Connection Type') || 'N/A';
-    const packageType = extractValueFromCustomAttributes(offering, 'Package Type') || 'N/A';
-    const internetSpeed = extractValueFromCustomAttributes(offering, 'Internet Speed') || 'N/A';
-    const dataAllowance = extractValueFromCustomAttributes(offering, 'Data Allowance') || 'N/A';
+    // Extract values from categoryDescription for display
+    const categoryDescription = (offering as any).categoryDescription || '';
+    
+    // Parse the categoryDescription to extract values
+    const connectionType = categoryDescription.includes('Fiber') ? 'Fiber' : 
+                          categoryDescription.includes('4G') ? '4G' : 
+                          categoryDescription.includes('ADSL') ? 'ADSL' : 'N/A';
+    
+    const packageType = categoryDescription.includes('Any Time') ? 'Any Time' : 
+                       categoryDescription.includes('Time Based') ? 'Time Based' : 
+                       categoryDescription.includes('Unlimited') ? 'Unlimited' : 'N/A';
+    
+    const internetSpeed = categoryDescription.includes('100 Mbps') ? '100 Mbps' : 
+                         categoryDescription.includes('200 Mbps') ? '200 Mbps' : 
+                         categoryDescription.includes('500 Mbps') ? '500 Mbps' : 'N/A';
+    
+    const dataAllowance = categoryDescription.includes('40GB') ? '40GB' : 
+                         categoryDescription.includes('50GB') ? '50GB' : 
+                         categoryDescription.includes('Unlimited') ? 'Unlimited' : 'N/A';
 
     return {
       connectionType,
