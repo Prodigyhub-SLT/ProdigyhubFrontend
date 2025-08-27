@@ -540,38 +540,38 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               const specs = getOfferingSpecs(offering);
               
               return (
-                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
-                   {/* Top Header - Dark Blue */}
-                   <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
-                     <div className="flex items-center justify-between mb-2">
-                       <h3 className="text-xl font-bold">{offering.name}</h3>
-                       <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
-                         ACTIVE
-                       </Badge>
-                     </div>
-                     <p className="text-sm text-blue-100 opacity-90">
-                       {offering.description || 'No description available'}
-                     </p>
-                   </div>
+                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-sm">
+                                       {/* Top Header - Dark Blue */}
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-bold">{offering.name}</h3>
+                        <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
+                          ACTIVE
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-blue-100 opacity-90">
+                        {offering.description || 'No description available'}
+                      </p>
+                    </div>
 
-                   {/* Middle Section - White Background */}
-                   <div className="p-4 bg-white">
-                     {/* Main Category Badge */}
-                     <div className="mb-4">
-                       <Badge 
-                         variant="outline" 
-                         className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-3 py-1 rounded-full shadow-sm"
-                       >
-                         {getOfferingCategory(offering).toUpperCase()}
-                       </Badge>
-                     </div>
+                                       {/* Middle Section - White Background */}
+                    <div className="p-3 bg-white">
+                      {/* Main Category Badge */}
+                      <div className="mb-3">
+                        <Badge 
+                          variant="outline" 
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm"
+                        >
+                          {getOfferingCategory(offering).toUpperCase()}
+                        </Badge>
+                      </div>
 
-                     {/* Key Specifications */}
-                     <div className="space-y-3 mb-4">
-                       <div className="bg-gray-50 p-3 rounded-lg">
-                         <div className="text-sm text-gray-600 mb-1">Connection Type</div>
-                         <div className="text-lg font-bold text-gray-900">{specs.connectionType}</div>
-                       </div>
+                                           {/* Key Specifications */}
+                      <div className="space-y-2 mb-3">
+                        <div className="bg-gray-50 p-2 rounded-lg">
+                          <div className="text-xs text-gray-600 mb-1">Connection Type</div>
+                          <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                        </div>
                        
                                                <div className="flex justify-between items-center py-2 border-b border-gray-100">
                           <span className="text-sm font-medium text-gray-600">Package Type</span>
@@ -607,20 +607,20 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                      )}
                    </div>
 
-                   {/* Bottom Section - Dark Blue Footer */}
-                   <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
-                     <div className="text-center mb-3">
-                       <div className="text-sm text-blue-100 mb-1">Monthly Rental</div>
-                       <div className="text-3xl font-bold">
-                         {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
-                       </div>
-                     </div>
+                                       {/* Bottom Section - Dark Blue Footer */}
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                      <div className="text-center mb-2">
+                        <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
+                        <div className="text-2xl font-bold">
+                          {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                        </div>
+                      </div>
                      
                                             <Button 
                          variant="ghost" 
                          size="sm" 
                          onClick={() => handleViewSpec(offering)}
-                         className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20"
+                         className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                        >
                          Connection Speed & Terms &gt;
                        </Button>
