@@ -142,8 +142,18 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       // Filter by Connection Type (from productSpecification)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
+          // Extract from productSpecification and map to filter values
           const connectionType = extractValueFromProductSpec(offering, 'Connection Type');
-          const matches = connectionType === broadbandFilters.connectionType;
+          let matches = false;
+          
+          if (broadbandFilters.connectionType === 'Data/PEOTV & Voice Packages') {
+            matches = connectionType === 'Fibre' || connectionType === 'Fiber';
+          } else if (broadbandFilters.connectionType === 'Data Packages') {
+            matches = connectionType === '4G' || connectionType === 'ADSL';
+          } else if (broadbandFilters.connectionType === 'Data & Voice') {
+            matches = connectionType === 'Fibre' || connectionType === 'Fiber';
+          }
+          
           if (!matches) {
             console.log('❌ Connection type filter failed for:', offering.name, 'Expected:', broadbandFilters.connectionType, 'Got:', connectionType);
           }
@@ -156,7 +166,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
           const packageUsageType = extractValueFromProductSpec(offering, 'Package Type');
-          return packageUsageType === broadbandFilters.packageUsageType;
+          let matches = false;
+          
+          if (broadbandFilters.packageUsageType === 'Any Time') {
+            matches = packageUsageType === 'Anytime Data';
+          } else if (broadbandFilters.packageUsageType === 'Time Based') {
+            matches = packageUsageType === 'Time Based';
+          } else if (broadbandFilters.packageUsageType === 'Unlimited') {
+            matches = packageUsageType === 'Unlimited';
+          }
+          
+          return matches;
         });
       }
 
@@ -172,7 +192,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
           const dataAllowance = extractValueFromCustomAttributes(offering, 'Data Allowance');
-          return dataAllowance === broadbandFilters.dataBundle;
+          // Convert "40 GB" to "40GB" for matching
+          const normalizedDataAllowance = dataAllowance.replace(' ', '');
+          return normalizedDataAllowance === broadbandFilters.dataBundle;
         });
       }
     }
@@ -421,9 +443,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Connection Types</SelectItem>
-                  <SelectItem value="Fibre">Fibre</SelectItem>
-                  <SelectItem value="4G">4G</SelectItem>
-                  <SelectItem value="ADSL">ADSL</SelectItem>
+                  <SelectItem value="Data/PEOTV & Voice Packages">Data/PEOTV & Voice Packages</SelectItem>
+                  <SelectItem value="Data Packages">Data Packages</SelectItem>
+                  <SelectItem value="Data & Voice">Data & Voice</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -437,7 +459,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Usage Types</SelectItem>
-                  <SelectItem value="Anytime Data">Anytime Data</SelectItem>
+                  <SelectItem value="Any Time">Any Time</SelectItem>
                   <SelectItem value="Time Based">Time Based</SelectItem>
                   <SelectItem value="Unlimited">Unlimited</SelectItem>
                 </SelectContent>
@@ -469,13 +491,13 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Data Bundles</SelectItem>
-                  <SelectItem value="40 GB">40 GB</SelectItem>
-                  <SelectItem value="50 GB">50 GB</SelectItem>
-                  <SelectItem value="85 GB">85 GB</SelectItem>
-                  <SelectItem value="100 GB">100 GB</SelectItem>
-                  <SelectItem value="115 GB">115 GB</SelectItem>
-                  <SelectItem value="200 GB">200 GB</SelectItem>
-                  <SelectItem value="400 GB">400 GB</SelectItem>
+                  <SelectItem value="40GB">40GB</SelectItem>
+                  <SelectItem value="50GB">50GB</SelectItem>
+                  <SelectItem value="85GB">85GB</SelectItem>
+                  <SelectItem value="100GB">100GB</SelectItem>
+                  <SelectItem value="115GB">115GB</SelectItem>
+                  <SelectItem value="200GB">200GB</SelectItem>
+                  <SelectItem value="400GB">400GB</SelectItem>
                 </SelectContent>
               </Select>
 
