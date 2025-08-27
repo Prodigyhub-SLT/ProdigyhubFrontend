@@ -603,36 +603,6 @@ export default function CreateOrder() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate required fields
-    if (!formData.description?.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Description is required",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!formData.category?.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Category is required",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Check if any product items don't have valid offerings selected
-    const invalidItems = formData.productOrderItem.filter(item => !item.productOffering?.id || !item.productOffering?.name);
-    if (invalidItems.length > 0) {
-      toast({
-        title: "Validation Error", 
-        description: `${invalidItems.length} product item(s) don't have valid product offerings selected. Please select offerings for all items.`,
-        variant: "destructive"
-      });
-      return;
-    }
 
     if (initializingIdGenerator) {
       toast({
