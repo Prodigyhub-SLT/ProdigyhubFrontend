@@ -400,7 +400,14 @@ const UserSchema = new mongoose.Schema({
     }
   },
   areaData: mongoose.Schema.Types.Mixed, // Reference to area data if found
-  status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },
+  
+  // Email verification fields
+  isEmailVerified: { type: Boolean, default: false },
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+  emailVerificationDate: Date,
+  
+  status: { type: String, enum: ['active', 'inactive', 'pending', 'unverified'], default: 'unverified' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   '@type': { type: String, default: 'User' }

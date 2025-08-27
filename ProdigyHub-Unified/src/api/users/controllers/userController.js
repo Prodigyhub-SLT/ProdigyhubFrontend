@@ -1,6 +1,8 @@
 // userController.js - Controller for User Management API
 const { User } = require('../../../models/AllTMFModels');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { sendEmail } = require('../../../config/email');
 
 const userController = {
   // POST /api/users - Create new user
@@ -47,6 +49,13 @@ const userController = {
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
       console.log('🔐 Password hashed successfully for user:', userData.email);
 
+      // Generate email verification token
+      const verificationToken = jwt.sign(
+        { email: userData.email, type: 'email-verification' },
+        process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+        { expiresIn: '24h' }
+      );
+      
       // Create new user with basic info
       const newUser = new User({
         firstName: userData.firstName,
@@ -56,18 +65,37 @@ const userController = {
         password: hashedPassword, // ✅ Now stored as hashed password
         userId: userData.userId || null, // Firebase UID if available
         userEmail: userData.email,
-        status: 'active',
+        status: 'unverified', // Start as unverified
+        isEmailVerified: false,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         createdAt: new Date(),
         updatedAt: new Date()
       });
 
       const savedUser = await newUser.save();
       
+      // Send verification email
+      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+      
+      const emailResult = await sendEmail(userData.email, 'verification', {
+        userName: `${userData.firstName} ${userData.lastName}`,
+        verificationLink: verificationLink
+      });
+      
+      if (emailResult.success) {
+        console.log('📧 Verification email sent successfully to:', userData.email);
+      } else {
+        console.warn('⚠️ Failed to send verification email:', emailResult.error);
+      }
+      
       // Remove sensitive data from response
       const response = savedUser.toObject();
       delete response._id;
       delete response.password; // Don't send password back
       delete response.__v;
+      delete response.emailVerificationToken;
+      delete response.emailVerificationExpires;
 
       res.status(201).json({
         message: 'User created successfully',
@@ -297,6 +325,15 @@ const userController = {
         });
       }
 
+      // Check if email is verified
+      if (!user.isEmailVerified) {
+        return res.status(403).json({
+          error: 'Email Not Verified',
+          message: 'Please verify your email address before logging in. Check your inbox for the verification email.',
+          needsVerification: true
+        });
+      }
+
       // Verify password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
@@ -359,6 +396,182 @@ const userController = {
       });
     } catch (error) {
       console.error('Error in verifyPassword:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
+  // GET /api/users/verify-email/:token - Verify email with token
+  verifyEmail: async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      if (!token) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Verification token is required'
+        });
+      }
+
+      // Verify the JWT token
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
+      } catch (jwtError) {
+        return res.status(400).json({
+          error: 'Invalid Token',
+          message: 'Verification token is invalid or expired'
+        });
+      }
+
+      // Check if token is for email verification
+      if (decoded.type !== 'email-verification') {
+        return res.status(400).json({
+          error: 'Invalid Token',
+          message: 'Invalid verification token type'
+        });
+      }
+
+      // Find user by email
+      const user = await User.findOne({ email: decoded.email });
+      if (!user) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'User not found'
+        });
+      }
+
+      // Check if email is already verified
+      if (user.isEmailVerified) {
+        return res.status(200).json({
+          message: 'Email already verified',
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            isEmailVerified: user.isEmailVerified
+          }
+        });
+      }
+
+      // Check if token has expired
+      if (user.emailVerificationExpires < new Date()) {
+        return res.status(400).json({
+          error: 'Token Expired',
+          message: 'Verification token has expired. Please request a new one.'
+        });
+      }
+
+      // Verify email
+      user.isEmailVerified = true;
+      user.status = 'active';
+      user.emailVerificationDate = new Date();
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      user.updatedAt = new Date();
+
+      await user.save();
+
+      // Send welcome email
+      try {
+        await sendEmail(user.email, 'welcome', {
+          userName: `${user.firstName} ${user.lastName}`
+        });
+        console.log('📧 Welcome email sent successfully to:', user.email);
+      } catch (emailError) {
+        console.warn('⚠️ Failed to send welcome email:', emailError.message);
+      }
+
+      // Return success response
+      const userResponse = user.toObject();
+      delete userResponse.password;
+      delete userResponse._id;
+      delete userResponse.__v;
+      delete userResponse.emailVerificationToken;
+      delete userResponse.emailVerificationExpires;
+
+      res.status(200).json({
+        message: 'Email verified successfully! Welcome to SLT Prodigy Hub!',
+        user: userResponse
+      });
+
+    } catch (error) {
+      console.error('Error in verifyEmail:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
+  // POST /api/users/resend-verification - Resend verification email
+  resendVerification: async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Email is required'
+        });
+      }
+
+      // Find user by email
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'User not found'
+        });
+      }
+
+      // Check if email is already verified
+      if (user.isEmailVerified) {
+        return res.status(200).json({
+          message: 'Email is already verified'
+        });
+      }
+
+      // Generate new verification token
+      const verificationToken = jwt.sign(
+        { email: user.email, type: 'email-verification' },
+        process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+        { expiresIn: '24h' }
+      );
+
+      // Update user with new token
+      user.emailVerificationToken = verificationToken;
+      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      user.updatedAt = new Date();
+
+      await user.save();
+
+      // Send new verification email
+      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+      
+      const emailResult = await sendEmail(user.email, 'verification', {
+        userName: `${user.firstName} ${user.lastName}`,
+        verificationLink: verificationLink
+      });
+
+      if (emailResult.success) {
+        console.log('📧 Verification email resent successfully to:', user.email);
+        res.status(200).json({
+          message: 'Verification email sent successfully'
+        });
+      } else {
+        console.error('❌ Failed to resend verification email:', emailResult.error);
+        res.status(500).json({
+          error: 'Email Sending Failed',
+          message: 'Failed to send verification email. Please try again later.'
+        });
+      }
+
+    } catch (error) {
+      console.error('Error in resendVerification:', error);
       res.status(500).json({
         error: 'Internal Server Error',
         message: error.message

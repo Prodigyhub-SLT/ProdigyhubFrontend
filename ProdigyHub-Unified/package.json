@@ -9,6 +9,7 @@
     "vercel-build": "echo 'Backend build completed'",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test-security": "node test-password-hashing.js",
+    "test-email": "node test-email-verification.js",
     "hash-passwords": "node -e \"require('./test-password-hashing.js').hashExistingPasswords()\""
   },
   "keywords": [
@@ -49,6 +50,7 @@
     "mongoose": "^8.16.4",
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^7.0.5",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },

@@ -19,6 +19,11 @@ router.post('/signup', userController.createUser);
 // User authentication routes
 router.post('/login', userController.loginUser);
 router.post('/verify-password', userController.verifyPassword);
+
+// Email verification routes
+router.get('/verify-email/:token', userController.verifyEmail);
+router.post('/resend-verification', userController.resendVerification);
+
 router.post('/hash-existing-passwords', userController.hashExistingPasswords); // One-time use to hash existing passwords
 
 // User CRUD operations
