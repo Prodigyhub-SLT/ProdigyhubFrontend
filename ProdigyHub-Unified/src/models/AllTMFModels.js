@@ -367,13 +367,14 @@ const UserSchema = new mongoose.Schema({
   userEmail: String, // Firebase email
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   phoneNumber: { type: String, required: true },
+  password: { type: String, required: true }, // Added password field
   address: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    district: { type: String, required: true },
-    province: { type: String, required: true },
+    street: String, // Made optional for basic signup
+    city: String,   // Made optional for basic signup
+    district: String, // Made optional for basic signup
+    province: String, // Made optional for basic signup
     postalCode: String
   },
   infrastructureCheck: {

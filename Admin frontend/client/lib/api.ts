@@ -54,6 +54,21 @@ class ApiClient {
     return queryString ? `?${queryString}` : '';
   }
 
+  // User Management
+  async signupUser(userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+    userId?: string; // Firebase UID if available
+  }): Promise<{ message: string; user: any }> {
+    return this.request('/users/signup', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     

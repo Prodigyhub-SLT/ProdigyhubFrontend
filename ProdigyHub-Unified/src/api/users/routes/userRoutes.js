@@ -4,14 +4,17 @@ const userController = require('../controllers/userController');
 
 const router = express.Router();
 
-// Test endpoint to verify the API is working
-router.get('/test', (req, res) => {
-  res.json({ 
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'success',
     message: 'User API is working!',
-    timestamp: new Date().toISOString(),
-    status: 'success'
+    timestamp: new Date().toISOString()
   });
 });
+
+// User signup route (no authentication required)
+router.post('/signup', userController.createUser);
 
 // User CRUD operations
 router.post('/', userController.createUser);

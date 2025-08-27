@@ -289,6 +289,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await dbOperations.createUserProfile(userProfile);
       
+      // Also save user data to MongoDB backend
+      try {
+        // Use the backend URL - adjust this to match your MongoDB backend
+        const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(`${backendURL}/users/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phoneNumber: phone,
+            password: password, // Note: In production, consider if you want to store this
+            userId: firebaseUser.uid
+          }),
+        });
+        
+        if (response.ok) {
+          console.log('✅ User data saved to MongoDB successfully');
+        } else {
+          console.warn('⚠️ MongoDB save failed:', await response.text());
+        }
+      } catch (mongoError: any) {
+        console.warn('⚠️ Failed to save user data to MongoDB:', mongoError);
+        // Don't fail the signup if MongoDB save fails
+        // User is still created in Firebase
+      }
+      
       // Create user data for context
       const userData: User = {
         id: firebaseUser.uid,
