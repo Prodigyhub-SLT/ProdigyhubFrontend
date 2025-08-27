@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -25,22 +25,50 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [emailValidation, setEmailValidation] = useState({
+    isValid: false,
+    isTouched: false,
+    message: ''
+  });
   
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signUp, loginWithGoogle } = useAuth();
+
+  // Email validation function
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      return { isValid: false, message: 'Email is required' };
+    }
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: 'Please enter a valid email address' };
+    }
+    return { isValid: true, message: 'Email looks good!' };
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    // Real-time email validation
+    if (field === 'email') {
+      const validation = validateEmail(value);
+      setEmailValidation({
+        isValid: validation.isValid,
+        isTouched: true,
+        message: validation.message
+      });
+    }
   };
 
   const validateForm = () => {
     if (!formData.firstName.trim()) { setError('First name is required'); return false; }
     if (!formData.lastName.trim()) { setError('Last name is required'); return false; }
     if (!formData.email.trim()) { setError('Email address is required'); return false; }
+    if (!emailValidation.isValid) { setError('Please enter a valid email address'); return false; }
     if (!formData.phone.trim()) { setError('Phone number is required'); return false; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters long'); return false; }
     if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return false; }
@@ -131,7 +159,43 @@ export default function SignUp() {
               <div className="space-y-2"><Label htmlFor="firstName" className="text-gray-700 text-sm">First Name *</Label><Input id="firstName" type="text" placeholder="First name" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
               <div className="space-y-2"><Label htmlFor="lastName" className="text-gray-700 text-sm">Last Name *</Label><Input id="lastName" type="text" placeholder="Last name" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
             </div>
-            <div className="space-y-2"><Label htmlFor="email" className="text-gray-700 text-sm">Email Address *</Label><Input id="email" type="email" placeholder="your.email@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
+                        <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700 text-sm">Email Address *</Label>
+              <div className="relative">
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="your.email@example.com" 
+                  value={formData.email} 
+                  onChange={(e) => handleInputChange('email', e.target.value)} 
+                  required 
+                  disabled={isLoading} 
+                  className={`border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:ring-blue-500 ${
+                    emailValidation.isTouched 
+                      ? emailValidation.isValid 
+                        ? 'focus:border-green-500 border-green-500' 
+                        : 'focus:border-red-500 border-red-500' 
+                      : 'focus:border-blue-500'
+                  }`}
+                />
+                {emailValidation.isTouched && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    {emailValidation.isValid ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
+              {emailValidation.isTouched && (
+                <p className={`text-xs ${
+                  emailValidation.isValid ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {emailValidation.message}
+                </p>
+              )}
+            </div>
             <div className="space-y-2"><Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label><Input id="phone" type="tel" placeholder="Phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
             <div className="space-y-2"><Label htmlFor="password" className="text-gray-700 text-sm">Password *</Label><div className="relative"><Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:border-blue-500 focus:ring-blue-500" /><Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500" onClick={() => setShowPassword(!showPassword)} disabled={isLoading}>{showPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}</Button></div></div>
             <div className="space-y-2"><Label htmlFor="confirmPassword" className="text-gray-700 text-sm">Confirm Password *</Label><div className="relative"><Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm your password" value={formData.confirmPassword} onChange={(e) => handleInputChange('confirmPassword', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:border-blue-500 focus:ring-blue-500" /><Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500" onClick={() => setShowConfirmPassword(!showConfirmPassword)} disabled={isLoading}>{showConfirmPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}</Button></div></div>
