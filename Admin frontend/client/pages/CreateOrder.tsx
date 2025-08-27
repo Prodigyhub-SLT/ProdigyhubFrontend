@@ -602,6 +602,11 @@ export default function CreateOrder() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚨 FORM SUBMISSION TRIGGERED!', e);
+    console.log('🚨 Event type:', e.type);
+    console.log('🚨 Current form data:', formData);
+    console.log('🚨 Stack trace:', new Error().stack);
+    
     e.preventDefault();
 
     if (initializingIdGenerator) {
