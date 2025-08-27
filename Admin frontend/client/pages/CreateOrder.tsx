@@ -254,20 +254,24 @@ export default function CreateOrder() {
       
       // Filter by sub-categories if selected
       if (selectedHierarchicalCategory?.subCategories && selectedHierarchicalCategory.subCategories.length > 0) {
-        console.log('🔍 Starting sub-category filtering using Public Offerings logic...');
+        console.log('🔍 Starting sub-category filtering using offering names and descriptions...');
         console.log('📋 Selected sub-categories:', selectedHierarchicalCategory.subCategories);
         
-        // Debug: Log a few sample offerings to see their structure
+        // Debug: Log a few sample offerings to see their actual structure
         console.log('🔍 Sample offering structure:', categoryOfferings.slice(0, 2).map(offering => ({
           name: offering.name,
+          description: offering.description,
           categoryDescription: (offering as any).categoryDescription || '',
           customAttributes: (offering as any).customAttributes || [],
           productSpecification: (offering as any).productSpecification
         })));
         
         categoryOfferings = categoryOfferings.filter(offering => {
-          const categoryDescription = (offering as any).categoryDescription || '';
-          console.log(`🔍 Checking offering "${offering.name}" with categoryDescription: "${categoryDescription}"`);
+          const offeringName = offering.name || '';
+          const offeringDescription = offering.description || '';
+          const offeringCustomAttributes = (offering as any).customAttributes || [];
+          
+          console.log(`🔍 Checking offering "${offeringName}" with description: "${offeringDescription}"`);
           
           // Check each selected sub-category using the same logic as Public Offerings
           return selectedHierarchicalCategory.subCategories.every(selectedSub => {
@@ -284,17 +288,17 @@ export default function CreateOrder() {
                 
                 if (subSubCategoryName === 'Data Packages') {
                   // Check for 4G, ADSL, or explicit "Data Packages" but NOT PEOTV
-                  const isTechData = categoryDescription.includes('4G') || categoryDescription.includes('ADSL');
-                  const isExplicitDataPackages = categoryDescription.includes('Data Packages');
-                  hasSubCategory = (isExplicitDataPackages || isTechData) && !categoryDescription.includes('PEOTV');
+                  const isTechData = offeringName.includes('4G') || offeringName.includes('ADSL') || offeringName.includes('LTE');
+                  const isExplicitDataPackages = offeringName.includes('Data Packages') || offeringDescription.includes('Data Packages');
+                  hasSubCategory = (isExplicitDataPackages || isTechData) && !offeringName.includes('PEOTV') && !offeringDescription.includes('PEOTV');
                 } else if (subSubCategoryName === 'Data/PEOTV & Voice Packages') {
                   // Only match if it contains "PEOTV"
-                  hasSubCategory = categoryDescription.includes('PEOTV');
+                  hasSubCategory = offeringName.includes('PEOTV') || offeringDescription.includes('PEOTV');
                 } else if (subSubCategoryName === 'Data & Voice') {
                   // Must be Fiber but NOT PEOTV and NOT explicitly Data Packages
-                  const isFiber = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
-                  const isDataPackages = categoryDescription.includes('Data Packages');
-                  hasSubCategory = isFiber && !categoryDescription.includes('PEOTV') && !isDataPackages;
+                  const isFiber = offeringName.includes('Fiber') || offeringName.includes('Fibre') || offeringName.includes('Fibre');
+                  const isDataPackages = offeringName.includes('Data Packages') || offeringDescription.includes('Data Packages');
+                  hasSubCategory = isFiber && !offeringName.includes('PEOTV') && !offeringDescription.includes('PEOTV') && !isDataPackages;
                 }
               }
             } else if (subCategoryName === 'Package Usage Type') {
@@ -303,18 +307,28 @@ export default function CreateOrder() {
                 const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
                 
                 if (subSubCategoryName === 'Any Time') {
-                  hasSubCategory = categoryDescription.includes('Any Time') || categoryDescription.includes('Anytime');
+                  hasSubCategory = offeringName.includes('Any Time') || offeringName.includes('Anytime') || offeringName.includes('HBB Anytime');
                 } else if (subSubCategoryName === 'Time Based') {
-                  hasSubCategory = categoryDescription.includes('Time Based');
+                  hasSubCategory = offeringName.includes('Time Based') || offeringDescription.includes('Time Based');
                 } else if (subSubCategoryName === 'Unlimited') {
-                  hasSubCategory = categoryDescription.includes('Unlimited');
+                  hasSubCategory = offeringName.includes('Unlimited') || offeringDescription.includes('Unlimited');
                 }
               }
             } else if (subCategoryName === 'Package Type') {
               // Use the same logic as Public Offerings for Package Type
               if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
                 const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
-                hasSubCategory = categoryDescription.includes(subSubCategoryName);
+                
+                if (subSubCategoryName === '4G') {
+                  hasSubCategory = offeringName.includes('4G') || offeringName.includes('LTE');
+                } else if (subSubCategoryName === 'ADSL') {
+                  hasSubCategory = offeringName.includes('ADSL');
+                } else if (subSubCategoryName === 'Fiber') {
+                  hasSubCategory = offeringName.includes('Fiber') || offeringName.includes('Fibre');
+                } else {
+                  // Generic matching for other package types
+                  hasSubCategory = offeringName.includes(subSubCategoryName) || offeringDescription.includes(subSubCategoryName);
+                }
               }
             }
             
