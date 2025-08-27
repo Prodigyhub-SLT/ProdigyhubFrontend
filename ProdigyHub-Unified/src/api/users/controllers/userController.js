@@ -1,8 +1,7 @@
 // userController.js - Controller for User Management API
 const { User } = require('../../../models/AllTMFModels');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../../../config/email');
+const { firebaseAuth } = require('../../../config/firebase-auth');
 
 const userController = {
   // POST /api/users - Create new user
@@ -44,58 +43,50 @@ const userController = {
         });
       }
 
-      // Hash password for security
-      const saltRounds = 12; // Higher number = more secure but slower
+      // Create Firebase user account
+      const displayName = `${userData.firstName} ${userData.lastName}`;
+      const firebaseResult = await firebaseAuth.createUser(userData.email, userData.password, displayName);
+      
+      if (!firebaseResult.success) {
+        return res.status(400).json({
+          error: 'Firebase Error',
+          message: firebaseResult.error
+        });
+      }
+      
+      const firebaseUser = firebaseResult.user;
+      console.log('🔥 Firebase user created successfully:', firebaseUser.uid);
+
+      // Hash password for MongoDB storage (additional security layer)
+      const saltRounds = 12;
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
       console.log('🔐 Password hashed successfully for user:', userData.email);
-
-      // Generate email verification token
-      const verificationToken = jwt.sign(
-        { email: userData.email, type: 'email-verification' },
-        process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-        { expiresIn: '24h' }
-      );
       
-      // Create new user with basic info
+      // Create new user in MongoDB
       const newUser = new User({
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         phoneNumber: userData.phoneNumber,
-        password: hashedPassword, // ✅ Now stored as hashed password
-        userId: userData.userId || null, // Firebase UID if available
+        password: hashedPassword, // ✅ Stored as hashed password
+        userId: firebaseUser.uid, // Firebase UID
         userEmail: userData.email,
-        status: 'unverified', // Start as unverified
+        status: 'unverified', // Start as unverified (Firebase will handle verification)
         isEmailVerified: false,
-        emailVerificationToken: verificationToken,
-        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         createdAt: new Date(),
         updatedAt: new Date()
       });
 
       const savedUser = await newUser.save();
       
-      // Send verification email
-      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-      
-      const emailResult = await sendEmail(userData.email, 'verification', {
-        userName: `${userData.firstName} ${userData.lastName}`,
-        verificationLink: verificationLink
-      });
-      
-      if (emailResult.success) {
-        console.log('📧 Verification email sent successfully to:', userData.email);
-      } else {
-        console.warn('⚠️ Failed to send verification email:', emailResult.error);
-      }
+      // Firebase automatically sent verification email
+      console.log('📧 Firebase verification email sent automatically to:', userData.email);
       
       // Remove sensitive data from response
       const response = savedUser.toObject();
       delete response._id;
       delete response.password; // Don't send password back
       delete response.__v;
-      delete response.emailVerificationToken;
-      delete response.emailVerificationExpires;
 
       res.status(201).json({
         message: 'User created successfully',
@@ -304,7 +295,7 @@ const userController = {
     }
   },
 
-  // POST /api/users/login - User login with password verification
+  // POST /api/users/login - User login with Firebase authentication
   loginUser: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -316,39 +307,43 @@ const userController = {
         });
       }
 
-      // Find user by email
-      const user = await User.findOne({ email });
-      if (!user) {
+      // Authenticate with Firebase
+      const firebaseResult = await firebaseAuth.signInUser(email, password);
+      
+      if (!firebaseResult.success) {
+        if (firebaseResult.needsVerification) {
+          return res.status(403).json({
+            error: 'Email Not Verified',
+            message: 'Please verify your email address before logging in. Check your inbox for the verification email.',
+            needsVerification: true
+          });
+        }
+        
         return res.status(401).json({
           error: 'Authentication Failed',
-          message: 'Invalid email or password'
+          message: firebaseResult.error
         });
       }
 
-      // Check if email is verified
-      if (!user.isEmailVerified) {
-        return res.status(403).json({
-          error: 'Email Not Verified',
-          message: 'Please verify your email address before logging in. Check your inbox for the verification email.',
-          needsVerification: true
-        });
-      }
-
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({
-          error: 'Authentication Failed',
-          message: 'Invalid email or password'
+      const firebaseUser = firebaseResult.user;
+      
+      // Find user in MongoDB
+      const mongoUser = await User.findOne({ email });
+      if (!mongoUser) {
+        return res.status(404).json({
+          error: 'User Not Found',
+          message: 'User account not found in database'
         });
       }
 
       // Update last login
-      user.lastLogin = new Date();
-      await user.save();
+      mongoUser.lastLogin = new Date();
+      mongoUser.isEmailVerified = firebaseUser.emailVerified;
+      mongoUser.status = firebaseUser.emailVerified ? 'active' : 'unverified';
+      await mongoUser.save();
 
       // Return user data (without password)
-      const userResponse = user.toObject();
+      const userResponse = mongoUser.toObject();
       delete userResponse.password;
       delete userResponse._id;
       delete userResponse.__v;
@@ -403,111 +398,16 @@ const userController = {
     }
   },
 
-  // GET /api/users/verify-email/:token - Verify email with token
+  // GET /api/users/verify-email/:token - Firebase handles email verification automatically
   verifyEmail: async (req, res) => {
-    try {
-      const { token } = req.params;
-      
-      if (!token) {
-        return res.status(400).json({
-          error: 'Validation Error',
-          message: 'Verification token is required'
-        });
-      }
-
-      // Verify the JWT token
-      let decoded;
-      try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
-      } catch (jwtError) {
-        return res.status(400).json({
-          error: 'Invalid Token',
-          message: 'Verification token is invalid or expired'
-        });
-      }
-
-      // Check if token is for email verification
-      if (decoded.type !== 'email-verification') {
-        return res.status(400).json({
-          error: 'Invalid Token',
-          message: 'Invalid verification token type'
-        });
-      }
-
-      // Find user by email
-      const user = await User.findOne({ email: decoded.email });
-      if (!user) {
-        return res.status(404).json({
-          error: 'Not Found',
-          message: 'User not found'
-        });
-      }
-
-      // Check if email is already verified
-      if (user.isEmailVerified) {
-        return res.status(200).json({
-          message: 'Email already verified',
-          user: {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            isEmailVerified: user.isEmailVerified
-          }
-        });
-      }
-
-      // Check if token has expired
-      if (user.emailVerificationExpires < new Date()) {
-        return res.status(400).json({
-          error: 'Token Expired',
-          message: 'Verification token has expired. Please request a new one.'
-        });
-      }
-
-      // Verify email
-      user.isEmailVerified = true;
-      user.status = 'active';
-      user.emailVerificationDate = new Date();
-      user.emailVerificationToken = undefined;
-      user.emailVerificationExpires = undefined;
-      user.updatedAt = new Date();
-
-      await user.save();
-
-      // Send welcome email
-      try {
-        await sendEmail(user.email, 'welcome', {
-          userName: `${user.firstName} ${user.lastName}`
-        });
-        console.log('📧 Welcome email sent successfully to:', user.email);
-      } catch (emailError) {
-        console.warn('⚠️ Failed to send welcome email:', emailError.message);
-      }
-
-      // Return success response
-      const userResponse = user.toObject();
-      delete userResponse.password;
-      delete userResponse._id;
-      delete userResponse.__v;
-      delete userResponse.emailVerificationToken;
-      delete userResponse.emailVerificationExpires;
-
-      res.status(200).json({
-        message: 'Email verified successfully! Welcome to SLT Prodigy Hub!',
-        user: userResponse
-      });
-
-    } catch (error) {
-      console.error('Error in verifyEmail:', error);
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: error.message
-      });
-    }
+    res.status(200).json({
+      message: 'Firebase handles email verification automatically',
+      note: 'Users should click the verification link in their email, which will be handled by Firebase directly.',
+      instructions: 'Check your email inbox and click the verification link to verify your account.'
+    });
   },
 
-  // POST /api/users/resend-verification - Resend verification email
+  // POST /api/users/resend-verification - Resend verification email via Firebase
   resendVerification: async (req, res) => {
     try {
       const { email } = req.body;
@@ -520,8 +420,8 @@ const userController = {
       }
 
       // Find user by email
-      const user = await User.findOne({ email });
-      if (!user) {
+      const mongoUser = await User.findOne({ email });
+      if (!mongoUser) {
         return res.status(404).json({
           error: 'Not Found',
           message: 'User not found'
@@ -529,46 +429,19 @@ const userController = {
       }
 
       // Check if email is already verified
-      if (user.isEmailVerified) {
+      if (mongoUser.isEmailVerified) {
         return res.status(200).json({
           message: 'Email is already verified'
         });
       }
 
-      // Generate new verification token
-      const verificationToken = jwt.sign(
-        { email: user.email, type: 'email-verification' },
-        process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-        { expiresIn: '24h' }
-      );
-
-      // Update user with new token
-      user.emailVerificationToken = verificationToken;
-      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-      user.updatedAt = new Date();
-
-      await user.save();
-
-      // Send new verification email
-      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-      
-      const emailResult = await sendEmail(user.email, 'verification', {
-        userName: `${user.firstName} ${user.lastName}`,
-        verificationLink: verificationLink
+      // Get Firebase user to resend verification
+      // Note: This requires the user to be signed in or we need to implement a different approach
+      // For now, we'll return a message directing them to the frontend
+      res.status(200).json({
+        message: 'Please use the resend verification option in the frontend application',
+        note: 'Firebase handles email verification automatically. Use the frontend to resend verification emails.'
       });
-
-      if (emailResult.success) {
-        console.log('📧 Verification email resent successfully to:', user.email);
-        res.status(200).json({
-          message: 'Verification email sent successfully'
-        });
-      } else {
-        console.error('❌ Failed to resend verification email:', emailResult.error);
-        res.status(500).json({
-          error: 'Email Sending Failed',
-          message: 'Failed to send verification email. Please try again later.'
-        });
-      }
 
     } catch (error) {
       console.error('Error in resendVerification:', error);
