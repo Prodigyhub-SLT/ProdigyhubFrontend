@@ -359,6 +359,7 @@ export function HierarchicalCategorySelector({
                         <Button
                           variant="ghost"
                           size="sm"
+                          type="button"
                           onClick={() => toggleSubCategoryExpansion(subCategory.subCategoryId)}
                           className="p-1 h-6 w-6"
                         >
@@ -373,6 +374,7 @@ export function HierarchicalCategorySelector({
                       <Button
                         variant={isSelected ? "default" : "outline"}
                         size="sm"
+                        type="button"
                         onClick={() => handleSubCategorySelect(subCategory)}
                         className="h-6 px-2 text-xs"
                       >
@@ -404,6 +406,7 @@ export function HierarchicalCategorySelector({
                               <Button
                                 variant={isSubSubSelected ? "default" : "outline"}
                                 size="sm"
+                                type="button"
                                 onClick={() => handleSubSubCategorySelect(subCategory, subSubCategory)}
                                 className="h-5 px-2 text-xs"
                               >
@@ -445,6 +448,7 @@ export function HierarchicalCategorySelector({
                     <Button
                       variant="ghost"
                       size="sm"
+                      type="button"
                       onClick={() => removeSubCategorySelection(item.subCategory.subCategoryId)}
                       className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
                     >
@@ -462,6 +466,7 @@ export function HierarchicalCategorySelector({
                           <Button
                             variant="ghost"
                             size="sm"
+                            type="button"
                             onClick={() => removeSubSubCategorySelection(
                               item.subCategory.subCategoryId, 
                               subSub.subSubCategoryId
