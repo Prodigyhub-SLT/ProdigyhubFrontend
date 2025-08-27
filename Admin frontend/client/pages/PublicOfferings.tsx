@@ -284,6 +284,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     };
   };
 
+  // Classify offering into a connection-type group for grouped display
+  const getConnectionTypeGroup = (offering: ProductOffering): 'peotv' | 'dataPackages' | 'dataAndVoice' | 'unknown' => {
+    const desc = (offering as any).categoryDescription || '';
+    if (desc.includes('PEOTV')) return 'peotv';
+    const isDataPackages = desc.includes('Data Packages') || desc.includes('4G') || desc.includes('ADSL');
+    const isFiber = desc.includes('Fiber') || desc.includes('Fibre');
+    if (isDataPackages && !desc.includes('PEOTV')) return 'dataPackages';
+    if (isFiber && !desc.includes('PEOTV') && !isDataPackages) return 'dataAndVoice';
+    return 'unknown';
+  };
+
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(categoryName.toLowerCase());
     if (categoryName === 'Broadband') {
@@ -535,14 +546,133 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
             <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
           </div>
         ) : (
-          // Regular grid display
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {filteredOfferings.map((offering) => {
-              const price = getOfferingPrice(offering);
-              const category = getOfferingCategory(offering);
-              const specs = getOfferingSpecs(offering);
-              
-              return (
+          // If broadband category and no specific broadband filters/search -> grouped display
+          (selectedCategory === 'broadband' 
+            && broadbandFilters.connectionType === 'all'
+            && broadbandFilters.packageUsageType === 'all'
+            && broadbandFilters.packageType === 'all'
+            && broadbandFilters.dataBundle === 'all'
+            && !filters.searchTerm) ? (
+            <div className="space-y-10 max-w-6xl mx-auto">
+              {/* Group 1: Data/PEOTV & Voice Packages */}
+              <section>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Data/PEOTV & Voice Packages</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'peotv').map((offering) => {
+                    const price = getOfferingPrice(offering);
+                    const category = getOfferingCategory(offering);
+                    const specs = getOfferingSpecs(offering);
+                    return (
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-lg font-bold">{offering.name}</h3>
+                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                          </div>
+                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
+                        </div>
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3"><Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
+                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">Package Type</span><span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span></div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                              <div className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">Data Bundle</span><span className="text-sm text-gray-900 font-semibold">{(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}</span></div>
+                            )}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">{(offering as any).customAttributes.filter((attr: any) => !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)).map((attr: any, index: number) => (
+                              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
+                            ))}</div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
+                          <div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div>
+                          <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Group 2: Data Packages */}
+              <section>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Data Packages</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataPackages').map((offering) => {
+                    const price = getOfferingPrice(offering);
+                    const category = getOfferingCategory(offering);
+                    const specs = getOfferingSpecs(offering);
+                    return (
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                          <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div>
+                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
+                        </div>
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3"><Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{specs.connectionType}</div></div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">Package Type</span><span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span></div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                              <div className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">Data Bundle</span><span className="text-sm text-gray-900 font-semibold">{(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}</span></div>
+                            )}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">{(offering as any).customAttributes.filter((attr: any) => !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)).map((attr: any, index: number) => (
+                              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
+                            ))}</div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Group 3: Data & Voice */}
+              <section>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Data & Voice</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndVoice').map((offering) => {
+                    const price = getOfferingPrice(offering);
+                    const category = getOfferingCategory(offering);
+                    const specs = getOfferingSpecs(offering);
+                    return (
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div><p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p></div>
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3"><Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{specs.connectionType}</div></div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">Package Type</span><span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span></div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (<div className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">Data Bundle</span><span className="text-sm text-gray-900 font-semibold">{(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}</span></div>)}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">{(offering as any).customAttributes.filter((attr: any) => !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)).map((attr: any, index: number) => (<div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>))}</div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+          ) : (
+            // Regular grid display
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {filteredOfferings.map((offering) => {
+                const price = getOfferingPrice(offering);
+                const category = getOfferingCategory(offering);
+                const specs = getOfferingSpecs(offering);
+                
+                return (
                                  <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
                     {/* Top Header - Dark Blue */}
                     <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
@@ -630,7 +760,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                  </Card>
               );
             })}
-          </div>
+            </div>
+          )
         )}
       </div>
 
