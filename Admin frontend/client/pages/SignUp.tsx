@@ -30,6 +30,11 @@ export default function SignUp() {
     isTouched: false,
     message: ''
   });
+  const [passwordValidation, setPasswordValidation] = useState({
+    isValid: false,
+    isTouched: false,
+    message: ''
+  });
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -47,6 +52,23 @@ export default function SignUp() {
     return { isValid: true, message: 'Email looks good!' };
   };
 
+  // Password matching validation function
+  const validatePasswordMatch = (password: string, confirmPassword: string) => {
+    if (!password && !confirmPassword) {
+      return { isValid: false, message: 'Passwords are required' };
+    }
+    if (!password) {
+      return { isValid: false, message: 'Password is required' };
+    }
+    if (!confirmPassword) {
+      return { isValid: false, message: 'Please confirm your password' };
+    }
+    if (password !== confirmPassword) {
+      return { isValid: false, message: 'Passwords do not match' };
+    }
+    return { isValid: true, message: 'Passwords match!' };
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -62,6 +84,19 @@ export default function SignUp() {
         message: validation.message
       });
     }
+
+    // Real-time password matching validation
+    if (field === 'password' || field === 'confirmPassword') {
+      const currentPassword = field === 'password' ? value : formData.password;
+      const currentConfirmPassword = field === 'confirmPassword' ? value : formData.confirmPassword;
+      
+      const validation = validatePasswordMatch(currentPassword, currentConfirmPassword);
+      setPasswordValidation({
+        isValid: validation.isValid,
+        isTouched: true,
+        message: validation.message
+      });
+    }
   };
 
   const validateForm = () => {
@@ -71,7 +106,7 @@ export default function SignUp() {
     if (!emailValidation.isValid) { setError('Please enter a valid email address'); return false; }
     if (!formData.phone.trim()) { setError('Phone number is required'); return false; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters long'); return false; }
-    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return false; }
+    if (!passwordValidation.isValid) { setError('Passwords do not match'); return false; }
     if (!agreeToTerms) { setError('You must agree to the Terms of Service and Privacy Policy'); return false; }
     return true;
   };
@@ -197,8 +232,76 @@ export default function SignUp() {
               )}
             </div>
             <div className="space-y-2"><Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label><Input id="phone" type="tel" placeholder="Phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
-            <div className="space-y-2"><Label htmlFor="password" className="text-gray-700 text-sm">Password *</Label><div className="relative"><Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:border-blue-500 focus:ring-blue-500" /><Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500" onClick={() => setShowPassword(!showPassword)} disabled={isLoading}>{showPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}</Button></div></div>
-            <div className="space-y-2"><Label htmlFor="confirmPassword" className="text-gray-700 text-sm">Confirm Password *</Label><div className="relative"><Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm your password" value={formData.confirmPassword} onChange={(e) => handleInputChange('confirmPassword', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:border-blue-500 focus:ring-blue-500" /><Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500" onClick={() => setShowConfirmPassword(!showConfirmPassword)} disabled={isLoading}>{showConfirmPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}</Button></div></div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-gray-700 text-sm">Password *</Label>
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? 'text' : 'password'} 
+                  placeholder="Enter your password" 
+                  value={formData.password} 
+                  onChange={(e) => handleInputChange('password', e.target.value)} 
+                  required 
+                  disabled={isLoading} 
+                  className={`border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:ring-blue-500 ${
+                    passwordValidation.isTouched 
+                      ? passwordValidation.isValid 
+                        ? 'focus:border-green-500 border-green-500' 
+                        : 'focus:border-red-500 border-red-500' 
+                      : 'focus:border-blue-500'
+                  }`}
+                />
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500" 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  disabled={isLoading}
+                >
+                  {showPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-700 text-sm">Confirm Password *</Label>
+              <div className="relative">
+                <Input 
+                  id="confirmPassword" 
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                  placeholder="Confirm your password" 
+                  value={formData.confirmPassword} 
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)} 
+                  required 
+                  disabled={isLoading} 
+                  className={`border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:ring-blue-500 ${
+                    passwordValidation.isTouched 
+                      ? passwordValidation.isValid 
+                        ? 'focus:border-green-500 border-green-500' 
+                        : 'focus:border-red-500 border-red-500' 
+                      : 'focus:border-blue-500'
+                  }`}
+                />
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-100 text-gray-500" 
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                  disabled={isLoading}
+                >
+                  {showConfirmPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}
+                </Button>
+              </div>
+              {passwordValidation.isTouched && (
+                <p className={`text-xs ${
+                  passwordValidation.isValid ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {passwordValidation.message}
+                </p>
+              )}
+            </div>
             <div className="flex items-start space-x-2"><Checkbox id="agreeToTerms" checked={agreeToTerms} onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)} className="border-gray-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-1" /><Label htmlFor="agreeToTerms" className="text-gray-700 text-sm leading-relaxed">I agree to the <a href="#" className="text-blue-600 hover:underline font-medium">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</a></Label></div>
             <div className="flex justify-center"><Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg h-12 w-full" disabled={isLoading}>{isLoading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Account...</>) : ("Create Account")}</Button></div>
           </form>
