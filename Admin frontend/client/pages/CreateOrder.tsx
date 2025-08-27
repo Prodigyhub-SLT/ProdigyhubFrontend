@@ -1,10 +1,10 @@
 // Updated CreateOrder.tsx - Sequential ID Generation
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Package, Plus, Trash2, Wifi, Building2, Smartphone, Cloud, Wrench, Search, Eye, Info } from 'lucide-react';
 import { productOrderingApi, productCatalogApi } from '../lib/api';
-import type { CreateProductOrderRequest, ProductOrderItem, Note, ProductOrder } from '@shared/product-order-types';
+import type { CreateProductOrderRequest, ProductOrderItem, Note, ProductOrder, CategoryHierarchy, SubCategory, SubSubCategory } from '@shared/product-order-types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -239,14 +239,58 @@ export default function CreateOrder() {
       console.log('🔍 Filtering offerings for category:', formData.category);
       console.log('📊 Available offerings categories:', availableOfferings.map(o => o.category));
       
-      const categoryOfferings = availableOfferings.filter(
-        offering => offering.category === formData.category && 
-                   offering.lifecycleStatus === 'Active' && 
-                   offering.isSellable
+      console.log('🎯 Selected hierarchical category:', selectedHierarchicalCategory);
+      
+      let categoryOfferings = availableOfferings.filter(
+        offering => offering.lifecycleStatus === 'Active' && offering.isSellable
       );
       
-      console.log('✅ Found offerings for category:', categoryOfferings.length);
-      console.log('📋 Matching offerings:', categoryOfferings.map(o => ({ id: o.id, name: o.name, category: o.category })));
+      // Filter by main category first
+      if (selectedHierarchicalCategory?.mainCategory) {
+        const mainCategoryName = selectedHierarchicalCategory.mainCategory.name || selectedHierarchicalCategory.mainCategory.label || selectedHierarchicalCategory.mainCategory.value;
+        categoryOfferings = categoryOfferings.filter(offering => offering.category === mainCategoryName);
+        console.log('✅ After main category filter:', categoryOfferings.length);
+      }
+      
+      // Filter by sub-categories if selected
+      if (selectedHierarchicalCategory?.subCategories && selectedHierarchicalCategory.subCategories.length > 0) {
+        categoryOfferings = categoryOfferings.filter(offering => {
+          // Check if offering has the required sub-categories
+          const offeringSubCategory = (offering as any).subCategory || '';
+          const offeringSubSubCategory = (offering as any).subSubCategory || '';
+          const offeringCategoryDescription = (offering as any).categoryDescription || '';
+          
+          // Check each selected sub-category
+          return selectedHierarchicalCategory.subCategories.every(selectedSub => {
+            const subCategoryName = selectedSub.subCategory.name || selectedSub.subCategory.label || selectedSub.subCategory.value;
+            
+            // Check if this sub-category is present in the offering
+            const hasSubCategory = offeringSubCategory.includes(subCategoryName) || 
+                                 offeringCategoryDescription.includes(subCategoryName);
+            
+            // Check sub-sub-categories if they exist
+            if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
+              return selectedSub.subSubCategories.some(selectedSubSub => {
+                const subSubCategoryName = selectedSubSub.name || selectedSubSub.label || selectedSubSub.value;
+                return offeringSubSubCategory.includes(subSubCategoryName) || 
+                       offeringCategoryDescription.includes(subSubCategoryName);
+              });
+            }
+            
+            return hasSubCategory;
+          });
+        });
+        console.log('✅ After sub-category filter:', categoryOfferings.length);
+      }
+      
+      console.log('✅ Final filtered offerings:', categoryOfferings.length);
+      console.log('📋 Matching offerings:', categoryOfferings.map(o => ({ 
+        id: o.id, 
+        name: o.name, 
+        category: o.category,
+        subCategory: (o as any).subCategory,
+        subSubCategory: (o as any).subSubCategory
+      })));
       
       setFilteredOfferings(categoryOfferings);
       // Reset search terms when category changes
@@ -255,7 +299,7 @@ export default function CreateOrder() {
       setFilteredOfferings([]);
       setOfferingSearchTerms({});
     }
-  }, [formData.category, availableOfferings]);
+  }, [formData.category, availableOfferings, selectedHierarchicalCategory]);
 
   const loadAvailableOfferings = async () => {
     try {
@@ -385,7 +429,7 @@ export default function CreateOrder() {
         categoryDescription: categoryDescription, // Store full description separately
         // Reset product items when category changes
         productOrderItem: [{
-          action: 'add',
+          action: 'add' as const,
           quantity: 1,
           productOffering: {
             id: '',
@@ -417,7 +461,7 @@ export default function CreateOrder() {
       productOrderItem: [
         ...prev.productOrderItem,
         {
-          action: 'add',
+          action: 'add' as const,
           quantity: 1,
           productOffering: {
             id: '',
@@ -813,7 +857,7 @@ export default function CreateOrder() {
                 <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <div className={`flex items-center justify-center w-6 h-6 rounded ${selectedCategory?.color}`}>
-                      {selectedCategory && <selectedCategory.icon className="w-4 h-4" />}
+                      {selectedCategory && React.createElement(selectedCategory.icon, { className: "w-4 h-4" })}
                     </div>
                     <span className="font-medium text-green-800">
                       {filteredOfferings.length} {formData.category} offering(s) available
@@ -986,7 +1030,7 @@ export default function CreateOrder() {
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <div className={`flex items-center justify-center w-5 h-5 rounded ${selectedCategory?.color}`}>
-                    {selectedCategory && <selectedCategory.icon className="w-3 h-3" />}
+                    {selectedCategory && React.createElement(selectedCategory.icon, { className: "w-3 h-3" })}
                   </div>
                   <span className="text-sm text-muted-foreground">{previewOffering.category}</span>
                 </div>
