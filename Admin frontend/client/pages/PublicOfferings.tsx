@@ -573,20 +573,20 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                          <div className="text-lg font-bold text-gray-900">{specs.connectionType}</div>
                        </div>
                        
-                       <div className="bg-gray-50 p-3 rounded-lg">
-                         <div className="text-sm text-gray-600 mb-1">Package Type</div>
-                         <div className="text-lg font-bold text-gray-900">{specs.packageType}</div>
-                       </div>
+                                               <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-sm font-medium text-gray-600">Package Type</span>
+                          <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
+                        </div>
 
-                       {/* Data Bundle - if available */}
-                       {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
-                         <div className="bg-gray-50 p-3 rounded-lg">
-                           <div className="text-sm text-gray-600 mb-1">Data Bundle</div>
-                           <div className="text-lg font-bold text-gray-900">
-                             {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
-                           </div>
-                         </div>
-                       )}
+                                               {/* Data Bundle - if available */}
+                        {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-sm font-medium text-gray-600">Data Bundle</span>
+                            <span className="text-sm text-gray-900 font-semibold">
+                              {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
+                            </span>
+                          </div>
+                        )}
                      </div>
 
                      {/* Other Custom Attributes */}
