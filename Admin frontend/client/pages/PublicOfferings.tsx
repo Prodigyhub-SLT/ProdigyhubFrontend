@@ -543,8 +543,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               const specs = getOfferingSpecs(offering);
               
               return (
-                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs">
-                                       {/* Top Header - Dark Blue */}
+                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                    {/* Top Header - Dark Blue */}
                     <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-bold">{offering.name}</h3>
@@ -557,8 +557,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </p>
                     </div>
 
-                                       {/* Middle Section - White Background */}
-                    <div className="p-3 bg-white">
+                    {/* Middle Section - White Background */}
+                    <div className="p-3 bg-white flex-1">
                       {/* Main Category Badge */}
                       <div className="mb-3">
                         <Badge 
@@ -569,19 +569,19 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         </Badge>
                       </div>
 
-                                           {/* Key Specifications */}
+                      {/* Key Specifications */}
                       <div className="space-y-2 mb-3">
                         <div className="bg-gray-50 p-2 rounded-lg">
                           <div className="text-xs text-gray-600 mb-1">Connection Type</div>
                           <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
                         </div>
                        
-                                               <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
                           <span className="text-sm font-medium text-gray-600">Package Type</span>
                           <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
                         </div>
 
-                                               {/* Data Bundle - if available */}
+                        {/* Data Bundle - if available */}
                         {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-sm font-medium text-gray-600">Data Bundle</span>
@@ -608,10 +608,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                          }
                        </div>
                      )}
-                   </div>
-
-                                       {/* Bottom Section - Dark Blue Footer */}
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                 </div>
+                    {/* Bottom Section - Dark Blue Footer */}
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
                       <div className="text-center mb-2">
                         <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
                         <div className="text-2xl font-bold">
@@ -619,7 +618,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         </div>
                       </div>
                      
-                                            <Button 
+                      <Button 
                          variant="ghost" 
                          size="sm" 
                          onClick={() => handleViewSpec(offering)}
