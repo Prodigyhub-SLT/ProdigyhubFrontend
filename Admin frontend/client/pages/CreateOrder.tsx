@@ -254,72 +254,68 @@ export default function CreateOrder() {
       
       // Filter by sub-categories if selected
       if (selectedHierarchicalCategory?.subCategories && selectedHierarchicalCategory.subCategories.length > 0) {
-        console.log('🔍 Starting sub-category filtering...');
+        console.log('🔍 Starting sub-category filtering using Public Offerings logic...');
         console.log('📋 Selected sub-categories:', selectedHierarchicalCategory.subCategories);
         
         // Debug: Log a few sample offerings to see their structure
         console.log('🔍 Sample offering structure:', categoryOfferings.slice(0, 2).map(offering => ({
           name: offering.name,
-          subCategory: (offering as any).subCategory,
-          subSubCategory: (offering as any).subSubCategory,
-          categoryDescription: (offering as any).categoryDescription,
-          customAttributes: (offering as any).customAttributes,
+          categoryDescription: (offering as any).categoryDescription || '',
+          customAttributes: (offering as any).customAttributes || [],
           productSpecification: (offering as any).productSpecification
         })));
         
         categoryOfferings = categoryOfferings.filter(offering => {
-          // Check if offering has the required sub-categories
-          const offeringSubCategory = (offering as any).subCategory || '';
-          const offeringSubSubCategory = (offering as any).subSubCategory || '';
-          const offeringCategoryDescription = (offering as any).categoryDescription || '';
-          const offeringCustomAttributes = (offering as any).customAttributes || [];
-          const offeringProductSpec = (offering as any).productSpecification?.productSpecCharacteristic || [];
+          const categoryDescription = (offering as any).categoryDescription || '';
+          console.log(`🔍 Checking offering "${offering.name}" with categoryDescription: "${categoryDescription}"`);
           
-          console.log(`🔍 Checking offering "${offering.name}":`, {
-            subCategory: offeringSubCategory,
-            subSubCategory: offeringSubSubCategory,
-            categoryDescription: offeringCategoryDescription,
-            customAttributes: offeringCustomAttributes.length,
-            productSpec: offeringProductSpec.length
-          });
-          
-          // Check each selected sub-category
+          // Check each selected sub-category using the same logic as Public Offerings
           return selectedHierarchicalCategory.subCategories.every(selectedSub => {
             const subCategoryName = selectedSub.subCategory.name || selectedSub.subCategory.label || selectedSub.subCategory.value;
-            
             console.log(`🔍 Checking sub-category: "${subCategoryName}"`);
             
             // Check if this sub-category is present in the offering
-            const hasSubCategory = offeringSubCategory.includes(subCategoryName) || 
-                                 offeringCategoryDescription.includes(subCategoryName) ||
-                                 offeringCustomAttributes.some((attr: any) => 
-                                   attr.name === subCategoryName || attr.name.includes(subCategoryName)
-                                 );
+            let hasSubCategory = false;
             
-            // Check sub-sub-categories if they exist
-            if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
-              const hasMatchingSubSub = selectedSub.subSubCategories.some(selectedSubSub => {
-                const subSubCategoryName = selectedSubSub.name || selectedSubSub.label || selectedSubSub.value;
-                console.log(`🔍 Checking sub-sub-category: "${subSubCategoryName}"`);
+            if (subCategoryName === 'Connection Type') {
+              // Use the same logic as Public Offerings for Connection Type
+              if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
+                const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
                 
-                const matches = offeringSubSubCategory.includes(subSubCategoryName) || 
-                               offeringCategoryDescription.includes(subSubCategoryName) ||
-                               offeringCustomAttributes.some((attr: any) => 
-                                 attr.name === subSubCategoryName || attr.value === subSubCategoryName
-                               ) ||
-                               offeringProductSpec.some((spec: any) => 
-                                 spec.name === subSubCategoryName || 
-                                 spec.productSpecCharacteristicValue?.some((val: any) => 
-                                   val.value === subSubCategoryName
-                                 )
-                               );
+                if (subSubCategoryName === 'Data Packages') {
+                  // Check for 4G, ADSL, or explicit "Data Packages" but NOT PEOTV
+                  const isTechData = categoryDescription.includes('4G') || categoryDescription.includes('ADSL');
+                  const isExplicitDataPackages = categoryDescription.includes('Data Packages');
+                  hasSubCategory = (isExplicitDataPackages || isTechData) && !categoryDescription.includes('PEOTV');
+                } else if (subSubCategoryName === 'Data/PEOTV & Voice Packages') {
+                  // Only match if it contains "PEOTV"
+                  hasSubCategory = categoryDescription.includes('PEOTV');
+                } else if (subSubCategoryName === 'Data & Voice') {
+                  // Must be Fiber but NOT PEOTV and NOT explicitly Data Packages
+                  const isFiber = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
+                  const isDataPackages = categoryDescription.includes('Data Packages');
+                  hasSubCategory = isFiber && !categoryDescription.includes('PEOTV') && !isDataPackages;
+                }
+              }
+            } else if (subCategoryName === 'Package Usage Type') {
+              // Use the same logic as Public Offerings for Package Usage Type
+              if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
+                const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
                 
-                console.log(`🔍 Sub-sub-category "${subSubCategoryName}" matches: ${matches}`);
-                return matches;
-              });
-              
-              console.log(`🔍 Sub-category "${subCategoryName}" has matching sub-sub-category: ${hasMatchingSubSub}`);
-              return hasMatchingSubSub;
+                if (subSubCategoryName === 'Any Time') {
+                  hasSubCategory = categoryDescription.includes('Any Time') || categoryDescription.includes('Anytime');
+                } else if (subSubCategoryName === 'Time Based') {
+                  hasSubCategory = categoryDescription.includes('Time Based');
+                } else if (subSubCategoryName === 'Unlimited') {
+                  hasSubCategory = categoryDescription.includes('Unlimited');
+                }
+              }
+            } else if (subCategoryName === 'Package Type') {
+              // Use the same logic as Public Offerings for Package Type
+              if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
+                const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
+                hasSubCategory = categoryDescription.includes(subSubCategoryName);
+              }
             }
             
             console.log(`🔍 Sub-category "${subCategoryName}" present: ${hasSubCategory}`);
