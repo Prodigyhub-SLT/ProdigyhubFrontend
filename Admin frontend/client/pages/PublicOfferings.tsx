@@ -264,10 +264,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
 
   const getOfferingSpecs = (offering: ProductOffering) => {
-    // Extract values from categoryDescription for display
+    // Extract Connection Type & Package Type from categoryDescription (for filtering consistency)
     const categoryDescription = (offering as any).categoryDescription || '';
     
-    // Parse the categoryDescription to extract values
     const connectionType = categoryDescription.includes('Fiber') ? 'Fiber' : 
                           categoryDescription.includes('4G') ? '4G' : 
                           categoryDescription.includes('ADSL') ? 'ADSL' : 'N/A';
@@ -275,20 +274,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     const packageType = categoryDescription.includes('Any Time') ? 'Any Time' : 
                        categoryDescription.includes('Time Based') ? 'Time Based' : 
                        categoryDescription.includes('Unlimited') ? 'Unlimited' : 'N/A';
-    
-    const internetSpeed = categoryDescription.includes('100 Mbps') ? '100 Mbps' : 
-                         categoryDescription.includes('200 Mbps') ? '200 Mbps' : 
-                         categoryDescription.includes('500 Mbps') ? '500 Mbps' : 'N/A';
-    
-    const dataAllowance = categoryDescription.includes('40GB') ? '40GB' : 
-                         categoryDescription.includes('50GB') ? '50GB' : 
-                         categoryDescription.includes('Unlimited') ? 'Unlimited' : 'N/A';
 
     return {
       connectionType,
-      packageType,
-      internetSpeed,
-      dataAllowance
+      packageType
     };
   };
 
@@ -573,25 +562,34 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </div>
                     </div>
                     
-                                                               {/* Specifications */}
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">Connection Type:</span>
-                          <span className="text-gray-900">{specs.connectionType}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">Package Type:</span>
-                          <span className="text-gray-900">{specs.packageType}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">Internet Speed:</span>
-                          <span className="text-gray-900">{specs.internetSpeed}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">Data Allowance:</span>
-                          <span className="text-gray-900">{specs.dataAllowance}</span>
-                        </div>
-                      </div>
+                                                                                      {/* Connection Type & Package Type (from categoryDescription) */}
+                       <div className="space-y-2 text-sm mb-4">
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Connection Type:</span>
+                           <span className="text-gray-900">{specs.connectionType}</span>
+                         </div>
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Package Type:</span>
+                           <span className="text-gray-900">{specs.packageType}</span>
+                         </div>
+                       </div>
+
+                       {/* Custom Attributes (excluding Connection Type & Package Type) */}
+                       {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                         <div className="space-y-2 text-sm">
+                           {(offering as any).customAttributes
+                             .filter((attr: any) => 
+                               attr.name !== 'Connection Type' && attr.name !== 'Package Type'
+                             )
+                             .map((attr: any, index: number) => (
+                               <div key={index} className="flex justify-between">
+                                 <span className="font-medium text-gray-700">{attr.name}:</span>
+                                 <span className="text-gray-900">{attr.value}</span>
+                               </div>
+                             ))
+                           }
+                         </div>
+                       )}
                   </div>
 
                   {/* Pricing Section */}
@@ -695,28 +693,20 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </div>
               </div>
 
-                                             {/* Specifications */}
-                                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Specifications</h3>
-                   <div className="space-y-3">
-                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                       <span className="font-medium text-gray-700">Connection Type:</span>
-                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
-                     </div>
-                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                       <span className="font-medium text-gray-700">Package Type:</span>
-                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
-                     </div>
-                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                       <span className="font-medium text-gray-700">Internet Speed:</span>
-                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
-                     </div>
-                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                       <span className="font-medium text-gray-700">Data Allowance:</span>
-                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).dataAllowance}</span>
-                     </div>
-                   </div>
-                 </div>
+                                                               {/* Connection Type & Package Type (from categoryDescription) */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">Connection Type:</span>
+                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">Package Type:</span>
+                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                      </div>
+                    </div>
+                  </div>
 
                {/* Category Information */}
                {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
