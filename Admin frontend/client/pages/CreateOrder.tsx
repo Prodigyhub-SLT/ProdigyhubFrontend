@@ -254,29 +254,75 @@ export default function CreateOrder() {
       
       // Filter by sub-categories if selected
       if (selectedHierarchicalCategory?.subCategories && selectedHierarchicalCategory.subCategories.length > 0) {
+        console.log('🔍 Starting sub-category filtering...');
+        console.log('📋 Selected sub-categories:', selectedHierarchicalCategory.subCategories);
+        
+        // Debug: Log a few sample offerings to see their structure
+        console.log('🔍 Sample offering structure:', categoryOfferings.slice(0, 2).map(offering => ({
+          name: offering.name,
+          subCategory: (offering as any).subCategory,
+          subSubCategory: (offering as any).subSubCategory,
+          categoryDescription: (offering as any).categoryDescription,
+          customAttributes: (offering as any).customAttributes,
+          productSpecification: (offering as any).productSpecification
+        })));
+        
         categoryOfferings = categoryOfferings.filter(offering => {
           // Check if offering has the required sub-categories
           const offeringSubCategory = (offering as any).subCategory || '';
           const offeringSubSubCategory = (offering as any).subSubCategory || '';
           const offeringCategoryDescription = (offering as any).categoryDescription || '';
+          const offeringCustomAttributes = (offering as any).customAttributes || [];
+          const offeringProductSpec = (offering as any).productSpecification?.productSpecCharacteristic || [];
+          
+          console.log(`🔍 Checking offering "${offering.name}":`, {
+            subCategory: offeringSubCategory,
+            subSubCategory: offeringSubSubCategory,
+            categoryDescription: offeringCategoryDescription,
+            customAttributes: offeringCustomAttributes.length,
+            productSpec: offeringProductSpec.length
+          });
           
           // Check each selected sub-category
           return selectedHierarchicalCategory.subCategories.every(selectedSub => {
             const subCategoryName = selectedSub.subCategory.name || selectedSub.subCategory.label || selectedSub.subCategory.value;
             
+            console.log(`🔍 Checking sub-category: "${subCategoryName}"`);
+            
             // Check if this sub-category is present in the offering
             const hasSubCategory = offeringSubCategory.includes(subCategoryName) || 
-                                 offeringCategoryDescription.includes(subCategoryName);
+                                 offeringCategoryDescription.includes(subCategoryName) ||
+                                 offeringCustomAttributes.some((attr: any) => 
+                                   attr.name === subCategoryName || attr.name.includes(subCategoryName)
+                                 );
             
             // Check sub-sub-categories if they exist
             if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
-              return selectedSub.subSubCategories.some(selectedSubSub => {
+              const hasMatchingSubSub = selectedSub.subSubCategories.some(selectedSubSub => {
                 const subSubCategoryName = selectedSubSub.name || selectedSubSub.label || selectedSubSub.value;
-                return offeringSubSubCategory.includes(subSubCategoryName) || 
-                       offeringCategoryDescription.includes(subSubCategoryName);
+                console.log(`🔍 Checking sub-sub-category: "${subSubCategoryName}"`);
+                
+                const matches = offeringSubSubCategory.includes(subSubCategoryName) || 
+                               offeringCategoryDescription.includes(subSubCategoryName) ||
+                               offeringCustomAttributes.some((attr: any) => 
+                                 attr.name === subSubCategoryName || attr.value === subSubCategoryName
+                               ) ||
+                               offeringProductSpec.some((spec: any) => 
+                                 spec.name === subSubCategoryName || 
+                                 spec.productSpecCharacteristicValue?.some((val: any) => 
+                                   val.value === subSubCategoryName
+                                 )
+                               );
+                
+                console.log(`🔍 Sub-sub-category "${subSubCategoryName}" matches: ${matches}`);
+                return matches;
               });
+              
+              console.log(`🔍 Sub-category "${subCategoryName}" has matching sub-sub-category: ${hasMatchingSubSub}`);
+              return hasMatchingSubSub;
             }
             
+            console.log(`🔍 Sub-category "${subCategoryName}" present: ${hasSubCategory}`);
             return hasSubCategory;
           });
         });
