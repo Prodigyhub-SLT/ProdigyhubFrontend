@@ -139,11 +139,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
       console.log('🔍 Applying broadband filters to:', filtered.length, 'offerings');
       
-      // Filter by Connection Type (from productSpecification)
+      // Filter by Connection Type (from customAttributes)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
-          // Extract from productSpecification and map to filter values
-          const connectionType = extractValueFromProductSpec(offering, 'Connection Type');
+          const connectionType = extractValueFromCustomAttributes(offering, 'Connection Type');
           let matches = false;
           
           if (broadbandFilters.connectionType === 'Data/PEOTV & Voice Packages') {
@@ -162,14 +161,14 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         console.log('🔍 After connection type filter:', filtered.length);
       }
 
-      // Filter by Package Usage Type (from productSpecification)
+      // Filter by Package Usage Type (from customAttributes)
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const packageUsageType = extractValueFromProductSpec(offering, 'Package Type');
+          const packageUsageType = extractValueFromCustomAttributes(offering, 'Package Type');
           let matches = false;
           
           if (broadbandFilters.packageUsageType === 'Any Time') {
-            matches = packageUsageType === 'Anytime Data';
+            matches = packageUsageType === 'Anytime' || packageUsageType === 'Anytime Data';
           } else if (broadbandFilters.packageUsageType === 'Time Based') {
             matches = packageUsageType === 'Time Based';
           } else if (broadbandFilters.packageUsageType === 'Unlimited') {
@@ -180,11 +179,11 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         });
       }
 
-      // Filter by Package Type (from customAttributes)
+      // Filter by Package Type (from customAttributes - Connection Type field)
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const packageType = extractValueFromCustomAttributes(offering, 'Package Type');
-          return packageType === broadbandFilters.packageType;
+          const connectionType = extractValueFromCustomAttributes(offering, 'Connection Type');
+          return connectionType === broadbandFilters.packageType;
         });
       }
 
@@ -257,8 +256,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const extractValueFromCustomAttributes = (offering: ProductOffering, attributeName: string): string => {
     if (!(offering as any).customAttributes) return '';
     
+    // EXACT name matching to prevent conflicts between different attributes
     const attr = (offering as any).customAttributes.find((attr: any) => 
-      attr.name && attr.name.toLowerCase().includes(attributeName.toLowerCase())
+      attr.name === attributeName
     );
     
     return attr ? attr.value : '';
@@ -279,17 +279,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   };
 
   const getOfferingSpecs = (offering: ProductOffering) => {
-    // Extract values from customAttributes for display
-    const packageType = extractValueFromCustomAttributes(offering, 'package') || 'Unlimited';
-    const dataAllowance = extractValueFromCustomAttributes(offering, 'data') || 'Unlimited';
-    const contractTerm = extractValueFromCustomAttributes(offering, 'contract') || '12 months';
-    const installation = extractValueFromCustomAttributes(offering, 'installation') || 'Free';
+    // Extract values from customAttributes using EXACT names to prevent conflicts
+    const connectionType = extractValueFromCustomAttributes(offering, 'Connection Type') || 'N/A';
+    const packageType = extractValueFromCustomAttributes(offering, 'Package Type') || 'N/A';
+    const internetSpeed = extractValueFromCustomAttributes(offering, 'Internet Speed') || 'N/A';
+    const dataAllowance = extractValueFromCustomAttributes(offering, 'Data Allowance') || 'N/A';
 
     return {
+      connectionType,
       packageType,
-      dataAllowance,
-      contractTerm,
-      installation
+      internetSpeed,
+      dataAllowance
     };
   };
 
@@ -574,25 +574,25 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </div>
                     </div>
                     
-                                         {/* Specifications */}
-                     <div className="space-y-2 text-sm">
-                       <div className="flex justify-between">
-                         <span className="font-medium text-gray-700">Package Type:</span>
-                         <span className="text-gray-900">{specs.packageType}</span>
-                       </div>
-                       <div className="flex justify-between">
-                         <span className="font-medium text-gray-700">Data Allowance:</span>
-                         <span className="text-gray-900">{specs.dataAllowance}</span>
-                       </div>
-                       <div className="flex justify-between">
-                         <span className="font-medium text-gray-700">Contract Term:</span>
-                         <span className="text-gray-900">{specs.contractTerm}</span>
-                       </div>
-                       <div className="flex justify-between">
-                         <span className="font-medium text-gray-700">Installation:</span>
-                         <span className="text-gray-900">{specs.installation}</span>
-                       </div>
-                     </div>
+                                                               {/* Specifications */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-700">Connection Type:</span>
+                          <span className="text-gray-900">{specs.connectionType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-700">Package Type:</span>
+                          <span className="text-gray-900">{specs.packageType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-700">Internet Speed:</span>
+                          <span className="text-gray-900">{specs.internetSpeed}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-700">Data Allowance:</span>
+                          <span className="text-gray-900">{specs.dataAllowance}</span>
+                        </div>
+                      </div>
                   </div>
 
                   {/* Pricing Section */}
@@ -697,27 +697,27 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               </div>
 
                                              {/* Specifications */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Specifications</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Package Type:</span>
-                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Data Allowance:</span>
-                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).dataAllowance}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Contract Term:</span>
-                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).contractTerm}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Installation:</span>
-                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).installation}</span>
-                    </div>
-                  </div>
-                </div>
+                                 <div className="bg-white rounded-lg border border-gray-200 p-6">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Specifications</h3>
+                   <div className="space-y-3">
+                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                       <span className="font-medium text-gray-700">Connection Type:</span>
+                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                     </div>
+                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                       <span className="font-medium text-gray-700">Package Type:</span>
+                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                     </div>
+                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                       <span className="font-medium text-gray-700">Internet Speed:</span>
+                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
+                     </div>
+                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                       <span className="font-medium text-gray-700">Data Allowance:</span>
+                       <span className="text-gray-900">{getOfferingSpecs(selectedOffering).dataAllowance}</span>
+                     </div>
+                   </div>
+                 </div>
 
                {/* Category Information */}
                {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
