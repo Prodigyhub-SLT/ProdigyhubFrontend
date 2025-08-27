@@ -149,12 +149,15 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
             // Only match if it contains "PEOTV" (Data/PEOTV & Voice Packages)
             matches = categoryDescription.includes('PEOTV');
           } else if (broadbandFilters.connectionType === 'Data Packages') {
-            // Only match if it contains "4G" or "ADSL" but NOT "PEOTV"
-            matches = (categoryDescription.includes('4G') || categoryDescription.includes('ADSL')) && !categoryDescription.includes('PEOTV');
+            // Prefer explicit tag "Data Packages" OR (4G/ADSL) and NOT PEOTV
+            const isTechData = categoryDescription.includes('4G') || categoryDescription.includes('ADSL');
+            const isExplicitDataPackages = categoryDescription.includes('Data Packages');
+            matches = (isExplicitDataPackages || isTechData) && !categoryDescription.includes('PEOTV');
           } else if (broadbandFilters.connectionType === 'Data & Voice') {
-            // Only match if it contains "Fiber" but NOT "PEOTV" (pure Data & Voice)
-            // AND must NOT contain "PEOTV" anywhere in the description
-            matches = (categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre')) && !categoryDescription.includes('PEOTV');
+            // Must be Fiber but NOT PEOTV and NOT explicitly Data Packages
+            const isFiber = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
+            const isDataPackages = categoryDescription.includes('Data Packages');
+            matches = isFiber && !categoryDescription.includes('PEOTV') && !isDataPackages;
           }
           
           if (!matches) {
