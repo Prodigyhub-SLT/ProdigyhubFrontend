@@ -540,7 +540,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               const specs = getOfferingSpecs(offering);
               
               return (
-                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-sm">
+                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs">
                                        {/* Top Header - Dark Blue */}
                     <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                       <div className="flex items-center justify-between mb-1">
