@@ -16,6 +16,11 @@ router.get('/health', (req, res) => {
 // User signup route (no authentication required)
 router.post('/signup', userController.createUser);
 
+// User authentication routes
+router.post('/login', userController.loginUser);
+router.post('/verify-password', userController.verifyPassword);
+router.post('/hash-existing-passwords', userController.hashExistingPasswords); // One-time use to hash existing passwords
+
 // User CRUD operations
 router.post('/', userController.createUser);
 router.get('/', userController.getAllUsers);
