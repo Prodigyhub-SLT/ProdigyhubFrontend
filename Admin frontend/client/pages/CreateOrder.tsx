@@ -604,9 +604,6 @@ export default function CreateOrder() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Set validation errors to show only when form is submitted
-    setShowValidationErrors(true);
-    
     // Validate required fields
     if (!formData.description?.trim()) {
       toast({
