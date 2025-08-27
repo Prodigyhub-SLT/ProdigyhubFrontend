@@ -34,15 +34,7 @@ export interface MongoProductOffering {
   isBundle: boolean;
   isSellable: boolean;
   customAttributes: CustomAttribute[];
-  // Simple text fields for easy display and filtering
-  connectionType?: string;
-  packageType?: string;
-  internetSpeed?: string;
-  dataAllowance?: string;
-  contractTerm?: string;
-  installation?: string;
-  channels?: string;
-  calls?: string;
+
   pricing: {
     amount: number;
     currency: string;
@@ -214,38 +206,6 @@ export const useMongoOfferingsLogic = () => {
           isBundle: offering.isBundle || false,
           isSellable: offering.isSellable !== false,
           customAttributes: (offering as any).customAttributes || customAttributes,
-          // Extract simple text fields from customAttributes or use existing values
-          connectionType: (offering as any).connectionType || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('connection') || 
-            attr.name.toLowerCase().includes('connection type')
-          )?.value || '',
-          packageType: (offering as any).packageType || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('package') || 
-            attr.name.toLowerCase().includes('package type')
-          )?.value || '',
-          internetSpeed: (offering as any).internetSpeed || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('speed') || 
-            attr.name.toLowerCase().includes('internet speed')
-          )?.value || '',
-          dataAllowance: (offering as any).dataAllowance || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('data') || 
-            attr.name.toLowerCase().includes('data allowance')
-          )?.value || '',
-          contractTerm: (offering as any).contractTerm || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('contract') || 
-            attr.name.toLowerCase().includes('term')
-          )?.value || '',
-          installation: (offering as any).installation || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('installation')
-          )?.value || '',
-          channels: (offering as any).channels || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('channel') || 
-            attr.name.toLowerCase().includes('tv')
-          )?.value || '',
-          calls: (offering as any).calls || customAttributes.find(attr => 
-            attr.name.toLowerCase().includes('call') || 
-            attr.name.toLowerCase().includes('voice')
-          )?.value || '',
           pricing: (offering as any).pricing || pricing,
           createdAt: (offering as any).createdAt || new Date().toISOString(),
           updatedAt: (offering as any).updatedAt,
@@ -666,38 +626,7 @@ export const useMongoOfferingsLogic = () => {
         lifecycleStatus: formData.lifecycleStatus,
         isBundle: formData.isBundle,
         isSellable: formData.isSellable,
-        // Convert custom attributes to simple text fields for easy display
-        connectionType: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('connection') || 
-          attr.name.toLowerCase().includes('connection type')
-        )?.value || '',
-        packageType: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('package') || 
-          attr.name.toLowerCase().includes('package type')
-        )?.value || '',
-        internetSpeed: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('speed') || 
-          attr.name.toLowerCase().includes('internet speed')
-        )?.value || '',
-        dataAllowance: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('data') || 
-          attr.name.toLowerCase().includes('data allowance')
-        )?.value || '',
-        contractTerm: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('contract') || 
-          attr.name.toLowerCase().includes('term')
-        )?.value || '',
-        installation: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('installation')
-        )?.value || '',
-        channels: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('channel') || 
-          attr.name.toLowerCase().includes('tv')
-        )?.value || '',
-        calls: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('call') || 
-          attr.name.toLowerCase().includes('voice')
-        )?.value || '',
+
         // Keep original customAttributes for backward compatibility
         customAttributes: formData.customAttributes.map(attr => ({
           id: attr.id,
@@ -782,15 +711,7 @@ export const useMongoOfferingsLogic = () => {
         subCategory: mongoOffering.subCategory,
         subSubCategory: mongoOffering.subSubCategory,
         
-        // Simple text fields for easy display and filtering
-        connectionType: mongoOffering.connectionType,
-        packageType: mongoOffering.packageType,
-        internetSpeed: mongoOffering.internetSpeed,
-        dataAllowance: mongoOffering.dataAllowance,
-        contractTerm: mongoOffering.contractTerm,
-        installation: mongoOffering.installation,
-        channels: mongoOffering.channels,
-        calls: mongoOffering.calls,
+
 
         '@type': 'ProductOffering'
       };
@@ -1006,38 +927,7 @@ export const useMongoOfferingsLogic = () => {
         subCategory: subCategoryString,
         subSubCategory: subSubCategoryString,
         
-        // Simple text fields for easy display and filtering
-        connectionType: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('connection') || 
-          attr.name.toLowerCase().includes('connection type')
-        )?.value || '',
-        packageType: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('package') || 
-          attr.name.toLowerCase().includes('package type')
-        )?.value || '',
-        internetSpeed: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('speed') || 
-          attr.name.toLowerCase().includes('internet speed')
-        )?.value || '',
-        dataAllowance: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('data') || 
-          attr.name.toLowerCase().includes('data allowance')
-        )?.value || '',
-        contractTerm: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('contract') || 
-          attr.name.toLowerCase().includes('term')
-        )?.value || '',
-        installation: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('installation')
-        )?.value || '',
-        channels: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('channel') || 
-          attr.name.toLowerCase().includes('tv')
-        )?.value || '',
-        calls: formData.customAttributes.find(attr => 
-          attr.name.toLowerCase().includes('call') || 
-          attr.name.toLowerCase().includes('voice')
-        )?.value || '',
+
         
         updatedAt: new Date().toISOString(),
         
@@ -1491,53 +1381,13 @@ export const useMongoOfferingsLogic = () => {
         const subSubCategoryString = subSubCategoryValues.join(' + ');
         const categoryDescription = `${mainCategory} - ${subCategoryString} - ${subSubCategoryString}`;
 
-        // Extract simple text fields from customAttributes
-        const customAttributes = (offering as any).customAttributes || [];
-        const connectionType = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('connection') || 
-          attr.name.toLowerCase().includes('connection type')
-        )?.value || '';
-        const packageType = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('package') || 
-          attr.name.toLowerCase().includes('package type')
-        )?.value || '';
-        const internetSpeed = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('speed') || 
-          attr.name.toLowerCase().includes('internet speed')
-        )?.value || '';
-        const dataAllowance = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('data') || 
-          attr.name.toLowerCase().includes('data allowance')
-        )?.value || '';
-        const contractTerm = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('contract') || 
-          attr.name.toLowerCase().includes('term')
-        )?.value || '';
-        const installation = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('installation')
-        )?.value || '';
-        const channels = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('channel') || 
-          attr.name.toLowerCase().includes('tv')
-        )?.value || '';
-        const calls = customAttributes.find((attr: any) => 
-          attr.name.toLowerCase().includes('call') || 
-          attr.name.toLowerCase().includes('voice')
-        )?.value || '';
+
 
         // Skip update if nothing to change
         const needsUpdate = (
           (offering as any).subCategory !== subCategoryString ||
           (offering as any).subSubCategory !== subSubCategoryString ||
-          (offering as any).categoryDescription !== categoryDescription ||
-          (offering as any).connectionType !== connectionType ||
-          (offering as any).packageType !== packageType ||
-          (offering as any).internetSpeed !== internetSpeed ||
-          (offering as any).dataAllowance !== dataAllowance ||
-          (offering as any).contractTerm !== contractTerm ||
-          (offering as any).installation !== installation ||
-          (offering as any).channels !== channels ||
-          (offering as any).calls !== calls
+          (offering as any).categoryDescription !== categoryDescription
         );
 
         if (!needsUpdate) continue;
@@ -1547,15 +1397,6 @@ export const useMongoOfferingsLogic = () => {
             subCategory: subCategoryString,
             subSubCategory: subSubCategoryString,
             categoryDescription,
-            // Simple text fields for easy display and filtering
-            connectionType,
-            packageType,
-            internetSpeed,
-            dataAllowance,
-            contractTerm,
-            installation,
-            channels,
-            calls,
             updatedAt: new Date().toISOString(),
             '@type': 'ProductOffering'
           });
