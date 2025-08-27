@@ -139,13 +139,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     if (filters.mainCategory === 'Broadband' || filters.mainCategory === 'broadband') {
       console.log('🔍 Applying broadband filters to:', filtered.length, 'offerings');
       
-      // Filter by Connection Type
+      // Filter by Connection Type (from productSpecification)
       if (broadbandFilters.connectionType !== 'all') {
         filtered = filtered.filter(offering => {
-          // Try simple text fields first, then fallback to customAttributes
-          const connectionType = (offering as any).connectionType || 
-            extractValueFromCustomAttributes(offering, 'connection') ||
-            extractValueFromCustomAttributes(offering, 'connection type');
+          const connectionType = extractValueFromProductSpec(offering, 'Connection Type');
           const matches = connectionType === broadbandFilters.connectionType;
           if (!matches) {
             console.log('❌ Connection type filter failed for:', offering.name, 'Expected:', broadbandFilters.connectionType, 'Got:', connectionType);
@@ -155,32 +152,26 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         console.log('🔍 After connection type filter:', filtered.length);
       }
 
-      // Filter by Package Usage Type
+      // Filter by Package Usage Type (from productSpecification)
       if (broadbandFilters.packageUsageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const packageType = (offering as any).packageType || 
-            extractValueFromCustomAttributes(offering, 'package') ||
-            extractValueFromCustomAttributes(offering, 'package type');
-          return packageType === broadbandFilters.packageUsageType;
+          const packageUsageType = extractValueFromProductSpec(offering, 'Package Type');
+          return packageUsageType === broadbandFilters.packageUsageType;
         });
       }
 
-      // Filter by Package Type
+      // Filter by Package Type (from customAttributes)
       if (broadbandFilters.packageType !== 'all') {
         filtered = filtered.filter(offering => {
-          const packageType = (offering as any).packageType || 
-            extractValueFromCustomAttributes(offering, 'package') ||
-            extractValueFromCustomAttributes(offering, 'package type');
+          const packageType = extractValueFromCustomAttributes(offering, 'Package Type');
           return packageType === broadbandFilters.packageType;
         });
       }
 
-      // Filter by Data Bundle
+      // Filter by Data Bundle (from customAttributes)
       if (broadbandFilters.dataBundle !== 'all') {
         filtered = filtered.filter(offering => {
-          const dataAllowance = (offering as any).dataAllowance || 
-            extractValueFromCustomAttributes(offering, 'data') ||
-            extractValueFromCustomAttributes(offering, 'data allowance');
+          const dataAllowance = extractValueFromCustomAttributes(offering, 'Data Allowance');
           return dataAllowance === broadbandFilters.dataBundle;
         });
       }
@@ -249,6 +240,20 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     );
     
     return attr ? attr.value : '';
+  };
+
+  const extractValueFromProductSpec = (offering: ProductOffering, specName: string): string => {
+    if (!(offering as any).productSpecification?.productSpecCharacteristic) return '';
+    
+    const spec = (offering as any).productSpecification.productSpecCharacteristic.find((spec: any) => 
+      spec.name && spec.name.toLowerCase() === specName.toLowerCase()
+    );
+    
+    if (spec && spec.productSpecCharacteristicValue && spec.productSpecCharacteristicValue.length > 0) {
+      return spec.productSpecCharacteristicValue[0].value || '';
+    }
+    
+    return '';
   };
 
   const getOfferingSpecs = (offering: ProductOffering) => {
@@ -416,9 +421,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Connection Types</SelectItem>
-                  <SelectItem value="Data/PEOTV & Voice Packages">Data/PEOTV & Voice Packages</SelectItem>
-                  <SelectItem value="Data Packages">Data Packages</SelectItem>
-                  <SelectItem value="Data & Voice">Data & Voice</SelectItem>
+                  <SelectItem value="Fibre">Fibre</SelectItem>
+                  <SelectItem value="4G">4G</SelectItem>
+                  <SelectItem value="ADSL">ADSL</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -432,7 +437,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Usage Types</SelectItem>
-                  <SelectItem value="Any Time">Any Time</SelectItem>
+                  <SelectItem value="Anytime Data">Anytime Data</SelectItem>
                   <SelectItem value="Time Based">Time Based</SelectItem>
                   <SelectItem value="Unlimited">Unlimited</SelectItem>
                 </SelectContent>
@@ -464,13 +469,13 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Data Bundles</SelectItem>
-                  <SelectItem value="40GB">40GB</SelectItem>
-                  <SelectItem value="50GB">50GB</SelectItem>
-                  <SelectItem value="85GB">85GB</SelectItem>
-                  <SelectItem value="100GB">100GB</SelectItem>
-                  <SelectItem value="115GB">115GB</SelectItem>
-                  <SelectItem value="200GB">200GB</SelectItem>
-                  <SelectItem value="400GB">400GB</SelectItem>
+                  <SelectItem value="40 GB">40 GB</SelectItem>
+                  <SelectItem value="50 GB">50 GB</SelectItem>
+                  <SelectItem value="85 GB">85 GB</SelectItem>
+                  <SelectItem value="100 GB">100 GB</SelectItem>
+                  <SelectItem value="115 GB">115 GB</SelectItem>
+                  <SelectItem value="200 GB">200 GB</SelectItem>
+                  <SelectItem value="400 GB">400 GB</SelectItem>
                 </SelectContent>
               </Select>
 
