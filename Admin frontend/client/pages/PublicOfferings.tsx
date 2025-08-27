@@ -153,11 +153,14 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
             matches = (categoryDescription.includes('4G') || categoryDescription.includes('ADSL')) && !categoryDescription.includes('PEOTV');
           } else if (broadbandFilters.connectionType === 'Data & Voice') {
             // Only match if it contains "Fiber" but NOT "PEOTV" (pure Data & Voice)
+            // AND must NOT contain "PEOTV" anywhere in the description
             matches = (categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre')) && !categoryDescription.includes('PEOTV');
           }
           
           if (!matches) {
             console.log('❌ Connection type filter failed for:', offering.name, 'Expected:', broadbandFilters.connectionType, 'Got:', categoryDescription);
+          } else {
+            console.log('✅ Connection type filter passed for:', offering.name, 'Filter:', broadbandFilters.connectionType, 'Description:', categoryDescription);
           }
           return matches;
         });
