@@ -307,7 +307,31 @@ export default function CreateOrder() {
                 const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
                 
                 if (subSubCategoryName === 'Any Time') {
-                  hasSubCategory = offeringName.includes('Any Time') || offeringName.includes('Anytime') || offeringName.includes('HBB Anytime');
+                  // Check for various "Any Time" patterns in offering names and descriptions
+                  hasSubCategory = offeringName.includes('Any Time') || 
+                                 offeringName.includes('Anytime') || 
+                                 offeringName.includes('HBB Anytime') ||
+                                 offeringName.includes('Any Beat') ||
+                                 offeringName.includes('Any Flix') ||
+                                 offeringName.includes('Any Tide') ||
+                                 offeringDescription.includes('Any Time') ||
+                                 offeringDescription.includes('Anytime') ||
+                                 offeringDescription.includes('HBB Anytime');
+                  
+                  console.log(`🔍 "Any Time" check for "${offeringName}":`, {
+                    name: offeringName,
+                    description: offeringDescription,
+                    hasAnyTime: offeringName.includes('Any Time'),
+                    hasAnytime: offeringName.includes('Anytime'),
+                    hasHBBAnytime: offeringName.includes('HBB Anytime'),
+                    hasAnyBeat: offeringName.includes('Any Beat'),
+                    hasAnyFlix: offeringName.includes('Any Flix'),
+                    hasAnyTide: offeringName.includes('Any Tide'),
+                    descHasAnyTime: offeringDescription.includes('Any Time'),
+                    descHasAnytime: offeringDescription.includes('Anytime'),
+                    descHasHBBAnytime: offeringDescription.includes('HBB Anytime'),
+                    result: hasSubCategory
+                  });
                 } else if (subSubCategoryName === 'Time Based') {
                   hasSubCategory = offeringName.includes('Time Based') || offeringDescription.includes('Time Based');
                 } else if (subSubCategoryName === 'Unlimited') {
