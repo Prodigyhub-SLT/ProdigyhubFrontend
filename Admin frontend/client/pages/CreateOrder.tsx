@@ -359,6 +359,9 @@ export default function CreateOrder() {
           isBundle: offering.isBundle || false,
           isSellable: offering.isSellable !== false,
           customAttributes: (offering as any).customAttributes || [],
+          subCategory: (offering as any).subCategory || '',
+          subSubCategory: (offering as any).subSubCategory || '',
+          categoryDescription: (offering as any).categoryDescription || '',
           pricing: (offering as any).pricing || {
             amount: 0,
             currency: 'LKR',
