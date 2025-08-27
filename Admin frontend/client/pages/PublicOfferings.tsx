@@ -146,11 +146,14 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           let matches = false;
           
           if (broadbandFilters.connectionType === 'Data/PEOTV & Voice Packages') {
-            matches = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
+            // Only match if it contains "PEOTV" (Data/PEOTV & Voice Packages)
+            matches = categoryDescription.includes('PEOTV');
           } else if (broadbandFilters.connectionType === 'Data Packages') {
-            matches = categoryDescription.includes('4G') || categoryDescription.includes('ADSL');
+            // Only match if it contains "4G" or "ADSL" but NOT "PEOTV"
+            matches = (categoryDescription.includes('4G') || categoryDescription.includes('ADSL')) && !categoryDescription.includes('PEOTV');
           } else if (broadbandFilters.connectionType === 'Data & Voice') {
-            matches = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
+            // Only match if it contains "Fiber" but NOT "PEOTV" (pure Data & Voice)
+            matches = (categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre')) && !categoryDescription.includes('PEOTV');
           }
           
           if (!matches) {
