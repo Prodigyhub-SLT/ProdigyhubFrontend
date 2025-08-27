@@ -254,109 +254,47 @@ export default function CreateOrder() {
       
       // Filter by sub-categories if selected
       if (selectedHierarchicalCategory?.subCategories && selectedHierarchicalCategory.subCategories.length > 0) {
-        console.log('🔍 Starting sub-category filtering using offering names and descriptions...');
+        console.log('🔍 Starting sub-category filtering using MongoDB subCategory/subSubCategory fields...');
         console.log('📋 Selected sub-categories:', selectedHierarchicalCategory.subCategories);
         
         // Debug: Log a few sample offerings to see their actual structure
         console.log('🔍 Sample offering structure:', categoryOfferings.slice(0, 2).map(offering => ({
           name: offering.name,
-          description: offering.description,
-          categoryDescription: (offering as any).categoryDescription || '',
-          customAttributes: (offering as any).customAttributes || [],
-          productSpecification: (offering as any).productSpecification
+          subCategory: (offering as any).subCategory || '',
+          subSubCategory: (offering as any).subSubCategory || '',
+          categoryDescription: (offering as any).categoryDescription || ''
         })));
         
         categoryOfferings = categoryOfferings.filter(offering => {
-          const offeringName = offering.name || '';
-          const offeringDescription = offering.description || '';
-          const offeringCustomAttributes = (offering as any).customAttributes || [];
+          const offeringSubCategory = (offering as any).subCategory || '';
+          const offeringSubSubCategory = (offering as any).subSubCategory || '';
           
-          console.log(`🔍 Checking offering "${offeringName}" with description: "${offeringDescription}"`);
+          console.log(`🔍 Checking offering "${offering.name}" with subCategory: "${offeringSubCategory}" and subSubCategory: "${offeringSubSubCategory}"`);
           
-          // Check each selected sub-category using the same logic as Public Offerings
+          // Check each selected sub-category using the MongoDB fields
           return selectedHierarchicalCategory.subCategories.every(selectedSub => {
             const subCategoryName = selectedSub.subCategory.name || selectedSub.subCategory.label || selectedSub.subCategory.value;
             console.log(`🔍 Checking sub-category: "${subCategoryName}"`);
             
-            // Check if this sub-category is present in the offering
-            let hasSubCategory = false;
+            // Check if this sub-category is present in the offering's subCategory field
+            const hasSubCategory = offeringSubCategory.includes(subCategoryName);
+            console.log(`🔍 Sub-category "${subCategoryName}" present in subCategory: ${hasSubCategory}`);
             
-            if (subCategoryName === 'Connection Type') {
-              // Use the same logic as Public Offerings for Connection Type
-              if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
-                const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
+            // Check sub-sub-categories if they exist
+            if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
+              const hasMatchingSubSub = selectedSub.subSubCategories.some(selectedSubSub => {
+                const subSubCategoryName = selectedSubSub.name || selectedSubSub.label || selectedSubSub.value;
+                console.log(`🔍 Checking sub-sub-category: "${subSubCategoryName}"`);
                 
-                if (subSubCategoryName === 'Data Packages') {
-                  // Check for 4G, ADSL, or explicit "Data Packages" but NOT PEOTV
-                  const isTechData = offeringName.includes('4G') || offeringName.includes('ADSL') || offeringName.includes('LTE');
-                  const isExplicitDataPackages = offeringName.includes('Data Packages') || offeringDescription.includes('Data Packages');
-                  hasSubCategory = (isExplicitDataPackages || isTechData) && !offeringName.includes('PEOTV') && !offeringDescription.includes('PEOTV');
-                } else if (subSubCategoryName === 'Data/PEOTV & Voice Packages') {
-                  // Only match if it contains "PEOTV"
-                  hasSubCategory = offeringName.includes('PEOTV') || offeringDescription.includes('PEOTV');
-                } else if (subSubCategoryName === 'Data & Voice') {
-                  // Must be Fiber but NOT PEOTV and NOT explicitly Data Packages
-                  const isFiber = offeringName.includes('Fiber') || offeringName.includes('Fibre') || offeringName.includes('Fibre');
-                  const isDataPackages = offeringName.includes('Data Packages') || offeringDescription.includes('Data Packages');
-                  hasSubCategory = isFiber && !offeringName.includes('PEOTV') && !offeringDescription.includes('PEOTV') && !isDataPackages;
-                }
-              }
-            } else if (subCategoryName === 'Package Usage Type') {
-              // Use the same logic as Public Offerings for Package Usage Type
-              if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
-                const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
-                
-                if (subSubCategoryName === 'Any Time') {
-                  // Check for various "Any Time" patterns in offering names and descriptions
-                  hasSubCategory = offeringName.includes('Any Time') || 
-                                 offeringName.includes('Anytime') || 
-                                 offeringName.includes('HBB Anytime') ||
-                                 offeringName.includes('Any Beat') ||
-                                 offeringName.includes('Any Flix') ||
-                                 offeringName.includes('Any Tide') ||
-                                 offeringDescription.includes('Any Time') ||
-                                 offeringDescription.includes('Anytime') ||
-                                 offeringDescription.includes('HBB Anytime');
-                  
-                  console.log(`🔍 "Any Time" check for "${offeringName}":`, {
-                    name: offeringName,
-                    description: offeringDescription,
-                    hasAnyTime: offeringName.includes('Any Time'),
-                    hasAnytime: offeringName.includes('Anytime'),
-                    hasHBBAnytime: offeringName.includes('HBB Anytime'),
-                    hasAnyBeat: offeringName.includes('Any Beat'),
-                    hasAnyFlix: offeringName.includes('Any Flix'),
-                    hasAnyTide: offeringName.includes('Any Tide'),
-                    descHasAnyTime: offeringDescription.includes('Any Time'),
-                    descHasAnytime: offeringDescription.includes('Anytime'),
-                    descHasHBBAnytime: offeringDescription.includes('HBB Anytime'),
-                    result: hasSubCategory
-                  });
-                } else if (subSubCategoryName === 'Time Based') {
-                  hasSubCategory = offeringName.includes('Time Based') || offeringDescription.includes('Time Based');
-                } else if (subSubCategoryName === 'Unlimited') {
-                  hasSubCategory = offeringName.includes('Unlimited') || offeringDescription.includes('Unlimited');
-                }
-              }
-            } else if (subCategoryName === 'Package Type') {
-              // Use the same logic as Public Offerings for Package Type
-              if (selectedSub.subSubCategories && selectedSub.subSubCategories.length > 0) {
-                const subSubCategoryName = selectedSub.subSubCategories[0].name || selectedSub.subSubCategories[0].label || selectedSub.subSubCategories[0].value;
-                
-                if (subSubCategoryName === '4G') {
-                  hasSubCategory = offeringName.includes('4G') || offeringName.includes('LTE');
-                } else if (subSubCategoryName === 'ADSL') {
-                  hasSubCategory = offeringName.includes('ADSL');
-                } else if (subSubCategoryName === 'Fiber') {
-                  hasSubCategory = offeringName.includes('Fiber') || offeringName.includes('Fibre');
-                } else {
-                  // Generic matching for other package types
-                  hasSubCategory = offeringName.includes(subSubCategoryName) || offeringDescription.includes(subSubCategoryName);
-                }
-              }
+                const matches = offeringSubSubCategory.includes(subSubCategoryName);
+                console.log(`🔍 Sub-sub-category "${subSubCategoryName}" matches: ${matches}`);
+                return matches;
+              });
+              
+              console.log(`🔍 Sub-category "${subCategoryName}" has matching sub-sub-category: ${hasMatchingSubSub}`);
+              return hasMatchingSubSub;
             }
             
-            console.log(`🔍 Sub-category "${subCategoryName}" present: ${hasSubCategory}`);
             return hasSubCategory;
           });
         });
