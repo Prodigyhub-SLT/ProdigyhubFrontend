@@ -562,17 +562,27 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </div>
                     </div>
                     
-                                                                                      {/* Connection Type & Package Type (from categoryDescription) */}
-                       <div className="space-y-2 text-sm mb-4">
-                         <div className="flex justify-between">
-                           <span className="font-medium text-gray-700">Connection Type:</span>
-                           <span className="text-gray-900">{specs.connectionType}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span className="font-medium text-gray-700">Package Type:</span>
-                           <span className="text-gray-900">{specs.packageType}</span>
-                         </div>
+                                                                                                           {/* Main Category Badge */}
+                     <div className="mb-4">
+                       <Badge 
+                         variant="outline" 
+                         className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-3 py-1 rounded-full shadow-sm"
+                       >
+                         {getOfferingCategory(offering).toUpperCase()}
+                       </Badge>
+                     </div>
+
+                     {/* Connection Type & Package Type (from categoryDescription) */}
+                     <div className="space-y-3 text-sm mb-4">
+                       <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 p-2 rounded-lg border border-blue-100">
+                         <span className="font-bold text-blue-700 text-base">Connection Type:</span>
+                         <span className="text-gray-900 font-semibold">{specs.connectionType}</span>
                        </div>
+                       <div className="flex justify-between items-center bg-gradient-to-r from-purple-50 to-pink-50 p-2 rounded-lg border border-purple-100">
+                         <span className="font-bold text-purple-700 text-base">Package Type:</span>
+                         <span className="text-gray-900 font-semibold">{specs.packageType}</span>
+                       </div>
+                     </div>
 
                        {/* Custom Attributes (excluding Connection Type & Package Type) */}
                        {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
