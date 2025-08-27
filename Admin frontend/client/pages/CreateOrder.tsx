@@ -602,11 +602,6 @@ export default function CreateOrder() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🚨 FORM SUBMISSION TRIGGERED!', e);
-    console.log('🚨 Event type:', e.type);
-    console.log('🚨 Current form data:', formData);
-    console.log('🚨 Stack trace:', new Error().stack);
-    
     e.preventDefault();
 
     if (initializingIdGenerator) {
@@ -673,7 +668,7 @@ export default function CreateOrder() {
             <div className="flex justify-between items-center h-16">
                           <div className="flex items-center space-x-3">
               <Link to="/admin/ordering">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" type="button">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Orders
                 </Button>
@@ -709,7 +704,7 @@ export default function CreateOrder() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <Link to="/admin/ordering">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" type="button">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Orders
                 </Button>
