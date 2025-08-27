@@ -540,29 +540,23 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               const specs = getOfferingSpecs(offering);
               
               return (
-                <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-[500px] flex flex-col max-w-xs bg-white/80 backdrop-blur-sm border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
-                  {/* Header Section */}
-                  <div className="p-6 pb-4 flex-1">
-                    <div className="mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                          {offering.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-3">
-                          {offering.description || 'No description available'}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-end">
-                        <Badge 
-                          variant="outline" 
-                          className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs font-semibold shadow-sm"
-                        >
-                          ACTIVE
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                                                                                                           {/* Main Category Badge */}
+                                 <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
+                   {/* Top Header - Dark Blue */}
+                   <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+                     <div className="flex items-center justify-between mb-2">
+                       <h3 className="text-xl font-bold">{offering.name}</h3>
+                       <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
+                         ACTIVE
+                       </Badge>
+                     </div>
+                     <p className="text-sm text-blue-100 opacity-90">
+                       {offering.description || 'No description available'}
+                     </p>
+                   </div>
+
+                   {/* Middle Section - White Background */}
+                   <div className="p-4 bg-white">
+                     {/* Main Category Badge */}
                      <div className="mb-4">
                        <Badge 
                          variant="outline" 
@@ -572,72 +566,66 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                        </Badge>
                      </div>
 
-                     {/* Connection Type & Package Type (from categoryDescription) */}
-                     <div className="space-y-3 text-sm mb-4">
-                       <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 p-2 rounded-lg border border-blue-100">
-                         <span className="font-bold text-blue-700 text-base">Connection Type:</span>
-                         <span className="text-gray-900 font-semibold">{specs.connectionType}</span>
+                     {/* Key Specifications */}
+                     <div className="space-y-3 mb-4">
+                       <div className="bg-gray-50 p-3 rounded-lg">
+                         <div className="text-sm text-gray-600 mb-1">Connection Type</div>
+                         <div className="text-lg font-bold text-gray-900">{specs.connectionType}</div>
                        </div>
-                       <div className="flex justify-between items-center bg-gradient-to-r from-purple-50 to-pink-50 p-2 rounded-lg border border-purple-100">
-                         <span className="font-bold text-purple-700 text-base">Package Type:</span>
-                         <span className="text-gray-900 font-semibold">{specs.packageType}</span>
+                       
+                       <div className="bg-gray-50 p-3 rounded-lg">
+                         <div className="text-sm text-gray-600 mb-1">Package Type</div>
+                         <div className="text-lg font-bold text-gray-900">{specs.packageType}</div>
                        </div>
-                     </div>
 
-                       {/* Custom Attributes (excluding Connection Type & Package Type) */}
-                       {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                         <div className="space-y-2 text-sm">
-                           {(offering as any).customAttributes
-                             .filter((attr: any) => 
-                               attr.name !== 'Connection Type' && attr.name !== 'Package Type'
-                             )
-                             .map((attr: any, index: number) => (
-                               <div key={index} className="flex justify-between">
-                                 <span className="font-medium text-gray-700">{attr.name}:</span>
-                                 <span className="text-gray-900">{attr.value}</span>
-                               </div>
-                             ))
-                           }
+                       {/* Data Bundle - if available */}
+                       {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                         <div className="bg-gray-50 p-3 rounded-lg">
+                           <div className="text-sm text-gray-600 mb-1">Data Bundle</div>
+                           <div className="text-lg font-bold text-gray-900">
+                             {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
+                           </div>
                          </div>
                        )}
-                  </div>
+                     </div>
 
-                  {/* Pricing Section */}
-                  {price && (
-                    <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-white/10"></div>
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-                      <div className="text-center relative z-10">
-                        <div className="text-2xl font-bold mb-1 drop-shadow-sm">
-                          {price.currency} {price.amount.toLocaleString()}
-                        </div>
-                        <div className="text-sm opacity-90 mb-3">
-                          {price.period}
-                        </div>
-                        <div className="text-xs space-y-1 opacity-80">
-                          <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
-                          <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                     {/* Other Custom Attributes */}
+                     {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                       <div className="space-y-2">
+                         {(offering as any).customAttributes
+                           .filter((attr: any) => 
+                             !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
+                           )
+                           .map((attr: any, index: number) => (
+                             <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                               <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                               <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                             </div>
+                           ))
+                         }
+                       </div>
+                     )}
+                   </div>
 
-                  {/* Footer Actions */}
-                  <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
-                    <div className="flex items-center justify-center">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleViewSpec(offering)}
-                        className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
+                   {/* Bottom Section - Dark Blue Footer */}
+                   <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+                     <div className="text-center mb-3">
+                       <div className="text-sm text-blue-100 mb-1">Monthly Rental</div>
+                       <div className="text-3xl font-bold">
+                         {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                       </div>
+                     </div>
+                     
+                                            <Button 
+                         variant="ghost" 
+                         size="sm" 
+                         onClick={() => handleViewSpec(offering)}
+                         className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20"
+                       >
+                         Connection Speed & Terms &gt;
+                       </Button>
+                   </div>
+                 </Card>
               );
             })}
           </div>
