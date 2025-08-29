@@ -370,7 +370,7 @@ export function QualificationTab() {
   // Show infrastructure results
   if (step === 'infrastructure' && infrastructureCheck) {
     return (
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <Card className="bg-white shadow-lg border-0">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold text-gray-800">
@@ -437,84 +437,17 @@ export function QualificationTab() {
               </div>
             </div>
             
-            {/* Detailed Infrastructure Information */}
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Fiber Service */}
-              <Card className={`${infrastructureCheck.fiber.available ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border-2`}>
-                <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 mx-auto mb-2">
-                    {infrastructureCheck.fiber.available ? (
-                      <CheckCircle className="w-12 h-12 text-green-600" />
-                    ) : (
-                      <XCircle className="w-12 h-12 text-red-600" />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Fiber Internet</h3>
-                  <Badge variant={infrastructureCheck.fiber.available ? "default" : "destructive"}>
-                    {infrastructureCheck.fiber.available ? 'Available' : 'Not Available'}
-                  </Badge>
-                  {infrastructureCheck.fiber.available && (
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>Speed: {infrastructureCheck.fiber.maxSpeed}</p>
-                      <p>Coverage: {infrastructureCheck.fiber.coverage}%</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
 
-              {/* ADSL Service */}
-              <Card className={`${infrastructureCheck.adsl.available ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border-2`}>
-                <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 mx-auto mb-2">
-                    {infrastructureCheck.adsl.available ? (
-                      <CheckCircle className="w-12 h-12 text-green-600" />
-                    ) : (
-                      <XCircle className="w-12 h-12 text-red-600" />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">ADSL Internet</h3>
-                  <Badge variant={infrastructureCheck.adsl.available ? "default" : "destructive"}>
-                    {infrastructureCheck.adsl.available ? 'Available' : 'Not Available'}
-                  </Badge>
-                  {infrastructureCheck.adsl.available && (
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>Speed: {infrastructureCheck.adsl.maxSpeed}</p>
-                      <p>Coverage: {infrastructureCheck.adsl.coverage}%</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
 
-              {/* Mobile Service */}
-              <Card className={`${infrastructureCheck.mobile.available ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border-2`}>
-                <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 mx-auto mb-2">
-                    {infrastructureCheck.mobile.available ? (
-                      <CheckCircle className="w-12 h-12 text-green-600" />
-                    ) : (
-                      <XCircle className="w-12 h-12 text-red-600" />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Mobile Internet</h3>
-                  <Badge variant={infrastructureCheck.mobile.available ? "default" : "destructive"}>
-                    {infrastructureCheck.mobile.available ? 'Available' : 'Not Available'}
-                  </Badge>
-                  {infrastructureCheck.mobile.available && (
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>Technologies: {infrastructureCheck.mobile.technologies?.join(', ')}</p>
-                      <p>Coverage: {infrastructureCheck.mobile.coverage}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+
+
 
             <div className="text-center space-y-4">
               <div className="text-lg font-semibold text-gray-800 mb-4">
                 Infrastructure Check Complete for {addressDetails.district}, {addressDetails.province}
               </div>
               
-              {/* Service Request Buttons */}
+              {/* Simple Service Request Buttons - Only for unavailable services */}
               <div className="grid md:grid-cols-3 gap-4 mb-6">
                 {/* Fiber Service */}
                 <div className="space-y-2">
@@ -527,13 +460,7 @@ export function QualificationTab() {
                       Request Fiber Service
                     </Button>
                   ) : (
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleServiceRequest('fiber')}
-                      data-service="fiber"
-                    >
-                      Express Interest in Fiber
-                    </Button>
+                    <div className="text-green-600 font-medium">✓ Available</div>
                   )}
                 </div>
                 
@@ -548,13 +475,7 @@ export function QualificationTab() {
                       Request ADSL Service
                     </Button>
                   ) : (
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleServiceRequest('adsl')}
-                      data-service="adsl"
-                    >
-                      Express Interest in ADSL
-                    </Button>
+                    <div className="text-green-600 font-medium">✓ Available</div>
                   )}
                 </div>
                 
@@ -569,13 +490,7 @@ export function QualificationTab() {
                       Request Mobile Service
                     </Button>
                   ) : (
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleServiceRequest('mobile')}
-                      data-service="mobile"
-                    >
-                      Express Interest in Mobile
-                    </Button>
+                    <div className="text-green-600 font-medium">✓ Available</div>
                   )}
                 </div>
               </div>
