@@ -193,22 +193,9 @@ export function QualificationTab() {
 
     const service = infrastructureCheck[serviceType];
     
-    // Determine if this is a request for unavailable service or interest in available service
-    const isInterestRequest = service.available;
-    
-    if (isInterestRequest) {
-      // Service is available, this is an interest request
-      toast({
-        title: "Interest Recorded",
-        description: `Your interest in ${serviceType.toUpperCase()} has been recorded!`,
-      });
-    }
-
     // Create qualification request that matches the admin dashboard format
     const qualificationData = {
-      description: isInterestRequest 
-        ? `SLT Customer Interest in ${serviceType.toUpperCase()} for ${addressDetails.district}, ${addressDetails.province}`
-        : `SLT Service Request for ${serviceType.toUpperCase()} in ${addressDetails.district}, ${addressDetails.province}`,
+      description: `SLT Service Request for ${serviceType.toUpperCase()} in ${addressDetails.district}, ${addressDetails.province}`,
       instantSyncQualification: true,
       provideAlternative: false,
       provideOnlyAvailable: true,
@@ -228,7 +215,7 @@ export function QualificationTab() {
           '@type': 'Note'
         },
         {
-          text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband ${isInterestRequest ? '(Interest)' : '(Request)'}`])}`,
+          text: `SLT_SERVICES:${JSON.stringify([`${serviceType.toUpperCase()} Broadband (Request)`])}`,
           author: 'SLT System',
           date: new Date().toISOString(),
           '@type': 'Note'
@@ -242,7 +229,7 @@ export function QualificationTab() {
         {
           text: `SLT_AREA_MATCH:${JSON.stringify({
             matchedArea: areaData,
-            qualificationResult: isInterestRequest ? 'interested' : 'unqualified'
+            qualificationResult: 'unqualified'
           })}`,
           author: 'SLT System',
           date: new Date().toISOString(),
@@ -272,16 +259,14 @@ export function QualificationTab() {
         const responseData = await response.json();
         
         toast({
-          title: isInterestRequest ? "Interest Recorded" : "Request Submitted",
-          description: isInterestRequest 
-            ? `Your interest in ${serviceType.toUpperCase()} has been recorded and will appear in the admin dashboard Qualification Records section.`
-            : `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
+          title: "Request Submitted",
+          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
         });
         
         // Update the button to show it's been submitted
         const buttonElement = document.querySelector(`[data-service="${serviceType}"]`);
         if (buttonElement) {
-          buttonElement.textContent = isInterestRequest ? 'Interest Recorded' : 'Request Submitted';
+          buttonElement.textContent = 'Request Submitted';
           (buttonElement as HTMLButtonElement).disabled = true;
         }
       } else {
@@ -373,182 +358,97 @@ export function QualificationTab() {
       <div className="max-w-4xl mx-auto">
         <Card className="bg-white shadow-lg border-0">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-gray-800">
-              Infrastructure Availability Check
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Infrastructure Availability
             </CardTitle>
-            <CardDescription className="text-gray-600">
-              Checking what services are available in your area
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Infrastructure Summary */}
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                Infrastructure Summary for {addressDetails.district}, {addressDetails.province}
-              </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                    infrastructureCheck.fiber.available ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    {infrastructureCheck.fiber.available ? (
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                    ) : (
-                      <XCircle className="w-8 h-8 text-red-600" />
-                    )}
-                  </div>
-                  <div className="text-gray-800 font-semibold">Fiber Internet</div>
-                  <div className={`text-sm ${infrastructureCheck.fiber.available ? 'text-green-600' : 'text-red-600'}`}>
-                    {infrastructureCheck.fiber.available ? 'Available' : 'Not Available'}
-                  </div>
+            {/* Simple Infrastructure List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${infrastructureCheck.fiber.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="font-medium text-gray-800">Fiber</span>
                 </div>
-                
-                <div className="text-center">
-                  <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                    infrastructureCheck.adsl.available ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    {infrastructureCheck.adsl.available ? (
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                    ) : (
-                      <XCircle className="w-8 h-8 text-red-600" />
-                    )}
-                  </div>
-                  <div className="text-gray-800 font-semibold">ADSL Internet</div>
-                  <div className={`text-sm ${infrastructureCheck.adsl.available ? 'text-green-600' : 'text-red-600'}`}>
-                    {infrastructureCheck.adsl.available ? 'Available' : 'Not Available'}
-                  </div>
+                <div className="flex items-center space-x-4">
+                  <span className={`text-sm ${infrastructureCheck.fiber.available ? 'text-green-600' : 'text-red-600'}`}>
+                    {infrastructureCheck.fiber.available ? 'Available' : 'Un-Available'}
+                  </span>
+                  {!infrastructureCheck.fiber.available && (
+                    <Button 
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
+                      onClick={() => handleServiceRequest('fiber')}
+                      data-service="fiber"
+                    >
+                      Request
+                    </Button>
+                  )}
                 </div>
-                
-                <div className="text-center">
-                  <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                    infrastructureCheck.mobile.available ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    {infrastructureCheck.mobile.available ? (
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                    ) : (
-                      <XCircle className="w-8 h-8 text-red-600" />
-                    )}
-                  </div>
-                  <div className="text-gray-800 font-semibold">Mobile Internet</div>
-                  <div className={`text-sm ${infrastructureCheck.mobile.available ? 'text-green-600' : 'text-red-600'}`}>
-                    {infrastructureCheck.mobile.available ? 'Available' : 'Not Available'}
-                  </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${infrastructureCheck.adsl.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="font-medium text-gray-800">ADSL</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className={`text-sm ${infrastructureCheck.adsl.available ? 'text-green-600' : 'text-red-600'}`}>
+                    {infrastructureCheck.adsl.available ? 'Available' : 'Un-Available'}
+                  </span>
+                  {!infrastructureCheck.adsl.available && (
+                    <Button 
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
+                      onClick={() => handleServiceRequest('adsl')}
+                      data-service="adsl"
+                    >
+                      Request
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${infrastructureCheck.mobile.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="font-medium text-gray-800">LTE/4G</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className={`text-sm ${infrastructureCheck.mobile.available ? 'text-green-600' : 'text-red-600'}`}>
+                    {infrastructureCheck.mobile.available ? 'Available' : 'Un-Available'}
+                  </span>
+                  {!infrastructureCheck.mobile.available && (
+                    <Button 
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
+                      onClick={() => handleServiceRequest('mobile')}
+                      data-service="mobile"
+                    >
+                      Request
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
             
-
-
-
-
-
-            <div className="text-center space-y-4">
-              <div className="text-lg font-semibold text-gray-800 mb-4">
-                Infrastructure Check Complete for {addressDetails.district}, {addressDetails.province}
-              </div>
-              
-              {/* Simple Service Request Buttons - Only for unavailable services */}
-              <div className="grid md:grid-cols-3 gap-4 mb-6">
-                {/* Fiber Service */}
-                <div className="space-y-2">
-                  {!infrastructureCheck.fiber.available ? (
-                    <Button 
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => handleServiceRequest('fiber')}
-                      data-service="fiber"
-                    >
-                      Request Fiber Service
-                    </Button>
-                  ) : (
-                    <div className="text-green-600 font-medium">✓ Available</div>
-                  )}
-                </div>
-                
-                {/* ADSL Service */}
-                <div className="space-y-2">
-                  {!infrastructureCheck.adsl.available ? (
-                    <Button 
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => handleServiceRequest('adsl')}
-                      data-service="adsl"
-                    >
-                      Request ADSL Service
-                    </Button>
-                  ) : (
-                    <div className="text-green-600 font-medium">✓ Available</div>
-                  )}
-                </div>
-                
-                {/* Mobile Service */}
-                <div className="space-y-2">
-                  {!infrastructureCheck.mobile.available ? (
-                    <Button 
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => handleServiceRequest('mobile')}
-                      data-service="mobile"
-                    >
-                      Request Mobile Service
-                    </Button>
-                  ) : (
-                    <div className="text-green-600 font-medium">✓ Available</div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Status Message */}
-              <div className="text-center py-4">
-                {infrastructureCheck.fiber.available && 
-                 infrastructureCheck.adsl.available && 
-                 infrastructureCheck.mobile.available ? (
-                  <div>
-                    <div className="text-green-600 text-lg font-semibold mb-2">
-                      🎉 All services are available in your area!
-                    </div>
-                    <div className="text-blue-600 text-sm">
-                      You can subscribe to any of the available services
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Expressing interest helps us track customer preferences
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-blue-600 text-lg font-semibold mb-2">
-                      Service Status Summary
-                    </div>
-                    <div className="text-blue-600 text-sm">
-                      {[
-                        !infrastructureCheck.fiber.available && 'Fiber',
-                        !infrastructureCheck.adsl.available && 'ADSL',
-                        !infrastructureCheck.mobile.available && 'Mobile'
-                      ].filter(Boolean).join(', ')} {[
-                        !infrastructureCheck.fiber.available && 'Fiber',
-                        !infrastructureCheck.adsl.available && 'ADSL',
-                        !infrastructureCheck.mobile.available && 'Mobile'
-                      ].filter(Boolean).length === 1 ? 'is' : 'are'} not available in your area
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Click the red buttons to request unavailable services
-                    </p>
-                  </div>
-                )}
-              </div>
-              
-              <div className="text-sm text-blue-600 mb-6">
-                Service requests will appear in the admin dashboard Qualification Records section
-              </div>
-              
-              {/* Back Button */}
-              <div className="flex justify-center mt-2">
-                <Button
-                  variant="outline"
-                  className="text-gray-700 border-gray-300 hover:bg-gray-50"
-                  onClick={() => setStep('address')}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Check Another Address
-                </Button>
-              </div>
+            {/* Footer */}
+            <div className="text-center pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                For any other information Call 1212 SLT hotline
+              </p>
+            </div>
+            
+            {/* Back Button */}
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                onClick={() => setStep('address')}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Check Another Address
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -608,43 +508,41 @@ export function QualificationTab() {
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-4">
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="district" className="text-gray-700">District *</Label>
-                  <Select
-                    value={addressDetails.district}
-                    onValueChange={(value) => handleInputChange('district', value)}
-                  >
-                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                      <SelectValue placeholder="Select district" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {districts.map((district) => (
-                        <SelectItem key={district} value={district}>
-                          {district}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="province" className="text-gray-700">Province *</Label>
-                  <Select
-                    value={addressDetails.province}
-                    onValueChange={(value) => handleInputChange('province', value)}
-                  >
-                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                      <SelectValue placeholder="Select province" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {provinces.map((province) => (
-                        <SelectItem key={province} value={province}>
-                          {province}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="district" className="text-gray-700">District *</Label>
+                <Select
+                  value={addressDetails.district}
+                  onValueChange={(value) => handleInputChange('district', value)}
+                >
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                    <SelectValue placeholder="Select district" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {districts.map((district) => (
+                      <SelectItem key={district} value={district}>
+                        {district}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="province" className="text-gray-700">Province *</Label>
+                <Select
+                  value={addressDetails.province}
+                  onValueChange={(value) => handleInputChange('province', value)}
+                >
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                    <SelectValue placeholder="Select province" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {provinces.map((province) => (
+                      <SelectItem key={province} value={province}>
+                        {province}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
