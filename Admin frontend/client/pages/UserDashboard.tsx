@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { productCatalogApi } from '@/lib/api';
+import { QualificationTab } from '../components/QualificationTab';
 import { 
   Wifi, 
   Tv, 
@@ -1150,14 +1151,7 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'qualification' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Qualification</CardTitle>
-                <CardDescription className="text-gray-600">Qualification features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <QualificationTab />
         )}
 
         {activeTab === 'customize' && (

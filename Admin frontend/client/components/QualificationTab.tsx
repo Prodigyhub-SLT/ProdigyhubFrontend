@@ -371,66 +371,66 @@ export function QualificationTab() {
   if (step === 'infrastructure' && infrastructureCheck) {
     return (
       <div className="max-w-6xl mx-auto">
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white">
+        <Card className="bg-white shadow-lg border-0">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-white">
+            <CardTitle className="text-3xl font-bold text-gray-800">
               Infrastructure Availability Check
             </CardTitle>
-            <CardDescription className="text-blue-200">
+            <CardDescription className="text-gray-600">
               Checking what services are available in your area
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Infrastructure Summary */}
-            <div className="bg-blue-900/30 rounded-lg p-6 border border-blue-400/30">
-              <h3 className="text-xl font-semibold text-white mb-4">
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
                 Infrastructure Summary for {addressDetails.district}, {addressDetails.province}
               </h3>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                    infrastructureCheck.fiber.available ? 'bg-green-500/30' : 'bg-red-500/30'
+                    infrastructureCheck.fiber.available ? 'bg-green-100' : 'bg-red-100'
                   }`}>
                     {infrastructureCheck.fiber.available ? (
-                      <CheckCircle className="w-8 h-8 text-green-400" />
+                      <CheckCircle className="w-8 h-8 text-green-600" />
                     ) : (
-                      <XCircle className="w-8 h-8 text-red-400" />
+                      <XCircle className="w-8 h-8 text-red-600" />
                     )}
                   </div>
-                  <div className="text-white font-semibold">Fiber Internet</div>
-                  <div className={`text-sm ${infrastructureCheck.fiber.available ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className="text-gray-800 font-semibold">Fiber Internet</div>
+                  <div className={`text-sm ${infrastructureCheck.fiber.available ? 'text-green-600' : 'text-red-600'}`}>
                     {infrastructureCheck.fiber.available ? 'Available' : 'Not Available'}
                   </div>
                 </div>
                 
                 <div className="text-center">
                   <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                    infrastructureCheck.adsl.available ? 'bg-green-500/30' : 'bg-red-500/30'
+                    infrastructureCheck.adsl.available ? 'bg-green-100' : 'bg-red-100'
                   }`}>
                     {infrastructureCheck.adsl.available ? (
-                      <CheckCircle className="w-8 h-8 text-green-400" />
+                      <CheckCircle className="w-8 h-8 text-green-600" />
                     ) : (
-                      <XCircle className="w-8 h-8 text-red-400" />
+                      <XCircle className="w-8 h-8 text-red-600" />
                     )}
                   </div>
-                  <div className="text-white font-semibold">ADSL Internet</div>
-                  <div className={`text-sm ${infrastructureCheck.adsl.available ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className="text-gray-800 font-semibold">ADSL Internet</div>
+                  <div className={`text-sm ${infrastructureCheck.adsl.available ? 'text-green-600' : 'text-red-600'}`}>
                     {infrastructureCheck.adsl.available ? 'Available' : 'Not Available'}
                   </div>
                 </div>
                 
                 <div className="text-center">
                   <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                    infrastructureCheck.mobile.available ? 'bg-green-500/30' : 'bg-red-500/30'
+                    infrastructureCheck.mobile.available ? 'bg-green-100' : 'bg-red-100'
                   }`}>
                     {infrastructureCheck.mobile.available ? (
-                      <CheckCircle className="w-8 h-8 text-green-400" />
+                      <CheckCircle className="w-8 h-8 text-green-600" />
                     ) : (
-                      <XCircle className="w-8 h-8 text-red-400" />
+                      <XCircle className="w-8 h-8 text-red-600" />
                     )}
                   </div>
-                  <div className="text-white font-semibold">Mobile Internet</div>
-                  <div className={`text-sm ${infrastructureCheck.mobile.available ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className="text-gray-800 font-semibold">Mobile Internet</div>
+                  <div className={`text-sm ${infrastructureCheck.mobile.available ? 'text-green-600' : 'text-red-600'}`}>
                     {infrastructureCheck.mobile.available ? 'Available' : 'Not Available'}
                   </div>
                 </div>
@@ -440,21 +440,21 @@ export function QualificationTab() {
             {/* Detailed Infrastructure Information */}
             <div className="grid md:grid-cols-3 gap-4">
               {/* Fiber Service */}
-              <Card className={`${infrastructureCheck.fiber.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
+              <Card className={`${infrastructureCheck.fiber.available ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border-2`}>
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 mx-auto mb-2">
                     {infrastructureCheck.fiber.available ? (
-                      <CheckCircle className="w-12 h-12 text-green-400" />
+                      <CheckCircle className="w-12 h-12 text-green-600" />
                     ) : (
-                      <XCircle className="w-12 h-12 text-red-400" />
+                      <XCircle className="w-12 h-12 text-red-600" />
                     )}
                   </div>
-                  <h3 className="font-semibold text-white mb-2">Fiber Internet</h3>
+                  <h3 className="font-semibold text-gray-800 mb-2">Fiber Internet</h3>
                   <Badge variant={infrastructureCheck.fiber.available ? "default" : "destructive"}>
                     {infrastructureCheck.fiber.available ? 'Available' : 'Not Available'}
                   </Badge>
                   {infrastructureCheck.fiber.available && (
-                    <div className="mt-2 text-sm text-green-200">
+                    <div className="mt-2 text-sm text-green-700">
                       <p>Speed: {infrastructureCheck.fiber.maxSpeed}</p>
                       <p>Coverage: {infrastructureCheck.fiber.coverage}%</p>
                     </div>
@@ -463,21 +463,21 @@ export function QualificationTab() {
               </Card>
 
               {/* ADSL Service */}
-              <Card className={`${infrastructureCheck.adsl.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
+              <Card className={`${infrastructureCheck.adsl.available ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border-2`}>
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 mx-auto mb-2">
                     {infrastructureCheck.adsl.available ? (
-                      <CheckCircle className="w-12 h-12 text-green-400" />
+                      <CheckCircle className="w-12 h-12 text-green-600" />
                     ) : (
-                      <XCircle className="w-12 h-12 text-red-400" />
+                      <XCircle className="w-12 h-12 text-red-600" />
                     )}
                   </div>
-                  <h3 className="font-semibold text-white mb-2">ADSL Internet</h3>
+                  <h3 className="font-semibold text-gray-800 mb-2">ADSL Internet</h3>
                   <Badge variant={infrastructureCheck.adsl.available ? "default" : "destructive"}>
                     {infrastructureCheck.adsl.available ? 'Available' : 'Not Available'}
                   </Badge>
                   {infrastructureCheck.adsl.available && (
-                    <div className="mt-2 text-sm text-green-200">
+                    <div className="mt-2 text-sm text-green-700">
                       <p>Speed: {infrastructureCheck.adsl.maxSpeed}</p>
                       <p>Coverage: {infrastructureCheck.adsl.coverage}%</p>
                     </div>
@@ -486,21 +486,21 @@ export function QualificationTab() {
               </Card>
 
               {/* Mobile Service */}
-              <Card className={`${infrastructureCheck.mobile.available ? 'bg-green-500/20 border-green-400' : 'bg-red-500/20 border-red-400'} border-2`}>
+              <Card className={`${infrastructureCheck.mobile.available ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border-2`}>
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 mx-auto mb-2">
                     {infrastructureCheck.mobile.available ? (
-                      <CheckCircle className="w-12 h-12 text-green-400" />
+                      <CheckCircle className="w-12 h-12 text-green-600" />
                     ) : (
-                      <XCircle className="w-12 h-12 text-red-400" />
+                      <XCircle className="w-12 h-12 text-red-600" />
                     )}
                   </div>
-                  <h3 className="font-semibold text-white mb-2">Mobile Internet</h3>
+                  <h3 className="font-semibold text-gray-800 mb-2">Mobile Internet</h3>
                   <Badge variant={infrastructureCheck.mobile.available ? "default" : "destructive"}>
                     {infrastructureCheck.mobile.available ? 'Available' : 'Not Available'}
                   </Badge>
                   {infrastructureCheck.mobile.available && (
-                    <div className="mt-2 text-sm text-green-200">
+                    <div className="mt-2 text-sm text-green-700">
                       <p>Technologies: {infrastructureCheck.mobile.technologies?.join(', ')}</p>
                       <p>Coverage: {infrastructureCheck.mobile.coverage}</p>
                     </div>
@@ -510,7 +510,7 @@ export function QualificationTab() {
             </div>
 
             <div className="text-center space-y-4">
-              <div className="text-lg font-semibold text-white mb-4">
+              <div className="text-lg font-semibold text-gray-800 mb-4">
                 Infrastructure Check Complete for {addressDetails.district}, {addressDetails.province}
               </div>
               
@@ -586,22 +586,22 @@ export function QualificationTab() {
                  infrastructureCheck.adsl.available && 
                  infrastructureCheck.mobile.available ? (
                   <div>
-                    <div className="text-green-400 text-lg font-semibold mb-2">
+                    <div className="text-green-600 text-lg font-semibold mb-2">
                       🎉 All services are available in your area!
                     </div>
-                    <div className="text-blue-200 text-sm">
+                    <div className="text-blue-600 text-sm">
                       You can subscribe to any of the available services
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-gray-500 mt-2">
                       Expressing interest helps us track customer preferences
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <div className="text-blue-200 text-lg font-semibold mb-2">
+                    <div className="text-blue-600 text-lg font-semibold mb-2">
                       Service Status Summary
                     </div>
-                    <div className="text-blue-200 text-sm">
+                    <div className="text-blue-600 text-sm">
                       {[
                         !infrastructureCheck.fiber.available && 'Fiber',
                         !infrastructureCheck.adsl.available && 'ADSL',
@@ -612,14 +612,14 @@ export function QualificationTab() {
                         !infrastructureCheck.mobile.available && 'Mobile'
                       ].filter(Boolean).length === 1 ? 'is' : 'are'} not available in your area
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-gray-500 mt-2">
                       Click the red buttons to request unavailable services
                     </p>
                   </div>
                 )}
               </div>
               
-              <div className="text-sm text-blue-200 mb-6">
+              <div className="text-sm text-blue-600 mb-6">
                 Service requests will appear in the admin dashboard Qualification Records section
               </div>
               
@@ -627,7 +627,7 @@ export function QualificationTab() {
               <div className="flex justify-center mt-2">
                 <Button
                   variant="outline"
-                  className="text-white border-white hover:bg-white/20"
+                  className="text-gray-700 border-gray-300 hover:bg-gray-50"
                   onClick={() => setStep('address')}
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -644,62 +644,62 @@ export function QualificationTab() {
   // Show address form
   return (
     <div className="max-w-4xl mx-auto">
-      <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white">
+      <Card className="bg-white shadow-lg border-0">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-white">
+          <CardTitle className="text-2xl font-bold text-gray-800">
             Infrastructure Qualification Check
           </CardTitle>
-          <CardDescription className="text-blue-200">
+          <CardDescription className="text-gray-600">
             Please provide your address details so we can check service availability in your area
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Address Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
               <MapPin className="w-5 h-5 mr-2" />
               Address Information
             </h3>
             <div className="space-y-2">
-              <Label htmlFor="street" className="text-blue-200">Street Address *</Label>
+              <Label htmlFor="street" className="text-gray-700">Street Address *</Label>
               <Input
                 id="street"
                 value={addressDetails.street}
                 onChange={(e) => handleInputChange('street', e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-blue-200"
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                 placeholder="Enter your street address"
               />
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city" className="text-blue-200">City *</Label>
+                <Label htmlFor="city" className="text-gray-700">City *</Label>
                 <Input
                   id="city"
                   value={addressDetails.city}
                   onChange={(e) => handleInputChange('city', e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-blue-200"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                   placeholder="Enter your city"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="postalCode" className="text-blue-200">Postal Code</Label>
+                <Label htmlFor="postalCode" className="text-gray-700">Postal Code</Label>
                 <Input
                   id="postalCode"
                   value={addressDetails.postalCode}
                   onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-blue-200"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                   placeholder="Enter postal code"
                 />
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="district" className="text-blue-200">District *</Label>
+                <Label htmlFor="district" className="text-gray-700">District *</Label>
                 <Select
                   value={addressDetails.district}
                   onValueChange={(value) => handleInputChange('district', value)}
                 >
-                  <SelectTrigger className="bg-white/20 border-white/30 text-white">
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                     <SelectValue placeholder="Select district" />
                   </SelectTrigger>
                   <SelectContent>
@@ -712,12 +712,12 @@ export function QualificationTab() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="province" className="text-blue-200">Province *</Label>
+                <Label htmlFor="province" className="text-gray-700">Province *</Label>
                 <Select
                   value={addressDetails.province}
                   onValueChange={(value) => handleInputChange('province', value)}
                 >
-                  <SelectTrigger className="bg-white/20 border-white/30 text-white">
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                     <SelectValue placeholder="Select province" />
                   </SelectTrigger>
                   <SelectContent>
