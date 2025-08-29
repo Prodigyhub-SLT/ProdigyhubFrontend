@@ -13,7 +13,10 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Globe,
+  Signal,
+  Zap
 } from 'lucide-react';
 
 interface InfrastructureAvailability {
@@ -72,7 +75,6 @@ export function QualificationTab() {
   const [infrastructureCheck, setInfrastructureCheck] = useState<InfrastructureAvailability | null>(null);
   const [areaData, setAreaData] = useState<AreaData | null>(null);
   const [isCheckingInfrastructure, setIsCheckingInfrastructure] = useState(false);
-  const [step, setStep] = useState<'address' | 'infrastructure'>('address');
 
   // Districts and Provinces for Sri Lanka
   const districts = [
@@ -171,8 +173,6 @@ export function QualificationTab() {
           // Create qualification record
           await createInfrastructureQualificationRecord(defaultInfrastructure, null);
         }
-        
-        setStep('infrastructure');
       } else {
         throw new Error('Failed to fetch area data');
       }
@@ -352,113 +352,9 @@ export function QualificationTab() {
     }
   };
 
-  // Show infrastructure results
-  if (step === 'infrastructure' && infrastructureCheck) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-white shadow-lg border-0">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-800">
-              Infrastructure Availability
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Simple Infrastructure List */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${infrastructureCheck.fiber.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="font-medium text-gray-800">Fiber</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className={`text-sm ${infrastructureCheck.fiber.available ? 'text-green-600' : 'text-red-600'}`}>
-                    {infrastructureCheck.fiber.available ? 'Available' : 'Un-Available'}
-                  </span>
-                  {!infrastructureCheck.fiber.available && (
-                    <Button 
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
-                      onClick={() => handleServiceRequest('fiber')}
-                      data-service="fiber"
-                    >
-                      Request
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${infrastructureCheck.adsl.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="font-medium text-gray-800">ADSL</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className={`text-sm ${infrastructureCheck.adsl.available ? 'text-green-600' : 'text-red-600'}`}>
-                    {infrastructureCheck.adsl.available ? 'Available' : 'Un-Available'}
-                  </span>
-                  {!infrastructureCheck.adsl.available && (
-                    <Button 
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
-                      onClick={() => handleServiceRequest('adsl')}
-                      data-service="adsl"
-                    >
-                      Request
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${infrastructureCheck.mobile.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="font-medium text-gray-800">LTE/4G</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className={`text-sm ${infrastructureCheck.mobile.available ? 'text-green-600' : 'text-red-600'}`}>
-                    {infrastructureCheck.mobile.available ? 'Available' : 'Un-Available'}
-                  </span>
-                  {!infrastructureCheck.mobile.available && (
-                    <Button 
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
-                      onClick={() => handleServiceRequest('mobile')}
-                      data-service="mobile"
-                    >
-                      Request
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Footer */}
-            <div className="text-center pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
-                For any other information Call 1212 SLT hotline
-              </p>
-            </div>
-            
-            {/* Back Button */}
-            <div className="flex justify-center mt-4">
-              <Button
-                variant="outline"
-                className="text-gray-700 border-gray-300 hover:bg-gray-50"
-                onClick={() => setStep('address')}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Check Another Address
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Show address form
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-8">
+      {/* Address Form Section */}
       <Card className="bg-white shadow-lg border-0">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-gray-800">
@@ -567,6 +463,220 @@ export function QualificationTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Infrastructure Results Section - Only show when available */}
+      {infrastructureCheck && (
+        <Card className="bg-white shadow-lg border-0">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Infrastructure Availability
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Service availability for {addressDetails.district}, {addressDetails.province}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Beautiful Infrastructure Cards */}
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Fiber Card */}
+              <div className={`relative overflow-hidden rounded-xl p-6 transition-all duration-300 ${
+                infrastructureCheck.fiber.available 
+                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg' 
+                  : 'bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 shadow-lg'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-3 rounded-full ${
+                      infrastructureCheck.fiber.available ? 'bg-green-100' : 'bg-red-100'
+                    }`}>
+                      <Zap className={`w-6 h-6 ${
+                        infrastructureCheck.fiber.available ? 'text-green-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Fiber Internet</h3>
+                      <p className="text-sm text-gray-600">High-speed broadband</p>
+                    </div>
+                  </div>
+                  <Badge variant={infrastructureCheck.fiber.available ? "default" : "destructive"} className="text-xs">
+                    {infrastructureCheck.fiber.available ? 'Available' : 'Unavailable'}
+                  </Badge>
+                </div>
+                
+                {infrastructureCheck.fiber.available ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-sm text-green-700">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Ready for connection</span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      <p>Speed: Up to 1000 Mbps</p>
+                      <p>Technology: GPON</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 text-sm text-red-700">
+                      <XCircle className="w-4 h-4" />
+                      <span>Not available in your area</span>
+                    </div>
+                    <Button 
+                      size="sm"
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                      onClick={() => handleServiceRequest('fiber')}
+                      data-service="fiber"
+                    >
+                      Request Service
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* ADSL Card */}
+              <div className={`relative overflow-hidden rounded-xl p-6 transition-all duration-300 ${
+                infrastructureCheck.adsl.available 
+                  ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 shadow-lg' 
+                  : 'bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 shadow-lg'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-3 rounded-full ${
+                      infrastructureCheck.adsl.available ? 'bg-blue-100' : 'bg-red-100'
+                    }`}>
+                      <Globe className={`w-6 h-6 ${
+                        infrastructureCheck.adsl.available ? 'text-blue-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">ADSL Internet</h3>
+                      <p className="text-sm text-gray-600">Copper line broadband</p>
+                    </div>
+                  </div>
+                  <Badge variant={infrastructureCheck.adsl.available ? "default" : "destructive"} className="text-xs">
+                    {infrastructureCheck.adsl.available ? 'Available' : 'Unavailable'}
+                  </Badge>
+                </div>
+                
+                {infrastructureCheck.adsl.available ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-sm text-blue-700">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Ready for connection</span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      <p>Speed: Up to 24 Mbps</p>
+                      <p>Technology: ADSL2+</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 text-sm text-red-700">
+                      <XCircle className="w-4 h-4" />
+                      <span>Not available in your area</span>
+                    </div>
+                    <Button 
+                      size="sm"
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                      onClick={() => handleServiceRequest('adsl')}
+                      data-service="adsl"
+                    >
+                      Request Service
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Card */}
+              <div className={`relative overflow-hidden rounded-xl p-6 transition-all duration-300 ${
+                infrastructureCheck.mobile.available 
+                  ? 'bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 shadow-lg' 
+                  : 'bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 shadow-lg'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-3 rounded-full ${
+                      infrastructureCheck.mobile.available ? 'bg-purple-100' : 'bg-red-100'
+                    }`}>
+                      <Signal className={`w-6 h-6 ${
+                        infrastructureCheck.mobile.available ? 'text-purple-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">LTE/4G Mobile</h3>
+                      <p className="text-sm text-gray-600">Wireless broadband</p>
+                    </div>
+                  </div>
+                  <Badge variant={infrastructureCheck.mobile.available ? "default" : "destructive"} className="text-xs">
+                    {infrastructureCheck.mobile.available ? 'Available' : 'Unavailable'}
+                  </Badge>
+                </div>
+                
+                {infrastructureCheck.mobile.available ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-sm text-purple-700">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Ready for connection</span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      <p>Coverage: Excellent</p>
+                      <p>Technologies: 4G LTE, 3G</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 text-sm text-red-700">
+                      <XCircle className="w-4 h-4" />
+                      <span>Not available in your area</span>
+                    </div>
+                    <Button 
+                      size="sm"
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                      onClick={() => handleServiceRequest('mobile')}
+                      data-service="mobile"
+                    >
+                      Request Service
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Summary Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+              <div className="text-center space-y-3">
+                {infrastructureCheck.fiber.available && 
+                 infrastructureCheck.adsl.available && 
+                 infrastructureCheck.mobile.available ? (
+                  <div>
+                    <div className="text-2xl font-bold text-green-700 mb-2">
+                      🎉 All Services Available!
+                    </div>
+                    <p className="text-blue-700">
+                      Great news! All internet services are available in your area.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-lg font-semibold text-blue-700 mb-2">
+                      Service Summary
+                    </div>
+                    <p className="text-blue-600 text-sm">
+                      Some services may not be available in your area. Use the request buttons above to express interest.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                For any other information Call 1212 SLT hotline
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
