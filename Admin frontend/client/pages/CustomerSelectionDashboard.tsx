@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { productCatalogApi } from '@/lib/api';
+import { QualificationTab } from '../components/QualificationTab';
 
 export default function CustomerSelectionDashboard() {
   const { user, logout } = useAuth();
@@ -492,14 +493,7 @@ export default function CustomerSelectionDashboard() {
         )}
 
         {activeTab === 'qualification' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-white">Qualification</CardTitle>
-                <CardDescription className="text-blue-200">Qualification features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <QualificationTab />
         )}
 
         {activeTab === 'customize' && (
