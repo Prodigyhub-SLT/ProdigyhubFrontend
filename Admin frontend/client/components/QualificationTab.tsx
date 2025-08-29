@@ -608,41 +608,43 @@ export function QualificationTab() {
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="district" className="text-gray-700">District *</Label>
-                <Select
-                  value={addressDetails.district}
-                  onValueChange={(value) => handleInputChange('district', value)}
-                >
-                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                    <SelectValue placeholder="Select district" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {districts.map((district) => (
-                      <SelectItem key={district} value={district}>
-                        {district}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="province" className="text-gray-700">Province *</Label>
-                <Select
-                  value={addressDetails.province}
-                  onValueChange={(value) => handleInputChange('province', value)}
-                >
-                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                    <SelectValue placeholder="Select province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinces.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center space-x-4">
+                <div className="space-y-2 flex-1">
+                  <Label htmlFor="district" className="text-gray-700">District *</Label>
+                  <Select
+                    value={addressDetails.district}
+                    onValueChange={(value) => handleInputChange('district', value)}
+                  >
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue placeholder="Select district" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districts.map((district) => (
+                        <SelectItem key={district} value={district}>
+                          {district}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 flex-1">
+                  <Label htmlFor="province" className="text-gray-700">Province *</Label>
+                  <Select
+                    value={addressDetails.province}
+                    onValueChange={(value) => handleInputChange('province', value)}
+                  >
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue placeholder="Select province" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {provinces.map((province) => (
+                        <SelectItem key={province} value={province}>
+                          {province}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
@@ -651,7 +653,7 @@ export function QualificationTab() {
           <div className="flex justify-center pt-4">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 text-lg font-semibold"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold"
               onClick={checkInfrastructureAvailability}
               disabled={!isFormValid() || isCheckingInfrastructure}
             >
