@@ -100,8 +100,6 @@ const mongoAPI = {
 
   async updateServiceRequestStatus(requestId: string, newStatus: string) {
     try {
-      console.log(`Updating status for request ${requestId} to ${newStatus}`);
-      
       // Simple solution: Store status in localStorage for persistence
       const statusKey = `request_status_${requestId}`;
       localStorage.setItem(statusKey, newStatus);
@@ -123,13 +121,9 @@ const mongoAPI = {
           })
         });
         
-        if (response.ok) {
-          console.log('✅ MongoDB update successful');
-        } else {
-          console.log('⚠️ MongoDB update failed, but status saved locally');
-        }
+        // MongoDB update attempted (success or failure doesn't affect local functionality)
       } catch (error) {
-        console.log('⚠️ MongoDB update failed, but status saved locally');
+        // MongoDB update failed, but local status is saved
       }
       
       return true;
@@ -200,7 +194,6 @@ const mongoAPI = {
   const savedStatus = localStorage.getItem(`request_status_${tmfData.id}`);
   if (savedStatus && ['pending', 'approved', 'rejected', 'in_progress', 'completed'].includes(savedStatus)) {
     status = savedStatus as ServiceRequest['status'];
-    console.log('🔍 Using saved status from localStorage:', status);
   } else {
     // Fall back to determining status from data
     if (qualificationResult === 'qualified') {
@@ -216,7 +209,6 @@ const mongoAPI = {
     } else if (tmfData.state === 'terminatedWithError') {
       status = 'rejected';
     }
-    console.log('🔍 Status determined from data:', status);
   }
 
       return {
