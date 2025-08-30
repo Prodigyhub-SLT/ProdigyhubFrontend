@@ -139,35 +139,35 @@ export function QualificationTab() {
           // Create qualification record
           await createInfrastructureQualificationRecord(matchedArea.infrastructure, matchedArea);
         } else {
-          // Create a default infrastructure check
+          // If area not found in system, all services should be unavailable
           const defaultInfrastructure: InfrastructureAvailability = {
             fiber: {
-              available: Math.random() > 0.6, // 40% chance of fiber availability
+              available: false,
               technology: 'GPON',
               maxSpeed: '1000 Mbps',
-              coverage: Math.floor(Math.random() * 100),
-              monthlyFee: Math.floor(Math.random() * 5000) + 2000
+              coverage: 0,
+              monthlyFee: 0
             },
             adsl: {
-              available: Math.random() > 0.3, // 70% chance of ADSL availability
+              available: false,
               technology: 'ADSL2+',
               maxSpeed: '24 Mbps',
-              coverage: Math.floor(Math.random() * 100),
-              monthlyFee: Math.floor(Math.random() * 3000) + 1500
+              coverage: 0,
+              monthlyFee: 0
             },
             mobile: {
-              available: true, // Mobile is generally available everywhere
+              available: false,
               technologies: ['4G LTE', '3G'],
-              coverage: 'Good',
-              signalStrength: 'Strong'
+              coverage: 'Poor',
+              signalStrength: 'Weak'
             }
           };
           
           setInfrastructureCheck(defaultInfrastructure);
           setAreaData(null);
           toast({
-            title: "Infrastructure Check Complete",
-            description: "Infrastructure availability has been determined for your area.",
+            title: "Area Not Found",
+            description: "This area is not currently in our system. All services are marked as unavailable.",
           });
           
           // Create qualification record
