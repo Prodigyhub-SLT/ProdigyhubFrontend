@@ -133,7 +133,7 @@ export function QualificationTab() {
           setInfrastructureCheck(matchedArea.infrastructure);
           toast({
             title: "Infrastructure Found",
-            description: `Found infrastructure data for ${matchedArea.name}`,
+            description: `Found infrastructure data for ${matchedArea.name}. Infrastructure check completed and saved to Qualification Records.`,
           });
           
           // Create qualification record
@@ -260,7 +260,7 @@ export function QualificationTab() {
         
         toast({
           title: "Request Submitted",
-          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Qualification Records section.`,
+          description: `Your ${serviceType.toUpperCase()} service request has been submitted successfully and will appear in the admin dashboard Service Requests tab.`,
         });
         
         // Update the button to show it's been submitted
