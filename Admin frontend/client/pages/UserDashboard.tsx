@@ -95,16 +95,22 @@ export default function UserDashboard() {
   };
 
   const handleTabClick = (tabId: string) => {
+    console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
+    
     if (!qualificationCompleted && tabId !== 'qualification') {
       // Show message that qualification must be completed first
       setShowQualificationAlert(true);
       setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
+      console.log('🚫 Tab access blocked - qualification not completed');
       return;
     }
+    
+    console.log('✅ Tab access granted');
     setActiveTab(tabId);
   };
 
   const handleQualificationComplete = () => {
+    console.log('🎯 Qualification completed - unlocking all tabs');
     setQualificationCompleted(true);
     localStorage.setItem('qualification_completed', 'true');
     // Allow access to other tabs
@@ -175,13 +181,32 @@ export default function UserDashboard() {
     const tabParam = urlParams.get('tab');
     if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
+      
+      // If user is coming to qualification tab from signup, ensure tabs are locked
+      if (tabParam === 'qualification') {
+        const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
+        if (!hasCompletedQualification) {
+          setQualificationCompleted(false);
+          console.log('🔒 User redirected to qualification tab - tabs will be locked until completion');
+        }
+      }
     }
   }, [location.search]);
 
   // Check if qualification is completed (stored in localStorage)
   useEffect(() => {
     const completed = localStorage.getItem('qualification_completed') === 'true';
-    setQualificationCompleted(completed);
+    
+    // Only set to true if explicitly stored as 'true'
+    // This ensures new users start with locked tabs
+    if (completed === true) {
+      setQualificationCompleted(true);
+      console.log('✅ User has completed qualification - all tabs unlocked');
+    } else {
+      // Explicitly set to false for new users or incomplete qualification
+      setQualificationCompleted(false);
+      console.log('🔒 New user or incomplete qualification - tabs will be locked');
+    }
   }, []);
 
   // Load offerings when packages tab is active
