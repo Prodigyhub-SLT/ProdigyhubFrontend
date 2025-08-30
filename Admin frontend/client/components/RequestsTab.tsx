@@ -98,6 +98,43 @@ const mongoAPI = {
     }
   },
 
+  async updateServiceRequestStatus(requestId: string, newStatus: string) {
+    try {
+      const response = await fetch(`/api/productOfferingQualification/v5/checkProductOfferingQualification/${requestId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        },
+        body: JSON.stringify({
+          state: newStatus === 'completed' ? 'done' : newStatus,
+          note: [
+            {
+              text: `SLT_STATUS_UPDATE:${JSON.stringify({
+                previousStatus: 'pending',
+                newStatus: newStatus,
+                updatedBy: 'Admin',
+                updateDate: new Date().toISOString()
+              })}`,
+              author: 'Admin System',
+              date: new Date().toISOString(),
+              '@type': 'Note'
+            }
+          ]
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`MongoDB Update Error: ${response.status}`);
+      }
+      
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   transformTMFToServiceRequest(tmfData: any): ServiceRequest | null {
     try {
       const notes = tmfData.note || [];
@@ -152,17 +189,17 @@ const mongoAPI = {
         requestedServices = ['SLT Broadband Service'];
       }
 
-      // Determine status based on qualification result and state
-      let status: ServiceRequest['status'] = 'pending';
-      if (qualificationResult === 'qualified') {
-        status = 'approved';
-      } else if (qualificationResult === 'unqualified') {
-        status = 'rejected';
-      } else if (tmfData.state === 'done') {
-        status = 'completed';
-      } else if (tmfData.state === 'inprogress') {
-        status = 'in_progress';
-      }
+        // Determine status based on qualification result and state
+  let status: ServiceRequest['status'] = 'pending';
+  if (qualificationResult === 'qualified') {
+    status = 'approved';
+  } else if (qualificationResult === 'unqualified') {
+    status = 'pending'; // Changed from 'rejected' to 'pending' for failed qualifications
+  } else if (tmfData.state === 'done') {
+    status = 'completed';
+  } else if (tmfData.state === 'inprogress') {
+    status = 'in_progress';
+  }
 
       return {
         id: tmfData.id,
@@ -219,6 +256,26 @@ export function RequestsTab() {
       toast({
         title: "❌ Delete Failed",
         description: "Failed to delete service request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStatusUpdate = async (requestId: string, newStatus: string) => {
+    try {
+      await mongoAPI.updateServiceRequestStatus(requestId, newStatus);
+      setRequests(prev => prev.map(r => 
+        r.id === requestId ? { ...r, status: newStatus as ServiceRequest['status'] } : r
+      ));
+      
+      toast({
+        title: "✅ Status Updated",
+        description: `Service request status updated to ${newStatus}`,
+      });
+    } catch (error) {
+      toast({
+        title: "❌ Update Failed",
+        description: "Failed to update service request status",
         variant: "destructive",
       });
     }
@@ -308,14 +365,14 @@ export function RequestsTab() {
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
+                                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Done</SelectItem>
+                  </SelectContent>
               </Select>
               <Select value={serviceFilter} onValueChange={setServiceFilter}>
                 <SelectTrigger className="w-full sm:w-40">
@@ -393,12 +450,26 @@ export function RequestsTab() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(request.status)}>
-                        <div className="flex items-center space-x-1">
-                          {getStatusIcon(request.status)}
-                          <span className="capitalize">{request.status.replace('_', ' ')}</span>
-                        </div>
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getStatusColor(request.status)}>
+                          <div className="flex items-center space-x-1">
+                            {getStatusIcon(request.status)}
+                            <span className="capitalize">{request.status.replace('_', ' ')}</span>
+                          </div>
+                        </Badge>
+                        {request.status === 'pending' && (
+                          <Select value={request.status} onValueChange={(value) => handleStatusUpdate(request.id, value)}>
+                            <SelectTrigger className="w-32 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="completed">Done</SelectItem>
+                              <SelectItem value="rejected">Reject</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {request.creationDate ? new Date(request.creationDate).toLocaleDateString() : '-'}
@@ -479,12 +550,29 @@ export function RequestsTab() {
                       <Label className="text-sm font-medium text-gray-600">Request ID</Label>
                       <p className="text-sm">{selectedRequest.id}</p>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Status</Label>
-                      <Badge className={getStatusColor(selectedRequest.status)}>
-                        {selectedRequest.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
+                                         <div>
+                       <Label className="text-sm font-medium text-gray-600">Status</Label>
+                       <div className="flex items-center space-x-2">
+                         <Badge className={getStatusColor(selectedRequest.status)}>
+                           {selectedRequest.status.replace('_', ' ')}
+                         </Badge>
+                         {selectedRequest.status === 'pending' && (
+                           <Select value={selectedRequest.status} onValueChange={(value) => {
+                             handleStatusUpdate(selectedRequest.id, value);
+                             setSelectedRequest({ ...selectedRequest, status: value as ServiceRequest['status'] });
+                           }}>
+                             <SelectTrigger className="w-32 h-8 text-xs">
+                               <SelectValue />
+                             </SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="pending">Pending</SelectItem>
+                               <SelectItem value="completed">Done</SelectItem>
+                               <SelectItem value="rejected">Reject</SelectItem>
+                             </SelectContent>
+                           </Select>
+                         )}
+                       </div>
+                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-600">Customer Type</Label>
                       <p className="text-sm capitalize">{selectedRequest.customerType}</p>
