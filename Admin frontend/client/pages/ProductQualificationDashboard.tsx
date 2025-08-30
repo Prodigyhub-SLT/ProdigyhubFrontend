@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { QualificationOverviewTab } from './QualificationOverviewTab';
+import { RequestsTab } from '@/components/RequestsTab';
 import { 
   Shield, 
   CheckCircle, 
@@ -1869,9 +1870,10 @@ export default function ProductQualificationDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Coverage Overview</TabsTrigger>
           <TabsTrigger value="qualifications">Qualification Records</TabsTrigger>
+          <TabsTrigger value="requests">Service Requests</TabsTrigger>
           <TabsTrigger value="areas">Area Management</TabsTrigger>
         </TabsList>
 
@@ -2055,6 +2057,10 @@ export default function ProductQualificationDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="requests" className="space-y-4">
+          <RequestsTab />
         </TabsContent>
 
         <TabsContent value="areas" className="space-y-4">
