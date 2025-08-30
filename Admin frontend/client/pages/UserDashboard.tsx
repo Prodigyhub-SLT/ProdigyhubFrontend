@@ -104,6 +104,10 @@ export default function UserDashboard() {
   const handleTabClick = (tabId: string) => {
     console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
     
+    // Double-check qualification state from localStorage
+    const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
+    console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted });
+    
     if (!qualificationCompleted && tabId !== 'qualification') {
       // Show message that qualification must be completed first
       setShowQualificationAlert(true);
@@ -226,8 +230,28 @@ export default function UserDashboard() {
 
   // Monitor qualification state changes
   useEffect(() => {
-    console.log('🔄 Qualification state changed:', { qualificationCompleted, activeTab });
+    console.log('🔄 Qualification state changed:', { 
+      qualificationCompleted, 
+      activeTab,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
   }, [qualificationCompleted, activeTab]);
+
+  // Periodic check to ensure qualification state is correct for new users
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
+      
+      // If we're on qualification tab and localStorage says not completed, ensure state is locked
+      if (activeTab === 'qualification' && !localStorageQualification && qualificationCompleted) {
+        console.log('🚨 WARNING: Qualification state mismatch detected! Forcing locked state.');
+        setQualificationCompleted(false);
+      }
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [activeTab, qualificationCompleted]);
 
   // Load offerings when packages tab is active
   useEffect(() => {

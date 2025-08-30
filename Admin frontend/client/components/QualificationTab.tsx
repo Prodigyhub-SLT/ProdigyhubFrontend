@@ -147,6 +147,12 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
           
           // Mark infrastructure as checked (but don't complete qualification yet)
           setInfrastructureChecked(true);
+          
+          // Debug: Check if qualification state was affected
+          console.log('🔍 After infrastructure check - Infrastructure checked:', true);
+          console.log('🔍 After infrastructure check - Qualification should still be locked');
+          console.log('🔍 localStorage qualification_completed:', localStorage.getItem('qualification_completed'));
+          console.log('🔍 localStorage should still be null/undefined');
         } else {
           // If area not found in system, all services should be unavailable
           const defaultInfrastructure: InfrastructureAvailability = {
@@ -184,6 +190,12 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
           
           // Mark infrastructure as checked (but don't complete qualification yet)
           setInfrastructureChecked(true);
+          
+          // Debug: Check if qualification state was affected
+          console.log('🔍 After infrastructure check (no match) - Infrastructure checked:', true);
+          console.log('🔍 After infrastructure check (no match) - Qualification should still be locked');
+          console.log('🔍 localStorage qualification_completed:', localStorage.getItem('qualification_completed'));
+          console.log('🔍 localStorage should still be null/undefined');
         }
       } else {
         throw new Error('Failed to fetch area data');
