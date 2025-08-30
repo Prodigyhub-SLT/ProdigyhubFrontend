@@ -121,11 +121,11 @@ export default function SignUp() {
       await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.phone);
       toast({ title: 'Account Created Successfully!', description: 'Welcome to SLT Prodigy Hub' });
       
-      // Redirect based on role - admin goes to admin dashboard, others go to user dashboard
+      // Redirect based on role - admin goes to admin dashboard, others go directly to qualification tab
       if (formData.email === 'admin@company.com') {
         navigate('/admin');
       } else {
-        navigate('/user');
+        navigate('/user-dashboard?tab=qualification');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
@@ -142,8 +142,8 @@ export default function SignUp() {
       await loginWithGoogle();
       toast({ title: 'Google Sign-up Successful!', description: 'Welcome to SLT Prodigy Hub' });
       
-      // Google users always go to user dashboard (since we can't control their email)
-      navigate('/user');
+      // Google users always go directly to qualification tab (since we can't control their email)
+      navigate('/user-dashboard?tab=qualification');
     } catch (err: any) {
       setError(err.message || 'Google sign-up failed. Please try again.');
       toast({ title: 'Google Sign-up Failed', description: err.message || 'Google sign-up failed. Please try again.', variant: 'destructive' });

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { 
   MapPin, 
@@ -61,7 +62,11 @@ interface AddressDetails {
   postalCode: string;
 }
 
-export function QualificationTab() {
+interface QualificationTabProps {
+  onQualificationComplete?: () => void;
+}
+
+export function QualificationTab({ onQualificationComplete }: QualificationTabProps) {
   const { toast } = useToast();
   
   const [addressDetails, setAddressDetails] = useState<AddressDetails>({
@@ -138,6 +143,11 @@ export function QualificationTab() {
           
           // Create qualification record
           await createInfrastructureQualificationRecord(matchedArea.infrastructure, matchedArea);
+          
+          // Mark qualification as completed
+          if (onQualificationComplete) {
+            onQualificationComplete();
+          }
         } else {
           // If area not found in system, all services should be unavailable
           const defaultInfrastructure: InfrastructureAvailability = {
@@ -269,6 +279,11 @@ export function QualificationTab() {
           buttonElement.textContent = 'Request Submitted';
           (buttonElement as HTMLButtonElement).disabled = true;
         }
+        
+        // Mark qualification as completed
+        if (onQualificationComplete) {
+          onQualificationComplete();
+        }
       } else {
         const errorText = await response.text();
         throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
@@ -354,6 +369,14 @@ export function QualificationTab() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Qualification Required Banner */}
+      <Alert className="border-blue-200 bg-blue-50 text-blue-800">
+        <AlertDescription className="text-sm">
+          🎯 <strong>First Step Required:</strong> Complete this qualification process to unlock access to all dashboard features. 
+          Enter your address details and check infrastructure availability.
+        </AlertDescription>
+      </Alert>
+      
       {/* Address Form Section */}
       <Card className="bg-white shadow-lg border-0">
         <CardHeader className="text-center">

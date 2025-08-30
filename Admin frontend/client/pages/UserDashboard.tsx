@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { productCatalogApi } from '@/lib/api';
 import { QualificationTab } from '../components/QualificationTab';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Wifi, 
   Tv, 
@@ -68,9 +69,12 @@ interface ValueAddedService {
 
 export default function UserDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
   const [activeTab, setActiveTab] = useState('summary');
+  const [qualificationCompleted, setQualificationCompleted] = useState(false);
+  const [showQualificationAlert, setShowQualificationAlert] = useState(false);
   
   // Packages tab state
   const [offerings, setOfferings] = useState<any[]>([]);
@@ -88,6 +92,23 @@ export default function UserDashboard() {
     } catch (error) {
       console.error('Sign out failed:', error);
     }
+  };
+
+  const handleTabClick = (tabId: string) => {
+    if (!qualificationCompleted && tabId !== 'qualification') {
+      // Show message that qualification must be completed first
+      setShowQualificationAlert(true);
+      setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
+      return;
+    }
+    setActiveTab(tabId);
+  };
+
+  const handleQualificationComplete = () => {
+    setQualificationCompleted(true);
+    localStorage.setItem('qualification_completed', 'true');
+    // Allow access to other tabs
+    setActiveTab('summary');
   };
 
   // Mock data for services
@@ -147,6 +168,21 @@ export default function UserDashboard() {
     { id: 'customize', name: 'Customize', icon: <Palette className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
+
+  // Handle URL parameters and set initial tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
+
+  // Check if qualification is completed (stored in localStorage)
+  useEffect(() => {
+    const completed = localStorage.getItem('qualification_completed') === 'true';
+    setQualificationCompleted(completed);
+  }, []);
 
   // Load offerings when packages tab is active
   useEffect(() => {
@@ -633,24 +669,44 @@ export default function UserDashboard() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1 py-3">
-            {secondNavTabs.map((tab) => (
-              <Button
-                key={tab.id}
-                variant={activeTab === tab.id ? "default" : "ghost"}
-                className={`px-4 py-2 ${
-                  activeTab === tab.id 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'text-gray-600 hover:text-blue-700 hover:bg-blue-100'
-                }`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.icon}
-                <span className="ml-2">{tab.name}</span>
-              </Button>
-            ))}
+            {secondNavTabs.map((tab) => {
+              const isLocked = !qualificationCompleted && tab.id !== 'qualification';
+              return (
+                <Button
+                  key={tab.id}
+                  variant={activeTab === tab.id ? "default" : "ghost"}
+                  className={`px-4 py-2 ${
+                    activeTab === tab.id 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : isLocked
+                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
+                      : 'text-gray-600 hover:text-blue-700 hover:bg-blue-100'
+                  }`}
+                  onClick={() => handleTabClick(tab.id)}
+                  disabled={isLocked}
+                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
+                >
+                  {tab.icon}
+                  <span className="ml-2">{tab.name}</span>
+                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
+
+      {/* Qualification Required Alert */}
+      {showQualificationAlert && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Alert className="border-orange-200 bg-orange-50 text-orange-800">
+            <AlertDescription className="text-sm">
+              🔒 Please complete the qualification process first before accessing other tabs. 
+              Complete your address details and infrastructure check in the Qualification tab.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1151,7 +1207,7 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'qualification' && (
-          <QualificationTab />
+          <QualificationTab onQualificationComplete={handleQualificationComplete} />
         )}
 
         {activeTab === 'customize' && (
@@ -1179,3 +1235,4 @@ export default function UserDashboard() {
     </div>
   );
 }
+
