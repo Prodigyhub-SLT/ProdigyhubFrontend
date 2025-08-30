@@ -76,6 +76,13 @@ export default function UserDashboard() {
   const [qualificationCompleted, setQualificationCompleted] = useState(false);
   const [showQualificationAlert, setShowQualificationAlert] = useState(false);
   
+  // Debug log for initial state
+  console.log('🚀 UserDashboard mounted with initial state:', { 
+    qualificationCompleted, 
+    activeTab,
+    urlSearch: location.search 
+  });
+  
   // Packages tab state
   const [offerings, setOfferings] = useState<any[]>([]);
   const [loadingOfferings, setLoadingOfferings] = useState(false);
@@ -175,39 +182,52 @@ export default function UserDashboard() {
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
-  // Handle URL parameters and set initial tab
+  // Handle URL parameters and set initial tab + qualification state
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
+    
+    // Check qualification status from localStorage
+    const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
+    
     if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
       
       // If user is coming to qualification tab from signup, ensure tabs are locked
       if (tabParam === 'qualification') {
-        const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
         if (!hasCompletedQualification) {
+          // Clear any old qualification data and ensure tabs are locked
+          localStorage.removeItem('qualification_completed');
           setQualificationCompleted(false);
           console.log('🔒 User redirected to qualification tab - tabs will be locked until completion');
+        } else {
+          setQualificationCompleted(true);
+          console.log('✅ User returning to qualification tab with completed qualification');
         }
+      } else {
+        // For other tabs, set qualification state based on localStorage
+        setQualificationCompleted(hasCompletedQualification);
+        if (hasCompletedQualification) {
+          console.log('✅ User accessing other tab with completed qualification');
+        } else {
+          console.log('🔒 User accessing other tab without completed qualification - will be blocked');
+        }
+      }
+    } else {
+      // No tab parameter, set qualification state based on localStorage
+      setQualificationCompleted(hasCompletedQualification);
+      if (hasCompletedQualification) {
+        console.log('✅ No tab parameter - user has completed qualification');
+      } else {
+        console.log('🔒 No tab parameter - user has not completed qualification');
       }
     }
   }, [location.search]);
 
-  // Check if qualification is completed (stored in localStorage)
+  // Monitor qualification state changes
   useEffect(() => {
-    const completed = localStorage.getItem('qualification_completed') === 'true';
-    
-    // Only set to true if explicitly stored as 'true'
-    // This ensures new users start with locked tabs
-    if (completed === true) {
-      setQualificationCompleted(true);
-      console.log('✅ User has completed qualification - all tabs unlocked');
-    } else {
-      // Explicitly set to false for new users or incomplete qualification
-      setQualificationCompleted(false);
-      console.log('🔒 New user or incomplete qualification - tabs will be locked');
-    }
-  }, []);
+    console.log('🔄 Qualification state changed:', { qualificationCompleted, activeTab });
+  }, [qualificationCompleted, activeTab]);
 
   // Load offerings when packages tab is active
   useEffect(() => {
