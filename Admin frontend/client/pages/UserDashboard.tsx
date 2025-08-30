@@ -121,11 +121,19 @@ export default function UserDashboard() {
   };
 
   const handleQualificationComplete = () => {
-    console.log('🎯 Qualification completed - unlocking all tabs');
-    setQualificationCompleted(true);
-    localStorage.setItem('qualification_completed', 'true');
-    // Allow access to other tabs
-    setActiveTab('summary');
+    // Check if user is force-locked
+    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+    
+    if (isForceLocked) {
+      console.log('🎯 Manual qualification completion - unlocking all tabs');
+      setQualificationCompleted(true);
+      localStorage.setItem('qualification_completed', 'true');
+      localStorage.removeItem('force_locked_until_manual_completion'); // Remove force lock
+      // Allow access to other tabs
+      setActiveTab('summary');
+    } else {
+      console.log('⚠️ Qualification completion called but user was not force-locked');
+    }
   };
 
   // Mock data for services
@@ -199,17 +207,15 @@ export default function UserDashboard() {
       
       // If user is coming to qualification tab from signup, ensure tabs are locked
       if (tabParam === 'qualification') {
-        if (!hasCompletedQualification) {
-          // Clear any old qualification data and ensure tabs are locked
-          localStorage.removeItem('qualification_completed');
-          setQualificationCompleted(false);
-          console.log('🔒 User redirected to qualification tab - tabs will be locked until completion');
-        } else {
-          setQualificationCompleted(true);
-          console.log('✅ User returning to qualification tab with completed qualification');
-        }
+        // FORCE LOCKED STATE for new users coming to qualification tab
+        // Clear any old qualification data and ensure tabs are locked
+        localStorage.removeItem('qualification_completed');
+        setQualificationCompleted(false);
+        console.log('🔒 FORCED LOCK: User redirected to qualification tab - tabs will be locked until completion');
+        
+        // Add a flag to prevent any automatic unlocking
+        localStorage.setItem('force_locked_until_manual_completion', 'true');
       } else {
-        // For other tabs, set qualification state based on localStorage
         setQualificationCompleted(hasCompletedQualification);
         if (hasCompletedQualification) {
           console.log('✅ User accessing other tab with completed qualification');
@@ -242,6 +248,15 @@ export default function UserDashboard() {
   useEffect(() => {
     const interval = setInterval(() => {
       const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
+      const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+      
+      // If user is force-locked, ensure tabs stay locked regardless of other state
+      if (isForceLocked && qualificationCompleted) {
+        console.log('🚨 FORCE LOCK VIOLATION: User is force-locked but tabs are unlocked! Forcing locked state.');
+        setQualificationCompleted(false);
+        localStorage.removeItem('qualification_completed'); // Remove any qualification completion
+        return;
+      }
       
       // If we're on qualification tab and localStorage says not completed, ensure state is locked
       if (activeTab === 'qualification' && !localStorageQualification && qualificationCompleted) {
