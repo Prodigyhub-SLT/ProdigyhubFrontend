@@ -100,16 +100,10 @@ const mongoAPI = {
 
   async updateServiceRequestStatus(requestId: string, newStatus: string) {
     try {
-      // Since the MongoDB API might not support PUT, we'll use POST to create a new record with updated status
-      // and then delete the old one, or we'll just update the local state for now
-      
-      // For now, we'll simulate a successful update by returning true
-      // In a real implementation, you would need to check what update methods the API supports
-      
       console.log(`Updating status for request ${requestId} to ${newStatus}`);
       
-      // Try to update using PATCH method first (more standard for partial updates)
-      let response = await fetch(`/api/productOfferingQualification/v5/checkProductOfferingQualification/${requestId}`, {
+      // Use the correct MongoDB API endpoint with PATCH method
+      const response = await fetch(`/api/productOfferingQualification/v5/checkProductOfferingQualification/${requestId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +111,10 @@ const mongoAPI = {
           'Origin': window.location.origin
         },
         body: JSON.stringify({
-          state: newStatus === 'completed' ? 'done' : newStatus,
+          state: newStatus === 'completed' ? 'done' : 
+                 newStatus === 'rejected' ? 'rejected' :
+                 newStatus === 'in_progress' ? 'inProgress' :
+                 newStatus === 'approved' ? 'done' : 'acknowledged',
           note: [
             {
               text: `SLT_STATUS_UPDATE:${JSON.stringify({
@@ -134,51 +131,24 @@ const mongoAPI = {
         })
       });
       
-      // If PATCH fails, try POST with the same endpoint
       if (!response.ok) {
-        response = await fetch(`/api/productOfferingQualification/v5/checkProductOfferingQualification/${requestId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Origin': window.location.origin
-          },
-          body: JSON.stringify({
-            id: requestId,
-            state: newStatus === 'completed' ? 'done' : newStatus,
-            note: [
-              {
-                text: `SLT_STATUS_UPDATE:${JSON.stringify({
-                  previousStatus: 'pending',
-                  newStatus: newStatus,
-                  updatedBy: 'Admin',
-                  updateDate: new Date().toISOString()
-                })}`,
-                author: 'Admin System',
-                date: new Date().toISOString(),
-                '@type': 'Note'
-              }
-            ]
-          })
-        });
+        throw new Error(`MongoDB Update Error: ${response.status} - ${response.statusText}`);
       }
       
-      // If both methods fail, we'll still return success for now
-      // This allows the UI to work while we figure out the correct API method
-      if (!response.ok) {
-        console.warn(`API update failed with status ${response.status}, but continuing with local update`);
-      }
+      const updatedData = await response.json();
+      console.log('✅ MongoDB update successful:', updatedData);
       
       return true;
     } catch (error) {
-      console.error('Error updating status:', error);
-      // Return true anyway to allow local state update
-      return true;
+      console.error('Error updating status in MongoDB:', error);
+      throw error;
     }
   },
 
   transformTMFToServiceRequest(tmfData: any): ServiceRequest | null {
     try {
+      console.log('🔍 Transforming TMF data:', tmfData);
+      
       const notes = tmfData.note || [];
       let location = null;
       let requestedServices = null;
@@ -233,15 +203,27 @@ const mongoAPI = {
 
         // Determine status based on qualification result and state
   let status: ServiceRequest['status'] = 'pending';
+  console.log('🔍 Status determination:', { 
+    qualificationResult, 
+    tmfDataState: tmfData.state,
+    tmfData: tmfData 
+  });
+  
   if (qualificationResult === 'qualified') {
     status = 'approved';
   } else if (qualificationResult === 'unqualified') {
     status = 'pending'; // Changed from 'rejected' to 'pending' for failed qualifications
   } else if (tmfData.state === 'done') {
     status = 'completed';
-  } else if (tmfData.state === 'inprogress') {
+  } else if (tmfData.state === 'inProgress') {
     status = 'in_progress';
+  } else if (tmfData.state === 'rejected') {
+    status = 'rejected';
+  } else if (tmfData.state === 'terminatedWithError') {
+    status = 'rejected';
   }
+  
+  console.log('🔍 Final status determined:', status);
 
       return {
         id: tmfData.id,
