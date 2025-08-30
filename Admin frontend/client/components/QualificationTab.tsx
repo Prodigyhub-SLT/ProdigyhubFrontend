@@ -80,6 +80,7 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
   const [infrastructureCheck, setInfrastructureCheck] = useState<InfrastructureAvailability | null>(null);
   const [areaData, setAreaData] = useState<AreaData | null>(null);
   const [isCheckingInfrastructure, setIsCheckingInfrastructure] = useState(false);
+  const [infrastructureChecked, setInfrastructureChecked] = useState(false);
 
   // Districts and Provinces for Sri Lanka
   const districts = [
@@ -144,10 +145,8 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
           // Create qualification record
           await createInfrastructureQualificationRecord(matchedArea.infrastructure, matchedArea);
           
-          // Mark qualification as completed
-          if (onQualificationComplete) {
-            onQualificationComplete();
-          }
+          // Mark infrastructure as checked (but don't complete qualification yet)
+          setInfrastructureChecked(true);
         } else {
           // If area not found in system, all services should be unavailable
           const defaultInfrastructure: InfrastructureAvailability = {
@@ -182,6 +181,9 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
           
           // Create qualification record
           await createInfrastructureQualificationRecord(defaultInfrastructure, null);
+          
+          // Mark infrastructure as checked (but don't complete qualification yet)
+          setInfrastructureChecked(true);
         }
       } else {
         throw new Error('Failed to fetch area data');
@@ -280,10 +282,8 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
           (buttonElement as HTMLButtonElement).disabled = true;
         }
         
-        // Mark qualification as completed
-        if (onQualificationComplete) {
-          onQualificationComplete();
-        }
+        // Don't automatically complete qualification - let user choose when to proceed
+        // Users can submit multiple service requests if needed
       } else {
         const errorText = await response.text();
         throw new Error(`Failed to submit request: ${response.status} ${response.statusText}`);
@@ -690,6 +690,28 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
                 )}
               </div>
             </div>
+
+            {/* Completion Instructions */}
+            {infrastructureChecked && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                <div className="text-center space-y-4">
+                  <div className="text-2xl font-bold text-green-700 mb-2">
+                    ✅ Infrastructure Check Complete!
+                  </div>
+                  <p className="text-green-700 text-lg">
+                    You can now submit service requests for unavailable services above, or proceed to other dashboard features.
+                  </p>
+                  <div className="flex justify-center space-x-4">
+                    <Button 
+                      onClick={() => onQualificationComplete && onQualificationComplete()}
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+                    >
+                      Complete Qualification & Unlock Dashboard
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Footer */}
             <div className="text-center pt-4 border-t border-gray-200">
