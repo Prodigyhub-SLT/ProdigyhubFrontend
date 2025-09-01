@@ -710,10 +710,27 @@ export default function UserDashboard() {
                 className="relative cursor-pointer"
               >
                 <div 
-                  className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors"
+                  className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors overflow-hidden"
                   onClick={() => setShowProfilePopup(!showProfilePopup)}
                 >
-                  U
+                  {user?.photoURL ? (
+                    <img 
+                      src={user.photoURL} 
+                      alt={user.name || 'User'} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to letter avatar if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = user?.name?.charAt(0) || 'U';
+                        }
+                      }}
+                    />
+                  ) : (
+                    user?.name?.charAt(0) || 'U'
+                  )}
                 </div>
                 <ProfilePopup 
                   isOpen={showProfilePopup}
