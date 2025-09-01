@@ -391,26 +391,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         // Use the backend URL - adjust this to match your MongoDB backend
         const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        
+        const mongoUserData = {
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          phoneNumber: phone,
+          nic: nic,
+          password: password, // Note: In production, consider if you want to store this
+          userId: firebaseUser.uid
+        };
+        
+        console.log('📤 Sending to MongoDB backend:', mongoUserData);
+        console.log('📤 NIC value being sent:', nic);
+        
         const response = await fetch(`${backendURL}/users/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            phoneNumber: phone,
-            nic: nic,
-            password: password, // Note: In production, consider if you want to store this
-            userId: firebaseUser.uid
-          }),
+          body: JSON.stringify(mongoUserData),
         });
         
         if (response.ok) {
+          const responseData = await response.json();
           console.log('✅ User data saved to MongoDB successfully');
+          console.log('📥 MongoDB response:', responseData);
         } else {
-          console.warn('⚠️ MongoDB save failed:', await response.text());
+          const errorText = await response.text();
+          console.warn('⚠️ MongoDB save failed:', errorText);
+          console.warn('⚠️ Response status:', response.status);
         }
       } catch (mongoError: any) {
         console.warn('⚠️ Failed to save user data to MongoDB:', mongoError);
