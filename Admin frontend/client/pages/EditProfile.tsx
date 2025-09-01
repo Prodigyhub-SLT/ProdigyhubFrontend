@@ -91,149 +91,147 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100">
-      {/* Header */}
-      <div className="relative h-32 bg-gradient-to-r from-pink-200 to-purple-200">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 h-10 w-10 rounded-full bg-white shadow-md hover:bg-gray-50"
-        >
-          <ArrowLeft className="h-5 w-5 text-gray-700" />
-        </Button>
-      </div>
-
-      {/* Profile Picture Section */}
-      <div className="relative -mt-16 mb-6 flex justify-center">
-        <div className="relative">
-          <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
-            {user?.avatar ? (
-              <img 
-                src={user.avatar} 
-                alt={user.name || 'User'} 
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              user?.name?.charAt(0) || 'U'
-            )}
-          </div>
-          
-          {/* Edit Profile Picture Button */}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Header with Back Button */}
+        <div className="flex items-center mb-8">
           <Button
-            onClick={handleProfilePictureChange}
-            className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shadow-lg"
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="mr-4 h-10 w-10 rounded-full bg-white shadow-sm hover:bg-gray-50 border border-gray-200"
           >
-            <Camera className="h-4 w-4 text-white" />
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
           </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
         </div>
-      </div>
 
-      {/* Main Form Card */}
-      <div className="px-4 pb-8">
-        <Card className="shadow-lg border-0">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-2xl font-bold text-gray-900 text-center">
-              Edit Profile
-            </CardTitle>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
+        {/* Profile Picture Section */}
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg">
+              {user?.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name || 'User'} 
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                user?.name?.charAt(0) || 'U'
+              )}
+            </div>
+            
+            {/* Edit Profile Picture Button */}
+            <Button
+              onClick={handleProfilePictureChange}
+              className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shadow-lg"
+            >
+              <Camera className="h-3 w-3 text-white" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Main Form Card */}
+        <Card className="shadow-sm border border-gray-200 bg-white">
+          <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* First Name */}
-              <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                  First Name
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter first name"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Last Name */}
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                  Last Name
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="lastName"
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter last name"
-                    required
-                  />
-                </div>
-              </div>
-
-
-
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter email address"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Phone Number */}
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
-                  Phone Number
-                </Label>
-                <div className="flex space-x-2">
-                  <Select value={formData.countryCode} onValueChange={(value) => handleInputChange('countryCode', value)}>
-                    <SelectTrigger className="w-20 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="+234">+234</SelectItem>
-                      <SelectItem value="+1">+1</SelectItem>
-                      <SelectItem value="+44">+44</SelectItem>
-                      <SelectItem value="+91">+91</SelectItem>
-                      <SelectItem value="+86">+86</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <div className="relative flex-1">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              {/* Two Column Layout for Main Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* First Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                    First Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      id="phoneNumber"
-                      type="tel"
-                      value={formData.phoneNumber}
-                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter phone number"
+                      id="firstName"
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Enter first name"
                       required
                     />
                   </div>
                 </div>
+
+                {/* Last Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                    Last Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Enter last name"
+                      required
+                    />
+                  </div>
+                </div>
+
+
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Enter email address"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Phone Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
+                    Phone Number
+                  </Label>
+                  <div className="flex space-x-2">
+                    <Select value={formData.countryCode} onValueChange={(value) => handleInputChange('countryCode', value)}>
+                      <SelectTrigger className="w-20 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="+234">+234</SelectItem>
+                        <SelectItem value="+1">+1</SelectItem>
+                        <SelectItem value="+44">+44</SelectItem>
+                        <SelectItem value="+91">+91</SelectItem>
+                        <SelectItem value="+86">+86</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="relative flex-1">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        value={formData.phoneNumber}
+                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                        className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Enter phone number"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* ID Number */}
+              {/* ID Number - Full Width */}
               <div className="space-y-2">
                 <Label htmlFor="idNumber" className="text-sm font-medium text-gray-700">
                   ID Number
@@ -245,7 +243,7 @@ export default function EditProfile() {
                     type="text"
                     value={formData.idNumber}
                     onChange={(e) => handleInputChange('idNumber', e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                     placeholder="Enter ID number"
                     required
                   />
@@ -263,27 +261,26 @@ export default function EditProfile() {
                 </div>
               )}
 
-              {/* Save Button */}
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
-              >
-                {isLoading ? 'Saving...' : 'Save Changes'}
-              </Button>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                >
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
+                
+                <Button
+                  onClick={handleChangePassword}
+                  variant="outline"
+                  className="flex-1 h-11 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Change Password
+                </Button>
+              </div>
             </form>
-
-            {/* Change Password Button */}
-            <div className="pt-4">
-              <Button
-                onClick={handleChangePassword}
-                variant="outline"
-                className="w-full h-12 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg"
-              >
-                <Lock className="h-4 w-4 mr-2" />
-                Change Password
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
