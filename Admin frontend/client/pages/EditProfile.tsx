@@ -126,13 +126,29 @@ export default function EditProfile() {
     if (user) {
       // Split full name into first and last name
       const nameParts = (user.name || '').split(' ');
+      // Parse phone number if it includes country code
+      let phoneNumber = user.profile?.phone || '';
+      let countryCode = '+94';
+      
+      if (phoneNumber && phoneNumber.startsWith('+94')) {
+        countryCode = '+94';
+        phoneNumber = phoneNumber.replace('+94', '').trim();
+      } else if (phoneNumber && phoneNumber.startsWith('+')) {
+        // Handle other country codes if needed
+        const match = phoneNumber.match(/^\+(\d+)\s*(.*)/);
+        if (match) {
+          countryCode = `+${match[1]}`;
+          phoneNumber = match[2];
+        }
+      }
+      
       setFormData({
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
         email: user.email || '',
-        phoneNumber: '',
-        countryCode: '+94',
-        idNumber: ''
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
+        idNumber: user.profile?.nic || ''
       });
       
       // Generate background color from existing avatar if available

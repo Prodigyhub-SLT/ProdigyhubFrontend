@@ -15,6 +15,7 @@ export default function SignUp() {
     lastName: '',
     email: '',
     phone: '0771234567',
+    nic: '',
     password: '',
     confirmPassword: ''
   });
@@ -105,6 +106,7 @@ export default function SignUp() {
     if (!formData.email.trim()) { setError('Email address is required'); return false; }
     if (!emailValidation.isValid) { setError('Please enter a valid email address'); return false; }
     if (!formData.phone.trim()) { setError('Phone number is required'); return false; }
+    if (!formData.nic.trim()) { setError('NIC number is required'); return false; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters long'); return false; }
     if (!passwordValidation.isValid) { setError('Passwords do not match'); return false; }
     if (!agreeToTerms) { setError('You must agree to the Terms of Service and Privacy Policy'); return false; }
@@ -118,7 +120,7 @@ export default function SignUp() {
 
     setIsLoading(true);
     try {
-      await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.phone);
+      await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.phone, formData.nic);
       toast({ title: 'Account Created Successfully!', description: 'Please check your email to verify your account' });
       
       // Redirect to email verification page
@@ -228,6 +230,7 @@ export default function SignUp() {
               )}
             </div>
             <div className="space-y-2"><Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label><Input id="phone" type="tel" placeholder="Phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
+            <div className="space-y-2"><Label htmlFor="nic" className="text-gray-700 text-sm">Enter NIC *</Label><Input id="nic" type="text" placeholder="Enter your NIC number" value={formData.nic} onChange={(e) => handleInputChange('nic', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 text-sm">Password *</Label>
               <div className="relative">

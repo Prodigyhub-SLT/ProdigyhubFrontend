@@ -22,6 +22,7 @@ export interface User {
   };
   profile?: {
     phone?: string;
+    nic?: string;
     location?: string;
     bio?: string;
     website?: string;
@@ -281,7 +282,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string, phone: string): Promise<void> => {
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, phone: string, nic: string): Promise<void> => {
     setIsLoading(true);
     
     try {
@@ -313,6 +314,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         lastName: lastName,
         email: email,
         phone: phone,
+        nic: nic,
         role: userRole,
         department: userDepartment,
         createdAt: Date.now(),
@@ -383,6 +385,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         profile: {
           phone: phone,
+          nic: nic,
           bio: 'New user account.',
         }
       };
