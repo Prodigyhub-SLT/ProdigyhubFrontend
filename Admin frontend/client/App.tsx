@@ -25,7 +25,6 @@ import OrderDetail from "./pages/OrderDetail";
 import NotFound from "./pages/NotFound";
 import PublicOfferings from "./pages/PublicOfferings";
 import UserDashboard from "./pages/UserDashboard";
-import CustomerSelectionDashboard from "./pages/CustomerSelectionDashboard";
 import NewCustomerOnboarding from "./pages/NewCustomerOnboarding";
 import DashboardRedirect from "./pages/DashboardRedirect";
 
@@ -80,7 +79,7 @@ const App = () => (
             <Route path="/user/*" element={
               <ProtectedRoute>
                 <Routes>
-                  <Route path="/" element={<CustomerSelectionDashboard />} />
+                  <Route path="/" element={<UserDashboard />} />
                   {/* Add more user-specific routes here later */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
@@ -94,12 +93,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* User Dashboard Route */}
-            <Route path="/user-dashboard" element={
-              <ProtectedRoute>
-                <UserDashboard />
-              </ProtectedRoute>
-            } />
+
             
             {/* Admin Routes with Layout */}
             <Route path="/admin/*" element={

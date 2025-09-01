@@ -61,7 +61,7 @@ export default function CustomerSelectionDashboard() {
     if (selectedOption === 'existing') {
       // Navigate to existing customer flow - for now go to user dashboard
       console.log('Navigating to existing customer flow');
-      navigate('/user-dashboard');
+      navigate('/user');
     } else if (selectedOption === 'new') {
       // Navigate to new customer flow
       console.log('Navigating to new customer flow');
