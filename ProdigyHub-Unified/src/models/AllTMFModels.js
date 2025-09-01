@@ -369,6 +369,7 @@ const UserSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phoneNumber: { type: String, required: true },
+  nic: { type: String, required: true }, // Added NIC field
   password: { type: String, required: true }, // Added password field
   address: {
     street: String, // Made optional for basic signup

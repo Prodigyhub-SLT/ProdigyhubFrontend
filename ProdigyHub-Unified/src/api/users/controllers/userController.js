@@ -9,10 +9,10 @@ const userController = {
       const userData = req.body;
       
       // Validate required fields for basic signup
-      if (!userData.firstName || !userData.lastName || !userData.email || !userData.phoneNumber || !userData.password) {
+      if (!userData.firstName || !userData.lastName || !userData.email || !userData.phoneNumber || !userData.nic || !userData.password) {
         return res.status(400).json({
           error: 'Validation Error',
-          message: 'First name, last name, email, phone number, and password are required fields'
+          message: 'First name, last name, email, phone number, NIC, and password are required fields'
         });
       }
 
@@ -53,6 +53,7 @@ const userController = {
         lastName: userData.lastName,
         email: userData.email,
         phoneNumber: userData.phoneNumber,
+        nic: userData.nic, // ✅ Added NIC field
         password: hashedPassword, // ✅ Now stored as hashed password
         userId: userData.userId || null, // Firebase UID if available
         userEmail: userData.email,
@@ -428,6 +429,130 @@ const userController = {
       });
     } catch (error) {
       console.error('Error in hashExistingPasswords:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
+  // GET /api/users/profile/:userId - Get user profile by Firebase UID
+  getUserProfile: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      if (!userId) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'User ID is required'
+        });
+      }
+
+      // Find user by Firebase UID
+      const user = await User.findOne({ userId });
+      
+      if (!user) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'User not found'
+        });
+      }
+
+      // Return user profile data (excluding sensitive information)
+      const profileData = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        nic: user.nic,
+        status: user.status,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      };
+
+      res.status(200).json(profileData);
+    } catch (error) {
+      console.error('Error in getUserProfile:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
+  // PUT /api/users/update - Update user profile
+  updateUserProfile: async (req, res) => {
+    try {
+      const { userId, updates } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'User ID is required'
+        });
+      }
+
+      if (!updates || Object.keys(updates).length === 0) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'No updates provided'
+        });
+      }
+
+      // Find user by Firebase UID
+      const user = await User.findOne({ userId });
+      
+      if (!user) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'User not found'
+        });
+      }
+
+      // Update allowed fields
+      const allowedUpdates = ['firstName', 'lastName', 'email', 'phoneNumber', 'nic'];
+      const updateData = {};
+      
+      for (const field of allowedUpdates) {
+        if (updates[field] !== undefined) {
+          updateData[field] = updates[field];
+        }
+      }
+
+      // Add updated timestamp
+      updateData.updatedAt = new Date();
+
+      // Update user
+      const updatedUser = await User.findOneAndUpdate(
+        { userId },
+        updateData,
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedUser) {
+        return res.status(500).json({
+          error: 'Update Failed',
+          message: 'Failed to update user'
+        });
+      }
+
+      // Return updated user data (excluding sensitive information)
+      const responseData = {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        phoneNumber: updatedUser.phoneNumber,
+        nic: updatedUser.nic,
+        status: updatedUser.status,
+        updatedAt: updatedUser.updatedAt
+      };
+
+      res.status(200).json({
+        message: 'User profile updated successfully',
+        user: responseData
+      });
+    } catch (error) {
+      console.error('Error in updateUserProfile:', error);
       res.status(500).json({
         error: 'Internal Server Error',
         message: error.message
