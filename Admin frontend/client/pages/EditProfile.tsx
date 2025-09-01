@@ -63,11 +63,22 @@ export default function EditProfile() {
           
           console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
           
-          // Apply the color to the profile picture container
+          // Apply the color to the profile picture container using multiple methods
           const profileContainer = document.getElementById('profile-picture-container');
           if (profileContainer) {
+            // Method 1: Set CSS custom property
+            profileContainer.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
+            
+            // Method 2: Set inline style with !important
             profileContainer.style.setProperty('background-color', `rgb(${r}, ${g}, ${b})`, 'important');
-            console.log('Background color applied successfully');
+            
+            // Method 3: Force reflow and apply
+            profileContainer.offsetHeight; // Force reflow
+            profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            
+            console.log('Background color applied successfully using multiple methods');
+            console.log('Container element:', profileContainer);
+            console.log('Computed background color:', window.getComputedStyle(profileContainer).backgroundColor);
           } else {
             console.log('Profile container not found');
           }
@@ -109,8 +120,19 @@ export default function EditProfile() {
     // Apply the fallback color
     const profileContainer = document.getElementById('profile-picture-container');
     if (profileContainer) {
+      // Method 1: Set CSS custom property
+      profileContainer.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
+      
+      // Method 2: Set inline style with !important
       profileContainer.style.setProperty('background-color', `rgb(${r}, ${g}, ${b})`, 'important');
-      console.log('Fallback color applied successfully');
+      
+      // Method 3: Force reflow and apply
+      profileContainer.offsetHeight; // Force reflow
+      profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      
+      console.log('Fallback color applied successfully using multiple methods');
+      console.log('Container element:', profileContainer);
+      console.log('Computed background color:', window.getComputedStyle(profileContainer).backgroundColor);
     }
   };
 
@@ -132,12 +154,26 @@ export default function EditProfile() {
         console.log('User has avatar, generating background color...');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
+          console.log('DOM ready, checking profile container...');
+          const container = document.getElementById('profile-picture-container');
+          console.log('Profile container found:', container);
+          if (container) {
+            console.log('Container styles before:', container.style.cssText);
+            console.log('Container computed styles before:', window.getComputedStyle(container).backgroundColor);
+          }
           generateBackgroundColor(user.avatar);
         }, 100);
       } else {
         console.log('No avatar found for user, generating fallback color');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
+          console.log('DOM ready, checking profile container...');
+          const container = document.getElementById('profile-picture-container');
+          console.log('Profile container found:', container);
+          if (container) {
+            console.log('Container styles before:', container.style.cssText);
+            console.log('Container computed styles before:', window.getComputedStyle(container).backgroundColor);
+          }
           generateFallbackColor();
         }, 100);
       }
@@ -223,7 +259,10 @@ export default function EditProfile() {
             <div 
               id="profile-picture-container"
               className="w-20 h-20 rounded-full flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg transition-colors duration-300"
-              style={{ backgroundColor: '#3b82f6' }}
+              style={{ 
+                backgroundColor: 'var(--dynamic-bg-color, #3b82f6)',
+                '--dynamic-bg-color': '#3b82f6'
+              } as React.CSSProperties}
             >
               {user?.avatar ? (
                 <img 
