@@ -40,6 +40,7 @@ import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
 import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
+import EmailVerification from "./pages/EmailVerification";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/" element={<PublicOfferings />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify-email" element={<EmailVerification />} />
             
             {/* Dashboard Redirect Route */}
             <Route path="/dashboard" element={

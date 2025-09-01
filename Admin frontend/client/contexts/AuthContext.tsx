@@ -12,6 +12,7 @@ export interface User {
   department: string;
   lastLogin?: string;
   avatar?: string;
+  emailVerified?: boolean; // Add email verification status
   permissions?: string[];
   preferences?: {
     theme: 'light' | 'dark' | 'system';
@@ -38,6 +39,10 @@ export interface AuthContextType {
   signUp: (email: string, password: string, firstName: string, lastName: string, phone: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
+  
+  // Email verification
+  sendEmailVerification: () => Promise<void>;
+  checkEmailVerification: () => Promise<boolean>;
   
   // Permission helpers
   hasPermission: (permission: string) => boolean;
@@ -274,7 +279,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Attempting Firebase sign-up with:', { email, firstName, lastName, phone });
       
       // Use Firebase authentication
-      const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+      const { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } = await import('firebase/auth');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       
@@ -282,6 +287,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await updateProfile(firebaseUser, {
         displayName: `${firstName} ${lastName}`
       });
+      
+      // Send email verification
+      await sendEmailVerification(firebaseUser);
+      console.log('✅ Email verification sent to:', email);
       
       // Check if this should be an admin user
       const isAdmin = email === 'admin@company.com';
@@ -298,7 +307,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role: userRole,
         department: userDepartment,
         createdAt: Date.now(),
-        lastLogin: Date.now()
+        lastLogin: Date.now(),
+        emailVerified: false
       };
       
       await dbOperations.createUserProfile(userProfile);
@@ -333,30 +343,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // User is still created in Firebase
       }
       
-      // Create user data for context
-      const userData: User = {
-        id: firebaseUser.uid,
-        uid: firebaseUser.uid,
-        name: `${firstName} ${lastName}`,
-        email: email,
-        role: userRole,
-        department: userDepartment,
-        lastLogin: new Date().toISOString(),
-        avatar: '/api/placeholder/150/150',
-        permissions: isAdmin ? [
-          'tmf620:read', 'tmf620:write', 'tmf620:delete',
-          'tmf622:read', 'tmf622:write', 'tmf622:delete', 
-          'tmf637:read', 'tmf637:write', 'tmf637:delete',
-          'tmf679:read', 'tmf679:write', 'tmf679:delete',
-          'tmf688:read', 'tmf688:write', 'tmf688:delete',
-          'tmf760:read', 'tmf760:write', 'tmf760:delete',
-          'dashboard:read', 'users:manage', 'settings:manage'
-        ] : [
-          'tmf620:read', 'tmf622:read', 'tmf637:read', 
-          'tmf679:read', 'tmf688:read', 'dashboard:read'
-        ],
-        preferences: {
-          theme: 'light',
+              // Create user data for context
+        const userData: User = {
+          id: firebaseUser.uid,
+          uid: firebaseUser.uid,
+          name: `${firstName} ${lastName}`,
+          email: email,
+          role: userRole,
+          department: userDepartment,
+          lastLogin: new Date().toISOString(),
+          avatar: '/api/placeholder/150/150',
+          emailVerified: false, // Add email verification status
+          permissions: isAdmin ? [
+            'tmf620:read', 'tmf620:write', 'tmf620:delete',
+            'tmf622:read', 'tmf622:write', 'tmf622:delete', 
+            'tmf637:read', 'tmf637:write', 'tmf637:delete',
+            'tmf679:read', 'tmf679:write', 'tmf679:delete',
+            'tmf688:read', 'tmf688:write', 'tmf688:delete',
+            'tmf760:read', 'tmf760:write', 'tmf760:delete',
+            'dashboard:read', 'users:manage', 'settings:manage'
+          ] : [
+            'tmf620:read', 'tmf622:read', 'tmf637:read', 
+            'tmf679:read', 'tmf688:read', 'dashboard:read'
+          ],
+          preferences: {
+            theme: 'light',
           language: 'en-US',
           timezone: 'UTC+00:00'
         },
@@ -438,6 +449,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Email verification functions
+  const sendEmailVerification = async (): Promise<void> => {
+    if (!user?.uid) {
+      throw new Error('No user logged in');
+    }
+    
+    try {
+      const { sendEmailVerification: firebaseSendEmailVerification } = await import('firebase/auth');
+      const currentUser = auth.currentUser;
+      
+      if (currentUser) {
+        await firebaseSendEmailVerification(currentUser);
+        console.log('✅ Email verification sent successfully');
+      } else {
+        throw new Error('No Firebase user found');
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to send email verification:', error);
+      throw new Error('Failed to send email verification');
+    }
+  };
+
+  const checkEmailVerification = async (): Promise<boolean> => {
+    if (!user?.uid) {
+      return false;
+    }
+    
+    try {
+      const { reload } = await import('firebase/auth');
+      const currentUser = auth.currentUser;
+      
+      if (currentUser) {
+        await reload(currentUser);
+        const isVerified = currentUser.emailVerified;
+        
+        // Update user context with verification status
+        if (user.emailVerified !== isVerified) {
+          updateUser({ emailVerified: isVerified });
+        }
+        
+        return isVerified;
+      }
+      return false;
+    } catch (error: any) {
+      console.error('❌ Failed to check email verification:', error);
+      return false;
     }
   };
 
@@ -567,6 +627,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     logout,
     updateUser,
+    
+    // Email verification
+    sendEmailVerification,
+    checkEmailVerification,
     
     // Permissions
     hasPermission,

@@ -119,14 +119,10 @@ export default function SignUp() {
     setIsLoading(true);
     try {
       await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.phone);
-      toast({ title: 'Account Created Successfully!', description: 'Welcome to SLT Prodigy Hub' });
+      toast({ title: 'Account Created Successfully!', description: 'Please check your email to verify your account' });
       
-      // Redirect based on role - admin goes to admin dashboard, others go directly to qualification tab
-      if (formData.email === 'admin@company.com') {
-        navigate('/admin');
-      } else {
-        navigate('/user?tab=qualification');
-      }
+      // Redirect to email verification page
+      navigate(`/verify-email?from=signup&email=${encodeURIComponent(formData.email)}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
       toast({ title: 'Sign-up Failed', description: err.message || 'Failed to create account', variant: 'destructive' });
