@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Package, Wifi, Eye, Filter, X } from 'lucide-react';
+import { Search, Package, Wifi, Eye, Filter, X, Tv, BookOpen } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { ProductOffering } from '../../shared/product-order-types';
 
@@ -125,127 +125,66 @@ export default function CustomerPackagesTab() {
   };
 
   const getOfferingPrice = (offering: ProductOffering) => {
-    try {
-      if (!offering.productOfferingPrice || offering.productOfferingPrice.length === 0) {
-        return null;
-      }
-      
+    if (offering.productOfferingPrice && offering.productOfferingPrice.length > 0) {
       const price = offering.productOfferingPrice[0];
       return {
-        currency: price.price?.dutyFreeAmount?.unit || 'LKR',
-        amount: price.price?.dutyFreeAmount?.value || 0,
-        period: 'per month'
+        amount: price.price?.taxIncludedAmount?.value || 0,
+        currency: price.price?.taxIncludedAmount?.unit || 'LKR',
+        period: price.priceType === 'oneTime' ? 'one-time' : 'per month'
       };
-    } catch (error) {
-      console.error('Error getting offering price:', error);
-      return null;
     }
+    return null;
   };
 
   const getOfferingCategory = (offering: ProductOffering) => {
-    try {
-      if (!offering.productSpecification) {
-        return 'Broadband';
-      }
-      
-      return offering.productSpecification.name || 'Broadband';
-    } catch (error) {
-      console.error('Error getting offering category:', error);
+    if (Array.isArray(offering.category) && offering.category.length > 0) {
+      return offering.category[0].name || offering.category[0].id || 'Other';
+    } else if (typeof offering.category === 'object' && offering.category) {
+      return (offering.category as any).name || (offering.category as any).id || 'Other';
+    } else if (typeof offering.category === 'string') {
+      return offering.category;
+    }
+    
+    // Fallback: Check if it's a Broadband offering based on name or description
+    const name = (offering.name || '').toLowerCase();
+    const description = (offering.description || '').toLowerCase();
+    
+    if (name.includes('broadband') || description.includes('broadband') || 
+        name.includes('fibre') || name.includes('fiber') || 
+        name.includes('internet') || name.includes('data')) {
       return 'Broadband';
     }
+    
+    return 'Other';
   };
 
   const getOfferingSpecs = (offering: ProductOffering) => {
-    try {
-      // Since we don't have detailed specs in the current data structure,
-      // we'll extract information from the offering name and description
-      const name = offering.name?.toLowerCase() || '';
-      const description = offering.description?.toLowerCase() || '';
-      
-      // Try to determine connection type from name/description
-      let connectionType = 'Broadband';
-      if (name.includes('4g') || name.includes('lte')) {
-        connectionType = '4G';
-      } else if (name.includes('adsl')) {
-        connectionType = 'ADSL';
-      } else if (name.includes('fiber') || name.includes('fibre')) {
-        connectionType = 'Fiber';
-      }
-      
-      // Try to determine package type from name/description
-      let packageType = 'Unlimited';
-      if (name.includes('any time') || description.includes('any time')) {
-        packageType = 'Any Time';
-      } else if (name.includes('time based') || description.includes('time based')) {
-        packageType = 'Time Based';
-      }
-      
-      // Try to determine data allowance from name/description
-      let dataAllowance = 'Unlimited';
-      if (name.includes('40gb') || description.includes('40gb')) {
-        dataAllowance = '40GB';
-      } else if (name.includes('50gb') || description.includes('50gb')) {
-        dataAllowance = '50GB';
-      } else if (name.includes('85gb') || description.includes('85gb')) {
-        dataAllowance = '85GB';
-      } else if (name.includes('100gb') || description.includes('100gb')) {
-        dataAllowance = '100GB';
-      } else if (name.includes('115gb') || description.includes('115gb')) {
-        dataAllowance = '115GB';
-      } else if (name.includes('200gb') || description.includes('200gb')) {
-        dataAllowance = '200GB';
-      } else if (name.includes('400gb') || description.includes('400gb')) {
-        dataAllowance = '400GB';
-      }
-      
-      // Try to determine internet speed from name/description
-      let internetSpeed = '300 Mbps';
-      if (name.includes('8mbps') || description.includes('8mbps')) {
-        internetSpeed = '8 Mbps';
-      } else if (name.includes('10mbps') || description.includes('10mbps')) {
-        internetSpeed = '10 Mbps';
-      } else if (name.includes('25mbps') || description.includes('25mbps')) {
-        internetSpeed = '25 Mbps';
-      } else if (name.includes('100mbps') || description.includes('100mbps')) {
-        internetSpeed = '100 Mbps';
-      } else if (name.includes('1gbps') || description.includes('1gbps')) {
-        internetSpeed = '1 Gbps';
-      }
+    // Extract Connection Type & Package Type from categoryDescription (for filtering consistency)
+    const categoryDescription = (offering as any).categoryDescription || '';
+    
+    const connectionType = categoryDescription.includes('Fiber') ? 'Fiber' : 
+                          categoryDescription.includes('4G') ? '4G' : 
+                          categoryDescription.includes('ADSL') ? 'ADSL' : 'N/A';
+    
+    const packageType = categoryDescription.includes('Any Time') ? 'Any Time' : 
+                       categoryDescription.includes('Time Based') ? 'Time Based' : 
+                       categoryDescription.includes('Unlimited') ? 'Unlimited' : 'N/A';
 
-      return {
-        connectionType,
-        packageType,
-        dataAllowance,
-        data: dataAllowance,
-        internetSpeed,
-        voice: 'Unlimited Calls'
-      };
-    } catch (error) {
-      console.error('Error getting offering specs:', error);
-      return {
-        connectionType: 'Broadband',
-        packageType: 'Unlimited',
-        dataAllowance: 'Unlimited',
-        data: 'Unlimited',
-        internetSpeed: '300 Mbps',
-        voice: 'Unlimited Calls'
-      };
-    }
+    return {
+      connectionType,
+      packageType
+    };
   };
 
-  const getConnectionTypeGroup = (offering: ProductOffering) => {
-    const specs = getOfferingSpecs(offering);
-    const connectionType = specs.connectionType.toLowerCase();
-    
-    if (connectionType.includes('peotv')) {
-      return 'dataAndPEOTV';
-    } else if (connectionType.includes('4g') || connectionType.includes('adsl')) {
-      return 'dataOnly';
-    } else if (connectionType.includes('fiber') || connectionType.includes('fibre')) {
-      return 'dataAndVoice';
-    }
-    
-    return 'dataAndVoice';
+  // Classify offering into a connection-type group for grouped display
+  const getConnectionTypeGroup = (offering: ProductOffering): 'peotv' | 'dataPackages' | 'dataAndVoice' | 'unknown' => {
+    const desc = (offering as any).categoryDescription || '';
+    if (desc.includes('PEOTV')) return 'peotv';
+    const isDataPackages = desc.includes('Data Packages') || desc.includes('4G') || desc.includes('ADSL');
+    const isFiber = desc.includes('Fiber') || desc.includes('Fibre');
+    if (isDataPackages && !desc.includes('PEOTV')) return 'dataPackages';
+    if (isFiber && !desc.includes('PEOTV') && !isDataPackages) return 'dataAndVoice';
+    return 'unknown';
   };
 
   const resetFilters = () => {
@@ -256,6 +195,16 @@ export default function CustomerPackagesTab() {
       dataBundle: 'all',
       searchTerm: ''
     });
+  };
+
+  const handleViewSpec = (offering: ProductOffering) => {
+    setSelectedOffering(offering);
+    setIsSpecViewOpen(true);
+  };
+
+  const closeSpecView = () => {
+    setIsSpecViewOpen(false);
+    setSelectedOffering(null);
   };
 
   return (
@@ -337,17 +286,6 @@ export default function CustomerPackagesTab() {
               </SelectContent>
             </Select>
 
-            {/* Search Input */}
-            <div className="flex items-center space-x-2 flex-1">
-              <Search className="w-4 h-4 text-gray-500" />
-              <Input
-                placeholder="Search offerings..."
-                value={filters.searchTerm}
-                onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-                className="flex-1 max-w-xs"
-              />
-            </div>
-
             {/* Reset Button */}
             {(filters.connectionType !== 'all' || filters.packageUsageType !== 'all' || 
               filters.packageType !== 'all' || filters.searchTerm !== '' || filters.dataBundle !== 'all') && (
@@ -364,6 +302,19 @@ export default function CustomerPackagesTab() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search offerings..."
+              value={filters.searchTerm}
+              onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         {/* Offerings Display */}
         {loading ? (
           <div className="text-center py-12">
@@ -377,347 +328,266 @@ export default function CustomerPackagesTab() {
             <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
           </div>
         ) : (
-          <div className="space-y-8">
-            {/* Data/PEOTV & Voice Packages */}
-            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndPEOTV').length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Data/PEOTV & Voice Packages</h2>
+          <div className="space-y-10 max-w-6xl mx-auto">
+            {/* Group 1: Data/PEOTV & Voice Packages */}
+            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'peotv').length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <Tv className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Data/PEOTV & Voice Packages</h2>
+                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndPEOTV').map((offering) => {
+                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'peotv').map((offering) => {
                     const price = getOfferingPrice(offering);
                     const category = getOfferingCategory(offering);
                     const specs = getOfferingSpecs(offering);
-
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-[500px] flex flex-col max-w-xs bg-white/80 backdrop-blur-sm border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
-                        {/* Header Section */}
-                        <div className="p-6 pb-4 flex-1">
-                          <div className="mb-3">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                {offering.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-3">
-                                {offering.description || 'No description available'}
-                              </p>
-                            </div>
-                            <div className="flex items-center justify-end">
-                              <Badge 
-                                variant="outline" 
-                                className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs font-semibold shadow-sm"
-                              >
-                                ACTIVE
-                              </Badge>
-                            </div>
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-lg font-bold">{offering.name}</h3>
+                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
-                          
-                          {/* Category and Service Type */}
-                          <div className="flex items-center space-x-2 mb-4">
-                            <div className="flex items-center space-x-1 text-sm text-gray-600">
-                              <Wifi className="h-4 w-4 text-orange-500" />
-                              <span>{category}</span>
-                            </div>
-                            <span className="text-sm text-gray-600">•</span>
-                            <span className="text-sm text-gray-600">
-                              {specs.connectionType}
-                            </span>
-                          </div>
-                          
-                          {/* Specifications */}
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Connection Type:</span>
-                              <span className="text-gray-900">{specs.connectionType}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Package Type:</span>
-                              <span className="text-gray-900">{specs.packageType || '-'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Internet Speed:</span>
-                              <span className="text-gray-900">{specs.internetSpeed}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Data Allowance:</span>
-                              <span className="text-gray-900">{specs.dataAllowance || specs.data}</span>
-                            </div>
-                          </div>
+                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
-
-                        {/* Pricing Section */}
-                        {price && (
-                          <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-white/10"></div>
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
-                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-                            <div className="text-center relative z-10">
-                              <div className="text-2xl font-bold mb-1 drop-shadow-sm">
-                                {price.currency} {price.amount.toLocaleString()}
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3">
+                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                              {getOfferingCategory(offering).toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
+                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-sm font-medium text-gray-600">Package Type</span>
+                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
+                            </div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
+                                <span className="text-sm text-gray-900 font-semibold">
+                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
+                                </span>
                               </div>
-                              <div className="text-sm opacity-90 mb-3">
-                                {price.period}
-                              </div>
-                              <div className="text-xs space-y-1 opacity-80">
-                                <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
-                                <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
-                              </div>
+                            )}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">
+                              {(offering as any).customAttributes
+                                .filter((attr: any) => 
+                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
+                                )
+                                .map((attr: any, index: number) => (
+                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
+                          <div className="text-center mb-2">
+                            <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
+                            <div className="text-2xl font-bold">
+                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                        )}
-
-                        {/* Footer Actions */}
-                        <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
-                          <div className="flex items-center justify-center">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
-                              onClick={() => {
-                                setSelectedOffering(offering);
-                                setIsSpecViewOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 h-4 mr-2" />
-                              View
-                            </Button>
-                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewSpec(offering)}
+                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                          >
+                            Connection Speed & Terms &gt;
+                          </Button>
                         </div>
                       </Card>
                     );
                   })}
                 </div>
-              </div>
+              </section>
             )}
 
-            {/* Data Packages */}
-            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataOnly').length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Data Packages</h2>
+            {/* Group 2: Data Packages */}
+            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataPackages').length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                    <Wifi className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Data Packages</h2>
+                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataOnly').map((offering) => {
+                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataPackages').map((offering) => {
                     const price = getOfferingPrice(offering);
                     const category = getOfferingCategory(offering);
                     const specs = getOfferingSpecs(offering);
-
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-[500px] flex flex-col max-w-xs bg-white/80 backdrop-blur-sm border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
-                        {/* Header Section */}
-                        <div className="p-6 pb-4 flex-1">
-                          <div className="mb-3">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                {offering.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-3">
-                                {offering.description || 'No description available'}
-                              </p>
-                            </div>
-                            <div className="flex items-center justify-end">
-                              <Badge 
-                                variant="outline" 
-                                className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs font-semibold shadow-sm"
-                              >
-                                ACTIVE
-                              </Badge>
-                            </div>
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-lg font-bold">{offering.name}</h3>
+                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
-                          
-                          {/* Category and Service Type */}
-                          <div className="flex items-center space-x-2 mb-4">
-                            <div className="flex items-center space-x-1 text-sm text-gray-600">
-                              <Wifi className="h-4 w-4 text-orange-500" />
-                              <span>{category}</span>
-                            </div>
-                            <span className="text-sm text-gray-600">•</span>
-                            <span className="text-sm text-gray-600">
-                              {specs.connectionType}
-                            </span>
-                          </div>
-                          
-                          {/* Specifications */}
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Connection Type:</span>
-                              <span className="text-gray-900">{specs.connectionType}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Package Type:</span>
-                              <span className="text-gray-900">{specs.packageType || '-'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Internet Speed:</span>
-                              <span className="text-gray-900">{specs.internetSpeed}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Data Allowance:</span>
-                              <span className="text-gray-900">{specs.dataAllowance || specs.data}</span>
-                            </div>
-                          </div>
+                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
-
-                        {/* Pricing Section */}
-                        {price && (
-                          <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-white/10"></div>
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
-                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-                            <div className="text-center relative z-10">
-                              <div className="text-2xl font-bold mb-1 drop-shadow-sm">
-                                {price.currency} {price.amount.toLocaleString()}
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3">
+                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                              {getOfferingCategory(offering).toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
+                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-sm font-medium text-gray-600">Package Type</span>
+                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
+                            </div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
+                                <span className="text-sm text-gray-900 font-semibold">
+                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
+                                </span>
                               </div>
-                              <div className="text-sm opacity-90 mb-3">
-                                {price.period}
-                              </div>
-                              <div className="text-xs space-y-1 opacity-80">
-                                <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
-                                <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
-                              </div>
+                            )}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">
+                              {(offering as any).customAttributes
+                                .filter((attr: any) => 
+                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
+                                )
+                                .map((attr: any, index: number) => (
+                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
+                          <div className="text-center mb-2">
+                            <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
+                            <div className="text-2xl font-bold">
+                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                        )}
-
-                        {/* Footer Actions */}
-                        <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
-                          <div className="flex items-center justify-center">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
-                              onClick={() => {
-                                setSelectedOffering(offering);
-                                setIsSpecViewOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 h-4 mr-2" />
-                              View
-                            </Button>
-                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewSpec(offering)}
+                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                          >
+                            Connection Speed & Terms &gt;
+                          </Button>
                         </div>
                       </Card>
                     );
                   })}
                 </div>
-              </div>
+              </section>
             )}
 
-            {/* Data & Voice */}
+            {/* Group 3: Data & Voice */}
             {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndVoice').length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Data & Voice</h2>
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                    <Wifi className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Data & Voice</h2>
+                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndVoice').map((offering) => {
                     const price = getOfferingPrice(offering);
                     const category = getOfferingCategory(offering);
                     const specs = getOfferingSpecs(offering);
-
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-[500px] flex flex-col max-w-xs bg-white/80 backdrop-blur-sm border-0 shadow-xl shadow-blue-500/10 rounded-2xl">
-                        {/* Header Section */}
-                        <div className="p-6 pb-4 flex-1">
-                          <div className="mb-3">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                {offering.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-3">
-                                {offering.description || 'No description available'}
-                              </p>
-                            </div>
-                            <div className="flex items-center justify-end">
-                              <Badge 
-                                variant="outline" 
-                                className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs font-semibold shadow-sm"
-                              >
-                                ACTIVE
-                              </Badge>
-                            </div>
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-lg font-bold">{offering.name}</h3>
+                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
-                          
-                          {/* Category and Service Type */}
-                          <div className="flex items-center space-x-2 mb-4">
-                            <div className="flex items-center space-x-1 text-sm text-gray-600">
-                              <Wifi className="h-4 w-4 text-orange-500" />
-                              <span>{category}</span>
-                            </div>
-                            <span className="text-sm text-gray-600">•</span>
-                            <span className="text-sm text-gray-600">
-                              {specs.connectionType}
-                            </span>
-                          </div>
-                          
-                          {/* Specifications */}
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Connection Type:</span>
-                              <span className="text-gray-900">{specs.connectionType}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Package Type:</span>
-                              <span className="text-gray-900">{specs.packageType || '-'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Internet Speed:</span>
-                              <span className="text-gray-900">{specs.internetSpeed}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">Data Allowance:</span>
-                              <span className="text-gray-900">{specs.dataAllowance || specs.data}</span>
-                            </div>
-                          </div>
+                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
-
-                        {/* Pricing Section */}
-                        {price && (
-                          <div className="bg-blue-600 text-white p-4 relative overflow-hidden h-32 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-white/10"></div>
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
-                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-                            <div className="text-center relative z-10">
-                              <div className="text-2xl font-bold mb-1 drop-shadow-sm">
-                                {price.currency} {price.amount.toLocaleString()}
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3">
+                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                              {getOfferingCategory(offering).toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
+                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-sm font-medium text-gray-600">Package Type</span>
+                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
+                            </div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
+                                <span className="text-sm text-gray-900 font-semibold">
+                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
+                                </span>
                               </div>
-                              <div className="text-sm opacity-90 mb-3">
-                                {price.period}
-                              </div>
-                              <div className="text-xs space-y-1 opacity-80">
-                                <div>Setup: {price.currency} {(offering as any).pricing?.setupFee?.toLocaleString() || '1,000'}</div>
-                                <div>Security Deposit: {price.currency} {(offering as any).pricing?.deposit?.toLocaleString() || '100'}</div>
-                              </div>
+                            )}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">
+                              {(offering as any).customAttributes
+                                .filter((attr: any) => 
+                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
+                                )
+                                .map((attr: any, index: number) => (
+                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
+                          <div className="text-center mb-2">
+                            <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
+                            <div className="text-2xl font-bold">
+                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                        )}
-
-                        {/* Footer Actions */}
-                        <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
-                          <div className="flex items-center justify-center">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-blue-600 border-blue-600 hover:bg-blue-50 hover:shadow-md transition-all duration-200 rounded-lg px-6 py-2 font-medium"
-                              onClick={() => {
-                                setSelectedOffering(offering);
-                                setIsSpecViewOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 h-4 mr-2" />
-                              View
-                            </Button>
-                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewSpec(offering)}
+                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                          >
+                            Connection Speed & Terms &gt;
+                          </Button>
                         </div>
                       </Card>
                     );
                   })}
                 </div>
-              </div>
+              </section>
             )}
           </div>
         )}
@@ -725,88 +595,148 @@ export default function CustomerPackagesTab() {
 
       {/* Spec View Modal */}
       <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-900">
-              {selectedOffering?.name}
-            </DialogTitle>
-            <DialogDescription className="text-gray-600">
-              {selectedOffering?.description}
-            </DialogDescription>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="flex-none">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-6 h-6 text-blue-600" />
+                <div>
+                  <DialogTitle className="text-2xl font-bold text-gray-900">{selectedOffering?.name}</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-600 mt-1">
+                    View complete specification information and characteristics
+                  </DialogDescription>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeSpecView}
+                className="h-8 w-8 p-0 rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </DialogHeader>
           
           {selectedOffering && (
-            <div className="space-y-6">
+            <div className="space-y-6 p-6 pt-0">
               {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Basic Information</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Name:</span>
-                        <span className="text-gray-900">{selectedOffering.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Category:</span>
-                        <span className="text-gray-900">{getOfferingCategory(selectedOffering)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Status:</span>
-                        <span className="text-gray-900">Active</span>
-                      </div>
-                    </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
+                    ACTIVE
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium text-gray-700">Category:</span>
+                    <span className="text-gray-900">{getOfferingCategory(selectedOffering)}</span>
                   </div>
-                  
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Specifications</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Connection Type:</span>
-                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                    <span className="font-medium text-gray-700">Brand & Version:</span>
+                    <span className="text-gray-900 ml-2">ProdigyHub v1.0</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Connection Type & Package Type */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Connection Type:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Package Type:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Category Information */}
+              {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Information</h3>
+                  <div className="space-y-3">
+                    {(selectedOffering as any).subCategory && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">Sub Category:</span>
+                        <span className="text-gray-900">{(selectedOffering as any).subCategory}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Package Type:</span>
-                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                    )}
+                    {(selectedOffering as any).subSubCategory && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">Sub-Sub Category:</span>
+                        <span className="text-gray-900">{(selectedOffering as any).subSubCategory}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Internet Speed:</span>
-                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).internetSpeed}</span>
+                    )}
+                    {(selectedOffering as any).categoryDescription && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">Category Description:</span>
+                        <span className="text-gray-900">{(selectedOffering as any).categoryDescription}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-600">Data Allowance:</span>
-                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).dataAllowance}</span>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Custom Attributes */}
+              {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Attributes</h3>
+                  <div className="space-y-3">
+                    {(selectedOffering as any).customAttributes.map((attr: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">{attr.name}:</span>
+                        <span className="text-gray-900">{attr.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Pricing Information */}
+              {getOfferingPrice(selectedOffering) && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Details</h3>
+                  <div className="bg-blue-600 text-white p-6 relative overflow-hidden rounded-lg">
+                    <div className="absolute inset-0 bg-white/10"></div>
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                    <div className="text-center relative z-10">
+                      <div className="text-3xl font-bold mb-2 drop-shadow-sm">
+                        {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
+                      </div>
+                      <div className="text-lg opacity-90 mb-4">
+                        {getOfferingPrice(selectedOffering)!.period}
+                      </div>
+                      <div className="space-y-2 opacity-80">
+                        <div className="text-sm">Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
+                        <div className="text-sm">Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="space-y-4">
+              )}
+
+              {/* Timestamps */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Timestamps</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Pricing Information</h4>
-                    {getOfferingPrice(selectedOffering) && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-blue-600 mb-2">
-                            {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
-                          </div>
-                          <div className="text-sm text-blue-600 mb-3">
-                            {getOfferingPrice(selectedOffering)!.period}
-                          </div>
-                          <div className="text-xs space-y-1 text-blue-700">
-                            <div>Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
-                            <div>Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <span className="font-medium text-gray-700">Created:</span>
+                    <span className="text-gray-900 ml-2">
+                      {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : 'N/A'}
+                    </span>
                   </div>
-                  
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Description</h4>
-                    <p className="text-sm text-gray-600">
-                      {selectedOffering.description || 'No description available'}
-                    </p>
+                    <span className="font-medium text-gray-700">Last Updated:</span>
+                    <span className="text-gray-900 ml-2">
+                      {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>
