@@ -60,7 +60,7 @@ export default function EmailVerification() {
         
         // Redirect to qualification tab after a short delay
         setTimeout(() => {
-          navigate('/user?tab=qualification');
+          navigate('/user?tab=qualification&from=signup');
         }, 2000);
       } else {
         setVerificationStatus('failed');

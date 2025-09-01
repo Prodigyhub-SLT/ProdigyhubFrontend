@@ -89,13 +89,15 @@ export default function UserDashboard() {
     
     // Double-check qualification state from localStorage
     const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-    console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted });
+    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+    console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted, isForceLocked });
     
-    if (!qualificationCompleted && tabId !== 'qualification') {
+    // Only block access if user is force-locked (new user) or hasn't completed qualification
+    if ((!qualificationCompleted || isForceLocked) && tabId !== 'qualification') {
       // Show message that qualification must be completed first
       setShowQualificationAlert(true);
       setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
-      console.log('🚫 Tab access blocked - qualification not completed');
+      console.log('🚫 Tab access blocked - qualification not completed or user is force-locked');
       return;
     }
     
@@ -181,27 +183,35 @@ export default function UserDashboard() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
+    const fromSignup = urlParams.get('from') === 'signup';
     
     // Check qualification status from localStorage
     const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
+    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
     
     if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
       
-      // If user is coming to qualification tab from signup, ensure tabs are locked
-      if (tabParam === 'qualification') {
-        // FORCE LOCKED STATE for new users coming to qualification tab
-        // Clear any old qualification data and ensure tabs are locked
+      // Only apply force lock for NEW users coming from signup
+      if (tabParam === 'qualification' && fromSignup) {
+        // FORCE LOCKED STATE for new users coming to qualification tab from signup
         localStorage.removeItem('qualification_completed');
         setQualificationCompleted(false);
-        console.log('🔒 FORCED LOCK: User redirected to qualification tab - tabs will be locked until completion');
+        console.log('🔒 FORCED LOCK: New user from signup redirected to qualification tab - tabs will be locked until completion');
         
         // Add a flag to prevent any automatic unlocking
         localStorage.setItem('force_locked_until_manual_completion', 'true');
+      } else if (tabParam === 'qualification' && !fromSignup) {
+        // Existing user visiting qualification tab - don't force lock
+        setQualificationCompleted(hasCompletedQualification);
+        console.log('✅ Existing user visiting qualification tab - no force lock applied');
       } else {
+        // Other tabs - respect existing qualification state
         setQualificationCompleted(hasCompletedQualification);
         if (hasCompletedQualification) {
           console.log('✅ User accessing other tab with completed qualification');
+        } else if (isForceLocked) {
+          console.log('🔒 User accessing other tab but is force-locked (new user)');
         } else {
           console.log('🔒 User accessing other tab without completed qualification - will be blocked');
         }
@@ -211,6 +221,8 @@ export default function UserDashboard() {
       setQualificationCompleted(hasCompletedQualification);
       if (hasCompletedQualification) {
         console.log('✅ No tab parameter - user has completed qualification');
+      } else if (isForceLocked) {
+        console.log('🔒 No tab parameter - user is force-locked (new user)');
       } else {
         console.log('🔒 No tab parameter - user has not completed qualification');
       }
@@ -353,7 +365,8 @@ export default function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1 py-3">
             {secondNavTabs.map((tab) => {
-              const isLocked = !qualificationCompleted && tab.id !== 'qualification';
+              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+              const isLocked = (!qualificationCompleted || isForceLocked) && tab.id !== 'qualification';
               return (
                 <Button
                   key={tab.id}

@@ -141,7 +141,7 @@ export default function SignUp() {
       toast({ title: 'Google Sign-up Successful!', description: 'Welcome to SLT Prodigy Hub' });
       
       // Google users always go directly to qualification tab (since we can't control their email)
-              navigate('/user?tab=qualification');
+      navigate('/user?tab=qualification&from=signup');
     } catch (err: any) {
       setError(err.message || 'Google sign-up failed. Please try again.');
       toast({ title: 'Google Sign-up Failed', description: err.message || 'Google sign-up failed. Please try again.', variant: 'destructive' });
