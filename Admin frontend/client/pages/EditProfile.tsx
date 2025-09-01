@@ -24,6 +24,63 @@ export default function EditProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Function to generate background color from profile picture
+  const generateBackgroundColor = (imageUrl: string) => {
+    console.log('Generating background color for:', imageUrl);
+    
+    // Create a canvas to analyze the image colors
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      console.log('Image loaded, analyzing colors...');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      
+      try {
+        const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+        if (imageData) {
+          const data = imageData.data;
+          let r = 0, g = 0, b = 0, count = 0;
+          
+          // Sample pixels from the image (every 10th pixel for performance)
+          for (let i = 0; i < data.length; i += 40) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+          }
+          
+          // Calculate average color
+          r = Math.round(r / count);
+          g = Math.round(g / count);
+          b = Math.round(b / count);
+          
+          console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
+          
+          // Apply the color to the profile picture container
+          const profileContainer = document.getElementById('profile-picture-container');
+          if (profileContainer) {
+            profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            console.log('Background color applied successfully');
+          } else {
+            console.log('Profile container not found');
+          }
+        }
+      } catch (error) {
+        console.log('Could not analyze image colors:', error);
+      }
+    };
+    
+    img.onerror = () => {
+      console.log('Failed to load image for color analysis');
+    };
+    
+    img.src = imageUrl;
+  };
+
   useEffect(() => {
     if (user) {
       // Split full name into first and last name
@@ -39,7 +96,13 @@ export default function EditProfile() {
       
       // Generate background color from existing avatar if available
       if (user.avatar) {
-        generateBackgroundColor(user.avatar);
+        console.log('User has avatar, generating background color...');
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => {
+          generateBackgroundColor(user.avatar);
+        }, 100);
+      } else {
+        console.log('No avatar found for user');
       }
     }
   }, [user]);
@@ -80,50 +143,7 @@ export default function EditProfile() {
     navigate('/user/change-password');
   };
 
-  // Function to generate background color from profile picture
-  const generateBackgroundColor = (imageUrl: string): string => {
-    // Create a canvas to analyze the image colors
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx?.drawImage(img, 0, 0);
-      
-      try {
-        const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-        if (imageData) {
-          const data = imageData.data;
-          let r = 0, g = 0, b = 0, count = 0;
-          
-          // Sample pixels from the image (every 10th pixel for performance)
-          for (let i = 0; i < data.length; i += 40) {
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count++;
-          }
-          
-          // Calculate average color
-          r = Math.round(r / count);
-          g = Math.round(g / count);
-          b = Math.round(b / count);
-          
-          // Apply the color to the profile picture container
-          const profileContainer = document.getElementById('profile-picture-container');
-          if (profileContainer) {
-            profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-          }
-        }
-      } catch (error) {
-        console.log('Could not analyze image colors:', error);
-      }
-    };
-    
-    img.src = imageUrl;
-  };
+
 
   const handleProfilePictureChange = () => {
     // Handle profile picture change
