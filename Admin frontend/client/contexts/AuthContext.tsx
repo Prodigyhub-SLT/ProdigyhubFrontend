@@ -291,7 +291,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           try {
             if (typeof window !== 'undefined' && window.localStorage) {
               localStorage.setItem('auth_user', JSON.stringify(completeUserData));
+              // Clear force lock flag for existing users signing in
+              localStorage.removeItem('force_locked_until_manual_completion');
               console.log('💾 Complete user data stored in localStorage');
+              console.log('🔓 Cleared force lock flag for existing user');
             }
           } catch (error) {
             console.warn('Failed to store complete user data:', error);
@@ -304,7 +307,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           try {
             if (typeof window !== 'undefined' && window.localStorage) {
               localStorage.setItem('auth_user', JSON.stringify(userData));
+              // Clear force lock flag for existing users signing in
+              localStorage.removeItem('force_locked_until_manual_completion');
               console.log('💾 Basic user data stored in localStorage');
+              console.log('🔓 Cleared force lock flag for existing user');
             }
           } catch (error) {
             console.warn('Failed to store basic user data:', error);
@@ -318,7 +324,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem('auth_user', JSON.stringify(userData));
+            // Clear force lock flag for existing users signing in
+            localStorage.removeItem('force_locked_until_manual_completion');
             console.log('💾 Basic user data stored in localStorage');
+            console.log('🔓 Cleared force lock flag for existing user');
           }
         } catch (error) {
           console.warn('Failed to store basic user data:', error);
@@ -551,7 +560,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             try {
               if (typeof window !== 'undefined' && window.localStorage) {
                 localStorage.setItem('auth_user', JSON.stringify(completeUserData));
+                // Clear force lock flag for existing users signing in
+                localStorage.removeItem('force_locked_until_manual_completion');
                 console.log('💾 Complete Google user data stored in localStorage');
+                console.log('🔓 Cleared force lock flag for existing Google user');
               }
             } catch (error) {
               console.warn('Failed to store complete Google user data:', error);
@@ -564,7 +576,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             try {
               if (typeof window !== 'undefined' && window.localStorage) {
                 localStorage.setItem('auth_user', JSON.stringify(userData));
+                // Clear force lock flag for existing users signing in
+                localStorage.removeItem('force_locked_until_manual_completion');
                 console.log('💾 Basic Google user data stored in localStorage');
+                console.log('🔓 Cleared force lock flag for existing Google user');
               }
             } catch (error) {
               console.warn('Failed to store basic Google user data:', error);
@@ -578,7 +593,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           try {
             if (typeof window !== 'undefined' && window.localStorage) {
               localStorage.setItem('auth_user', JSON.stringify(userData));
+              // Clear force lock flag for existing users signing in
+              localStorage.removeItem('force_locked_until_manual_completion');
               console.log('💾 Basic Google user data stored in localStorage');
+              console.log('🔓 Cleared force lock flag for existing Google user');
             }
           } catch (error) {
             console.warn('Failed to store basic Google user data:', error);
