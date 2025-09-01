@@ -83,7 +83,12 @@ export default function UserDashboard() {
   console.log('🚀 UserDashboard mounted with initial state:', { 
     qualificationCompleted, 
     activeTab,
-    urlSearch: location.search 
+    urlSearch: location.search,
+    user: user ? 'exists' : 'null',
+    userName: user?.name,
+    userEmail: user?.email,
+    userAvatar: user?.avatar,
+    userUID: user?.uid
   });
   
   // Packages tab state
@@ -713,9 +718,9 @@ export default function UserDashboard() {
                   className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors overflow-hidden"
                   onClick={() => setShowProfilePopup(!showProfilePopup)}
                 >
-                  {user?.photoURL ? (
+                  {user?.avatar ? (
                     <img 
-                      src={user.photoURL} 
+                      src={user.avatar} 
                       alt={user.name || 'User'} 
                       className="w-full h-full object-cover"
                       onError={(e) => {

@@ -118,6 +118,15 @@ const MOCK_USERS = {
 
 // Helper function to create user from Firebase user
 const createUserFromFirebase = (firebaseUser: any): User => {
+  // Debug logging to see what Firebase user data we're getting
+  console.log('🔍 createUserFromFirebase - Firebase user data:', {
+    uid: firebaseUser.uid,
+    email: firebaseUser.email,
+    displayName: firebaseUser.displayName,
+    photoURL: firebaseUser.photoURL,
+    providerData: firebaseUser.providerData
+  });
+
   // Check if user exists in mock data
   const mockUser = MOCK_USERS[firebaseUser.email as keyof typeof MOCK_USERS];
   
@@ -125,7 +134,10 @@ const createUserFromFirebase = (firebaseUser: any): User => {
     return {
       ...mockUser,
       uid: firebaseUser.uid,
-      avatar: firebaseUser.photoURL || mockUser.avatar || '/api/placeholder/150/150',
+      avatar: firebaseUser.photoURL || 
+              firebaseUser.providerData?.[0]?.photoURL || 
+              mockUser.avatar || 
+              '/api/placeholder/150/150',
       lastLogin: new Date().toISOString()
     };
   }
@@ -195,7 +207,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role: userRole,
         department: userDepartment,
         lastLogin: new Date().toISOString(),
-        avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
+        avatar: firebaseUser.photoURL || 
+                firebaseUser.providerData?.[0]?.photoURL || 
+                '/api/placeholder/150/150',
         permissions: userRole === 'admin' ? [
           'tmf620:read', 'tmf620:write', 'tmf620:delete',
           'tmf622:read', 'tmf622:write', 'tmf622:delete', 

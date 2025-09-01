@@ -22,6 +22,16 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
+  // Debug logging to see what's in the user object
+  console.log('🔍 ProfilePopup - User data:', {
+    user: user ? 'exists' : 'null',
+    name: user?.name,
+    email: user?.email,
+    avatar: user?.avatar,
+    photoURL: user?.photoURL,
+    uid: user?.uid
+  });
+
   // Close popup when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -90,9 +100,9 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
           <div className="p-4 border-b border-blue-500/30 bg-blue-600/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                {user?.photoURL ? (
+                {user?.avatar ? (
                   <img 
-                    src={user.photoURL} 
+                    src={user.avatar} 
                     alt={user.name || 'User'} 
                     className="w-12 h-12 rounded-full border-2 border-white/20"
                     onError={(e) => {
@@ -103,7 +113,7 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
                     }}
                   />
                 ) : null}
-                <div className={`w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/20 ${user?.photoURL ? 'hidden' : ''}`}>
+                <div className={`w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/20 ${user?.avatar ? 'hidden' : ''}`}>
                   {user?.name?.charAt(0) || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
