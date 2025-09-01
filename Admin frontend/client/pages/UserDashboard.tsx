@@ -83,12 +83,7 @@ export default function UserDashboard() {
   console.log('🚀 UserDashboard mounted with initial state:', { 
     qualificationCompleted, 
     activeTab,
-    urlSearch: location.search,
-    user: user ? 'exists' : 'null',
-    userName: user?.name,
-    userEmail: user?.email,
-    userAvatar: user?.avatar,
-    userUID: user?.uid
+    urlSearch: location.search
   });
   
   // Packages tab state

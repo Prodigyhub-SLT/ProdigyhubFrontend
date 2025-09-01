@@ -38,6 +38,8 @@ import ProductConfigurationDashboard from "./pages/ProductConfigurationDashboard
 import EnhancedDashboard from "./pages/EnhancedDashboard";
 import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
+import EditProfile from "./pages/EditProfile";
+import ChangePassword from "./pages/ChangePassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +82,8 @@ const App = () => (
               <ProtectedRoute>
                 <Routes>
                   <Route path="/" element={<UserDashboard />} />
+                  <Route path="/profile" element={<EditProfile />} />
+                  <Route path="/change-password" element={<ChangePassword />} />
                   {/* Add more user-specific routes here later */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

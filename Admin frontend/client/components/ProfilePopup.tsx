@@ -22,15 +22,7 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
-  // Debug logging to see what's in the user object
-  console.log('🔍 ProfilePopup - User data:', {
-    user: user ? 'exists' : 'null',
-    name: user?.name,
-    email: user?.email,
-    avatar: user?.avatar,
-    photoURL: user?.photoURL,
-    uid: user?.uid
-  });
+
 
   // Close popup when clicking outside or pressing Escape
   useEffect(() => {
