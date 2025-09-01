@@ -48,8 +48,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check email verification for non-admin users
-  if (user && user.role !== 'admin' && !user.emailVerified) {
+  // Check email verification for non-admin users who signed up with email/password (not Google)
+  if (user && user.role !== 'admin' && user.authMethod === 'email' && !user.emailVerified) {
     console.log('❌ User email not verified, redirecting to verification page');
     return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email)}`} replace />;
   }

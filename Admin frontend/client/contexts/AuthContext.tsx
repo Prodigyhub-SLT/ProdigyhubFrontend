@@ -13,6 +13,7 @@ export interface User {
   lastLogin?: string;
   avatar?: string;
   emailVerified?: boolean; // Add email verification status
+  authMethod?: 'email' | 'google'; // Track authentication method
   permissions?: string[];
   preferences?: {
     theme: 'light' | 'dark' | 'system';
@@ -74,6 +75,8 @@ const MOCK_USERS = {
     department: 'Engineering',
     lastLogin: new Date().toISOString(),
     avatar: '/api/placeholder/150/150',
+    emailVerified: true, // Admin users are pre-verified
+    authMethod: 'email' as const, // Admin uses email/password
     permissions: [
       'tmf620:read', 'tmf620:write', 'tmf620:delete',
       'tmf622:read', 'tmf622:write', 'tmf622:delete', 
@@ -103,6 +106,8 @@ const MOCK_USERS = {
     department: 'Product',
     lastLogin: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
     avatar: '/api/placeholder/150/150',
+    emailVerified: true, // Mock users are pre-verified
+    authMethod: 'email' as const, // Mock users use email/password
     permissions: [
       'tmf620:read', 'tmf622:read', 'tmf622:write',
       'tmf637:read', 'tmf679:read', 'tmf688:read',
@@ -157,6 +162,8 @@ const createUserFromFirebase = (firebaseUser: any): User => {
     department: 'General',
     lastLogin: new Date().toISOString(),
     avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
+    emailVerified: true, // Google users are pre-verified
+    authMethod: 'google', // Track that this user signed in with Google
     permissions: [
       'tmf620:read', 'tmf622:read', 'tmf637:read', 
       'tmf679:read', 'tmf688:read', 'dashboard:read'
@@ -215,6 +222,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         avatar: firebaseUser.photoURL || 
                 firebaseUser.providerData?.[0]?.photoURL || 
                 '/api/placeholder/150/150',
+        emailVerified: firebaseUser.emailVerified || false,
+        authMethod: 'email', // Track that this user signed in with email/password
         permissions: userRole === 'admin' ? [
           'tmf620:read', 'tmf620:write', 'tmf620:delete',
           'tmf622:read', 'tmf622:write', 'tmf622:delete', 
@@ -354,6 +363,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           lastLogin: new Date().toISOString(),
           avatar: '/api/placeholder/150/150',
           emailVerified: false, // Add email verification status
+          authMethod: 'email', // Track that this user signed up with email/password
           permissions: isAdmin ? [
             'tmf620:read', 'tmf620:write', 'tmf620:delete',
             'tmf622:read', 'tmf622:write', 'tmf622:delete', 
