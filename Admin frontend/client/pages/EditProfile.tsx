@@ -17,7 +17,7 @@ export default function EditProfile() {
     lastName: '',
     email: '',
     phoneNumber: '',
-    countryCode: '+234',
+    countryCode: '+94',
     idNumber: ''
   });
 
@@ -33,9 +33,14 @@ export default function EditProfile() {
         lastName: nameParts.slice(1).join(' ') || '',
         email: user.email || '',
         phoneNumber: '',
-        countryCode: '+234',
+        countryCode: '+94',
         idNumber: ''
       });
+      
+      // Generate background color from existing avatar if available
+      if (user.avatar) {
+        generateBackgroundColor(user.avatar);
+      }
     }
   }, [user]);
 
@@ -75,6 +80,51 @@ export default function EditProfile() {
     navigate('/user/change-password');
   };
 
+  // Function to generate background color from profile picture
+  const generateBackgroundColor = (imageUrl: string): string => {
+    // Create a canvas to analyze the image colors
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      
+      try {
+        const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+        if (imageData) {
+          const data = imageData.data;
+          let r = 0, g = 0, b = 0, count = 0;
+          
+          // Sample pixels from the image (every 10th pixel for performance)
+          for (let i = 0; i < data.length; i += 40) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+          }
+          
+          // Calculate average color
+          r = Math.round(r / count);
+          g = Math.round(g / count);
+          b = Math.round(b / count);
+          
+          // Apply the color to the profile picture container
+          const profileContainer = document.getElementById('profile-picture-container');
+          if (profileContainer) {
+            profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+          }
+        }
+      } catch (error) {
+        console.log('Could not analyze image colors:', error);
+      }
+    };
+    
+    img.src = imageUrl;
+  };
+
   const handleProfilePictureChange = () => {
     // Handle profile picture change
     const input = document.createElement('input');
@@ -85,6 +135,10 @@ export default function EditProfile() {
       if (file) {
         // Handle file upload logic here
         console.log('Profile picture selected:', file);
+        
+        // Create a URL for the selected file and generate background color
+        const imageUrl = URL.createObjectURL(file);
+        generateBackgroundColor(imageUrl);
       }
     };
     input.click();
@@ -109,7 +163,10 @@ export default function EditProfile() {
         {/* Profile Picture Section */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg">
+            <div 
+              id="profile-picture-container"
+              className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg transition-colors duration-300"
+            >
               {user?.avatar ? (
                 <img 
                   src={user.avatar} 
@@ -207,11 +264,12 @@ export default function EditProfile() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="+234">+234</SelectItem>
+                        <SelectItem value="+94">+94</SelectItem>
                         <SelectItem value="+1">+1</SelectItem>
                         <SelectItem value="+44">+44</SelectItem>
                         <SelectItem value="+91">+91</SelectItem>
                         <SelectItem value="+86">+86</SelectItem>
+                        <SelectItem value="+234">+234</SelectItem>
                       </SelectContent>
                     </Select>
                     
