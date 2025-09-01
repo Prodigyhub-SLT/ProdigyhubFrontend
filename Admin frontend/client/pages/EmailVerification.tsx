@@ -58,9 +58,9 @@ export default function EmailVerification() {
           description: 'Your email has been verified. Redirecting to dashboard...' 
         });
         
-        // Redirect to dashboard after a short delay
+        // Redirect to qualification tab after a short delay
         setTimeout(() => {
-          navigate('/user');
+          navigate('/user?tab=qualification');
         }, 2000);
       } else {
         setVerificationStatus('failed');
@@ -126,7 +126,7 @@ export default function EmailVerification() {
             </div>
             <CardTitle className="text-2xl font-bold text-green-800">Email Verified!</CardTitle>
             <CardDescription className="text-green-600">
-              Your email has been successfully verified. Redirecting to dashboard...
+              Your email has been successfully verified. Redirecting to qualification...
             </CardDescription>
           </CardHeader>
           <CardContent>
