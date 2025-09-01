@@ -92,12 +92,12 @@ export default function UserDashboard() {
     const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
     console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted, isForceLocked });
     
-    // Only block access if user is force-locked (new user) or hasn't completed qualification
-    if ((!qualificationCompleted || isForceLocked) && tabId !== 'qualification') {
+    // Only block access if user is force-locked (new user)
+    if (isForceLocked && tabId !== 'qualification') {
       // Show message that qualification must be completed first
       setShowQualificationAlert(true);
       setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
-      console.log('🚫 Tab access blocked - qualification not completed or user is force-locked');
+      console.log('🚫 Tab access blocked - user is force-locked (new user)');
       return;
     }
     
@@ -217,14 +217,15 @@ export default function UserDashboard() {
         }
       }
     } else {
-      // No tab parameter, set qualification state based on localStorage
-      setQualificationCompleted(hasCompletedQualification);
-      if (hasCompletedQualification) {
-        console.log('✅ No tab parameter - user has completed qualification');
-      } else if (isForceLocked) {
+      // No tab parameter - check if user is force-locked (new user) or existing user
+      if (isForceLocked) {
+        // User is force-locked (new user) - keep tabs locked
+        setQualificationCompleted(false);
         console.log('🔒 No tab parameter - user is force-locked (new user)');
       } else {
-        console.log('🔒 No tab parameter - user has not completed qualification');
+        // Existing user - allow access to all tabs regardless of qualification status
+        setQualificationCompleted(true);
+        console.log('✅ No tab parameter - existing user, allowing access to all tabs');
       }
     }
   }, [location.search]);
@@ -366,7 +367,7 @@ export default function UserDashboard() {
           <div className="flex space-x-1 py-3">
             {secondNavTabs.map((tab) => {
               const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-              const isLocked = (!qualificationCompleted || isForceLocked) && tab.id !== 'qualification';
+              const isLocked = isForceLocked && tab.id !== 'qualification';
               return (
                 <Button
                   key={tab.id}
