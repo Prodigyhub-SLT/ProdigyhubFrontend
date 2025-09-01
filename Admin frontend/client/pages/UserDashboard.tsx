@@ -219,9 +219,20 @@ export default function UserDashboard() {
     } else {
       // No tab parameter - check if user is force-locked (new user) or existing user
       if (isForceLocked) {
-        // User is force-locked (new user) - keep tabs locked
-        setQualificationCompleted(false);
-        console.log('🔒 No tab parameter - user is force-locked (new user)');
+        // Check if this is actually a new user or an existing user with stale flag
+        // If user has no from=signup parameter, they're an existing user signing in
+        const isFromSignup = urlParams.get('from') === 'signup';
+        
+        if (!isFromSignup) {
+          // Existing user signing in - clear the force lock flag and allow access
+          localStorage.removeItem('force_locked_until_manual_completion');
+          setQualificationCompleted(true);
+          console.log('✅ No tab parameter - existing user signing in, cleared force lock flag and allowing access to all tabs');
+        } else {
+          // User is force-locked (new user) - keep tabs locked
+          setQualificationCompleted(false);
+          console.log('🔒 No tab parameter - user is force-locked (new user)');
+        }
       } else {
         // Existing user - allow access to all tabs regardless of qualification status
         setQualificationCompleted(true);
