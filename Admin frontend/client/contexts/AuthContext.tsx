@@ -49,6 +49,9 @@ export interface AuthContextType {
   sendEmailVerification: () => Promise<void>;
   checkEmailVerification: () => Promise<boolean>;
   
+  // Profile management
+  refreshUserProfile: () => Promise<void>;
+  
   // Permission helpers
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string | string[]) => boolean;
@@ -214,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userDepartment = 'Engineering';
       }
       
-      // Create user data from Firebase user
+      // Create basic user data from Firebase user
       const userData: User = {
         id: firebaseUser.uid,
         uid: firebaseUser.uid,
@@ -252,17 +255,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       };
       
-      setUser(userData);
-      console.log('👤 User set in context:', userData);
-      
-      // Store user data in localStorage
+      // Fetch complete user profile from MongoDB backend
       try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem('auth_user', JSON.stringify(userData));
-          console.log('💾 User data stored in localStorage');
+        const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(`${backendURL}/users/profile/${firebaseUser.uid}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const mongoUserData = await response.json();
+          console.log('✅ MongoDB profile data fetched:', mongoUserData);
+          
+          // Merge MongoDB data with Firebase data
+          const completeUserData: User = {
+            ...userData,
+            // Direct fields from MongoDB
+            phoneNumber: mongoUserData.phoneNumber || '',
+            nic: mongoUserData.nic || '',
+            // Profile object with MongoDB data
+            profile: {
+              phone: mongoUserData.phoneNumber || '',
+              nic: mongoUserData.nic || '',
+              location: mongoUserData.location || '',
+              bio: mongoUserData.bio || 'User authenticated via Firebase.',
+            }
+          };
+          
+          setUser(completeUserData);
+          console.log('👤 Complete user profile set in context:', completeUserData);
+          
+          // Store complete user data in localStorage
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('auth_user', JSON.stringify(completeUserData));
+              console.log('💾 Complete user data stored in localStorage');
+            }
+          } catch (error) {
+            console.warn('Failed to store complete user data:', error);
+          }
+        } else {
+          console.warn('⚠️ MongoDB profile fetch failed, using basic user data');
+          setUser(userData);
+          
+          // Store basic user data in localStorage
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('auth_user', JSON.stringify(userData));
+              console.log('💾 Basic user data stored in localStorage');
+            }
+          } catch (error) {
+            console.warn('Failed to store basic user data:', error);
+          }
         }
-      } catch (error) {
-        console.warn('Failed to store auth data:', error);
+      } catch (mongoError: any) {
+        console.warn('⚠️ Failed to fetch MongoDB profile, using basic user data:', mongoError);
+        setUser(userData);
+        
+        // Store basic user data in localStorage
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('auth_user', JSON.stringify(userData));
+            console.log('💾 Basic user data stored in localStorage');
+          }
+        } catch (error) {
+          console.warn('Failed to store basic user data:', error);
+        }
       }
       
     } catch (error: any) {
@@ -445,18 +505,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Create user profile from Firebase user
         const userData = createUserFromFirebase(result.user);
         
-        // Set user in context
-        setUser(userData);
-        console.log('👤 Google user set in context:', userData);
-        
-        // Store user data in localStorage
+        // Fetch complete user profile from MongoDB backend
         try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.setItem('auth_user', JSON.stringify(userData));
-            console.log('💾 Google user data stored in localStorage');
+          const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          const response = await fetch(`${backendURL}/users/profile/${result.user.uid}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const mongoUserData = await response.json();
+            console.log('✅ MongoDB profile data fetched for Google user:', mongoUserData);
+            
+            // Merge MongoDB data with Firebase data
+            const completeUserData: User = {
+              ...userData,
+              // Direct fields from MongoDB
+              phoneNumber: mongoUserData.phoneNumber || '',
+              nic: mongoUserData.nic || '',
+              // Profile object with MongoDB data
+              profile: {
+                phone: mongoUserData.phoneNumber || '',
+                nic: mongoUserData.nic || '',
+                location: mongoUserData.location || '',
+                bio: mongoUserData.bio || 'User authenticated via Google.',
+              }
+            };
+            
+            setUser(completeUserData);
+            console.log('👤 Complete Google user profile set in context:', completeUserData);
+            
+            // Store complete user data in localStorage
+            try {
+              if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.setItem('auth_user', JSON.stringify(completeUserData));
+                console.log('💾 Complete Google user data stored in localStorage');
+              }
+            } catch (error) {
+              console.warn('Failed to store complete Google user data:', error);
+            }
+          } else {
+            console.warn('⚠️ MongoDB profile fetch failed for Google user, using basic user data');
+            setUser(userData);
+            
+            // Store basic user data in localStorage
+            try {
+              if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.setItem('auth_user', JSON.stringify(userData));
+                console.log('💾 Basic Google user data stored in localStorage');
+              }
+            } catch (error) {
+              console.warn('Failed to store basic Google user data:', error);
+            }
           }
-        } catch (error) {
-          console.warn('Failed to store Google auth data:', error);
+        } catch (mongoError: any) {
+          console.warn('⚠️ Failed to fetch MongoDB profile for Google user, using basic user data:', mongoError);
+          setUser(userData);
+          
+          // Store basic user data in localStorage
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('auth_user', JSON.stringify(userData));
+              console.log('💾 Basic Google user data stored in localStorage');
+            }
+          } catch (error) {
+            console.warn('Failed to store basic Google user data:', error);
+          }
         }
         
         console.log('✅ Google Sign-In completed successfully');
@@ -469,6 +585,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Refresh user profile from MongoDB
+  const refreshUserProfile = async (): Promise<void> => {
+    if (!user?.uid) {
+      console.warn('⚠️ No user logged in, cannot refresh profile');
+      return;
+    }
+    
+    try {
+      console.log('🔄 Refreshing user profile from MongoDB...');
+      const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const mongoUserData = await response.json();
+        console.log('✅ MongoDB profile data refreshed:', mongoUserData);
+        
+        // Update user with MongoDB data
+        const updatedUser: User = {
+          ...user,
+          // Direct fields from MongoDB
+          phoneNumber: mongoUserData.phoneNumber || user.phoneNumber || '',
+          nic: mongoUserData.nic || user.nic || '',
+          // Profile object with MongoDB data
+          profile: {
+            phone: mongoUserData.phoneNumber || user.profile?.phone || '',
+            nic: mongoUserData.nic || user.profile?.nic || '',
+            location: mongoUserData.location || user.profile?.location || '',
+            bio: mongoUserData.bio || user.profile?.bio || 'User profile refreshed.',
+          }
+        };
+        
+        setUser(updatedUser);
+        console.log('👤 User profile refreshed:', updatedUser);
+        
+        // Update localStorage
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+            console.log('💾 Refreshed user data stored in localStorage');
+          }
+        } catch (error) {
+          console.warn('Failed to store refreshed user data:', error);
+        }
+      } else {
+        console.warn('⚠️ MongoDB profile refresh failed:', await response.text());
+      }
+    } catch (error: any) {
+      console.warn('⚠️ Failed to refresh user profile from MongoDB:', error);
     }
   };
 
@@ -682,6 +854,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Email verification
     sendEmailVerification,
     checkEmailVerification,
+    
+    // Profile management
+    refreshUserProfile,
     
     // Permissions
     hasPermission,

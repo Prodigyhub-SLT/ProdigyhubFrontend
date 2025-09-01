@@ -10,7 +10,7 @@ import { ArrowLeft, Camera, Lock, User, Mail, Phone } from 'lucide-react';
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, refreshUserProfile } = useAuth();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -124,6 +124,9 @@ export default function EditProfile() {
 
   useEffect(() => {
     if (user) {
+      // Refresh user profile from MongoDB to get latest data
+      refreshUserProfile();
+      
       // Split full name into first and last name
       const nameParts = (user.name || '').split(' ');
       // Parse phone number if it includes country code
