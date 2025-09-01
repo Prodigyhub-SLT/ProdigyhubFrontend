@@ -264,15 +264,15 @@ export default function EditProfile() {
                 '--dynamic-bg-color': '#3b82f6'
               } as React.CSSProperties}
             >
-              {user?.avatar ? (
-                <img 
-                  src={user.avatar} 
-                  alt={user.name || 'User'} 
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                user?.name?.charAt(0) || 'U'
-              )}
+                             {user?.avatar ? (
+                 <img 
+                   src={user.avatar} 
+                   alt={user.name || 'User'} 
+                   className="w-16 h-16 rounded-full object-cover"
+                 />
+               ) : (
+                 user?.name?.charAt(0) || 'U'
+               )}
             </div>
             
             {/* Edit Profile Picture Button */}
