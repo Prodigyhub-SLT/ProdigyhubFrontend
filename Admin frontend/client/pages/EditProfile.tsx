@@ -63,24 +63,17 @@ export default function EditProfile() {
           
           console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
           
-          // Apply the color to the profile picture container using multiple methods
-          const profileContainer = document.getElementById('profile-picture-container');
-          if (profileContainer) {
-            // Method 1: Set CSS custom property
-            profileContainer.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
+          // Apply the color to the page background
+          const pageBackground = document.getElementById('page-background');
+          if (pageBackground) {
+            // Set CSS custom property for the page background
+            pageBackground.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
             
-            // Method 2: Set inline style with !important
-            profileContainer.style.setProperty('background-color', `rgb(${r}, ${g}, ${b})`, 'important');
-            
-            // Method 3: Force reflow and apply
-            profileContainer.offsetHeight; // Force reflow
-            profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-            
-            console.log('Background color applied successfully using multiple methods');
-            console.log('Container element:', profileContainer);
-            console.log('Computed background color:', window.getComputedStyle(profileContainer).backgroundColor);
+            console.log('Page background color applied successfully');
+            console.log('Page background element:', pageBackground);
+            console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
           } else {
-            console.log('Profile container not found');
+            console.log('Page background not found');
           }
         }
       } catch (error) {
@@ -117,22 +110,15 @@ export default function EditProfile() {
     
     console.log('Fallback color generated:', `rgb(${r}, ${g}, ${b})`);
     
-    // Apply the fallback color
-    const profileContainer = document.getElementById('profile-picture-container');
-    if (profileContainer) {
-      // Method 1: Set CSS custom property
-      profileContainer.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
+    // Apply the fallback color to the page background
+    const pageBackground = document.getElementById('page-background');
+    if (pageBackground) {
+      // Set CSS custom property for the page background
+      pageBackground.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
       
-      // Method 2: Set inline style with !important
-      profileContainer.style.setProperty('background-color', `rgb(${r}, ${g}, ${b})`, 'important');
-      
-      // Method 3: Force reflow and apply
-      profileContainer.offsetHeight; // Force reflow
-      profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-      
-      console.log('Fallback color applied successfully using multiple methods');
-      console.log('Container element:', profileContainer);
-      console.log('Computed background color:', window.getComputedStyle(profileContainer).backgroundColor);
+      console.log('Fallback page background color applied successfully');
+      console.log('Page background element:', pageBackground);
+      console.log('Generated fallback color:', `rgb(${r}, ${g}, ${b})`);
     }
   };
 
@@ -154,12 +140,11 @@ export default function EditProfile() {
         console.log('User has avatar, generating background color...');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-          console.log('DOM ready, checking profile container...');
-          const container = document.getElementById('profile-picture-container');
-          console.log('Profile container found:', container);
-          if (container) {
-            console.log('Container styles before:', container.style.cssText);
-            console.log('Container computed styles before:', window.getComputedStyle(container).backgroundColor);
+          console.log('DOM ready, checking page background...');
+          const pageBg = document.getElementById('page-background');
+          console.log('Page background found:', pageBg);
+          if (pageBg) {
+            console.log('Page background styles before:', pageBg.style.cssText);
           }
           generateBackgroundColor(user.avatar);
         }, 100);
@@ -167,12 +152,11 @@ export default function EditProfile() {
         console.log('No avatar found for user, generating fallback color');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-          console.log('DOM ready, checking profile container...');
-          const container = document.getElementById('profile-picture-container');
-          console.log('Profile container found:', container);
-          if (container) {
-            console.log('Container styles before:', container.style.cssText);
-            console.log('Container computed styles before:', window.getComputedStyle(container).backgroundColor);
+          console.log('DOM ready, checking page background...');
+          const pageBg = document.getElementById('page-background');
+          console.log('Page background found:', pageBg);
+          if (pageBg) {
+            console.log('Page background styles before:', pageBg.style.cssText);
           }
           generateFallbackColor();
         }, 100);
@@ -238,7 +222,13 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div 
+      id="page-background"
+      className="min-h-screen py-8 transition-colors duration-500"
+      style={{ 
+        background: 'linear-gradient(135deg, var(--dynamic-bg-color, #3b82f6) 0%, rgba(0,0,0,0.8) 100%)'
+      }}
+    >
       <div className="max-w-4xl mx-auto px-4">
         {/* Header with Back Button */}
         <div className="flex items-center mb-8">
@@ -256,14 +246,10 @@ export default function EditProfile() {
         {/* Profile Picture Section */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-            <div 
-              id="profile-picture-container"
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg transition-colors duration-300"
-              style={{ 
-                backgroundColor: 'var(--dynamic-bg-color, #3b82f6)',
-                '--dynamic-bg-color': '#3b82f6'
-              } as React.CSSProperties}
-            >
+                         <div 
+               id="profile-picture-container"
+               className="w-20 h-20 rounded-full flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg"
+             >
                              {user?.avatar ? (
                  <img 
                    src={user.avatar} 
