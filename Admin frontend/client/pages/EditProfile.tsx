@@ -246,36 +246,48 @@ export default function EditProfile() {
       }}
     >
       <div className="max-w-4xl mx-auto px-4">
-        {/* Header with Back Button */}
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="mr-4 h-10 w-10 rounded-full bg-white shadow-sm hover:bg-gray-50 border border-gray-200"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
-        </div>
+                 {/* Header with Back Button - Moved to top left */}
+         <div className="absolute top-8 left-8 z-10">
+           <Button
+             variant="ghost"
+             size="sm"
+             onClick={() => navigate(-1)}
+             className="h-10 w-10 rounded-full bg-white shadow-sm hover:bg-gray-50 border border-gray-200"
+           >
+             <ArrowLeft className="h-5 w-5 text-gray-700" />
+           </Button>
+         </div>
+         
+         {/* Page Title - Centered */}
+         <div className="text-center mb-8">
+           <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
+         </div>
 
         {/* Profile Picture Section */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-                         <div 
-               id="profile-picture-container"
-               className="w-20 h-20 rounded-full flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg"
-             >
-                             {user?.avatar ? (
-                 <img 
-                   src={user.avatar} 
-                   alt={user.name || 'User'} 
-                   className="w-16 h-16 rounded-full object-cover"
-                 />
-               ) : (
-                 user?.name?.charAt(0) || 'U'
-               )}
-            </div>
+                                                   <div 
+                id="profile-picture-container"
+                className="w-20 h-20 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden"
+              >
+                              {user?.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name || 'User'} 
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <svg 
+                      className="w-8 h-8 text-white" 
+                      fill="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </div>
+                )}
+             </div>
             
             {/* Edit Profile Picture Button */}
             <Button
