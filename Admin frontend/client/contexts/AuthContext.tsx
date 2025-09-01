@@ -20,6 +20,9 @@ export interface User {
     language: string;
     timezone: string;
   };
+  // Direct fields for backward compatibility with MongoDB structure
+  phoneNumber?: string;
+  nic?: string;
   profile?: {
     phone?: string;
     nic?: string;
@@ -38,9 +41,9 @@ export interface AuthContextType {
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string, phone: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, phone: string, nic: string) => Promise<void>;
   logout: () => void;
-  updateUser: (updates: Partial<User>) => void;
+  updateUser: (updates: Partial<User>) => Promise<void>;
   
   // Email verification
   sendEmailVerification: () => Promise<void>;
@@ -338,6 +341,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             lastName: lastName,
             email: email,
             phoneNumber: phone,
+            nic: nic,
             password: password, // Note: In production, consider if you want to store this
             userId: firebaseUser.uid
           }),
@@ -366,6 +370,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           avatar: '/api/placeholder/150/150',
           emailVerified: false, // Add email verification status
           authMethod: 'email', // Track that this user signed up with email/password
+          // Direct fields for MongoDB compatibility
+          phoneNumber: phone,
+          nic: nic,
           permissions: isAdmin ? [
             'tmf620:read', 'tmf620:write', 'tmf620:delete',
             'tmf622:read', 'tmf622:write', 'tmf622:delete', 
@@ -548,7 +555,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const updateUser = (updates: Partial<User>) => {
+  const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
     
     const updatedUser = { ...user, ...updates };
@@ -561,6 +568,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.warn('Failed to update stored auth data:', error);
+    }
+    
+    // Save updates to MongoDB backend
+    try {
+      const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const response = await fetch(`${backendURL}/users/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid || user.id,
+          updates: {
+            firstName: updates.name?.split(' ')[0] || user.name?.split(' ')[0],
+            lastName: updates.name?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' '),
+            email: updates.email || user.email,
+            phoneNumber: updates.phoneNumber || updates.profile?.phone || user.phoneNumber || user.profile?.phone,
+            nic: updates.nic || updates.profile?.nic || user.nic || user.profile?.nic
+          }
+        }),
+      });
+      
+      if (response.ok) {
+        console.log('✅ User profile updated in MongoDB successfully');
+      } else {
+        console.warn('⚠️ MongoDB update failed:', await response.text());
+      }
+    } catch (mongoError: any) {
+      console.warn('⚠️ Failed to update user data in MongoDB:', mongoError);
+      // Don't fail the update if MongoDB save fails
+      // User is still updated in frontend context
     }
   };
 

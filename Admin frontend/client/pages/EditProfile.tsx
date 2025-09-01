@@ -127,7 +127,8 @@ export default function EditProfile() {
       // Split full name into first and last name
       const nameParts = (user.name || '').split(' ');
       // Parse phone number if it includes country code
-      let phoneNumber = user.profile?.phone || '';
+      // Check both profile.phone and direct phoneNumber (for backward compatibility)
+      let phoneNumber = user.profile?.phone || user.phoneNumber || '';
       let countryCode = '+94';
       
       if (phoneNumber && phoneNumber.startsWith('+94')) {
@@ -148,7 +149,7 @@ export default function EditProfile() {
         email: user.email || '',
         phoneNumber: phoneNumber,
         countryCode: countryCode,
-        idNumber: user.profile?.nic || ''
+        idNumber: user.profile?.nic || user.nic || ''
       });
       
       // Generate background color from existing avatar if available
@@ -199,7 +200,7 @@ export default function EditProfile() {
           name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
           phoneNumber: `${formData.countryCode} ${formData.phoneNumber}`,
-          idNumber: formData.idNumber
+          nic: formData.idNumber
         });
         setMessage('Profile updated successfully!');
       }
