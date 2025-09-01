@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Camera, Lock, User, Mail, Phone, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, Camera, Lock, User, Mail, Phone } from 'lucide-react';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -15,12 +15,10 @@ export default function EditProfile() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    username: '',
     email: '',
     phoneNumber: '',
     countryCode: '+234',
-    birth: '',
-    gender: ''
+    idNumber: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -33,12 +31,10 @@ export default function EditProfile() {
       setFormData({
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
-        username: `@${nameParts[0] || 'User'}`,
         email: user.email || '',
         phoneNumber: '',
         countryCode: '+234',
-        birth: '',
-        gender: ''
+        idNumber: ''
       });
     }
   }, [user]);
@@ -62,8 +58,7 @@ export default function EditProfile() {
           name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
           phoneNumber: `${formData.countryCode} ${formData.phoneNumber}`,
-          birth: formData.birth,
-          gender: formData.gender
+          idNumber: formData.idNumber
         });
         setMessage('Profile updated successfully!');
       }
@@ -183,24 +178,7 @@ export default function EditProfile() {
                 </div>
               </div>
 
-              {/* Username */}
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                  Username
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="username"
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter username"
-                    required
-                  />
-                </div>
-              </div>
+
 
               {/* Email */}
               <div className="space-y-2">
@@ -255,41 +233,22 @@ export default function EditProfile() {
                 </div>
               </div>
 
-              {/* Birth Date */}
+              {/* ID Number */}
               <div className="space-y-2">
-                <Label htmlFor="birth" className="text-sm font-medium text-gray-700">
-                  Birth
+                <Label htmlFor="idNumber" className="text-sm font-medium text-gray-700">
+                  ID Number
                 </Label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
-                    id="birth"
-                    type="date"
-                    value={formData.birth}
-                    onChange={(e) => handleInputChange('birth', e.target.value)}
+                    id="idNumber"
+                    type="text"
+                    value={formData.idNumber}
+                    onChange={(e) => handleInputChange('idNumber', e.target.value)}
                     className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Enter ID number"
+                    required
                   />
-                </div>
-              </div>
-
-              {/* Gender */}
-              <div className="space-y-2">
-                <Label htmlFor="gender" className="text-sm font-medium text-gray-700">
-                  Gender
-                </Label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                    <SelectTrigger className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
