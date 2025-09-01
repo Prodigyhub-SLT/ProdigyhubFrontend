@@ -60,7 +60,7 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
 
   const handleProfileClick = () => {
     onClose();
-    navigate('/profile');
+    navigate('/user/profile');
   };
 
   const handleSettingsClick = () => {

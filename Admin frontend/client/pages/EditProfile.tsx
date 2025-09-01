@@ -77,7 +77,7 @@ export default function EditProfile() {
 
   const handleChangePassword = () => {
     // Navigate to password change page or open password change modal
-    navigate('/change-password');
+    navigate('/user/change-password');
   };
 
   const handleProfilePictureChange = () => {
