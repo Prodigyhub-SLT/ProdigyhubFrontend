@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { productCatalogApi } from '@/lib/api';
 import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ProfilePopup from '../components/ProfilePopup';
 import { 
   Wifi, 
   Tv, 
@@ -70,11 +71,13 @@ interface ValueAddedService {
 export default function UserDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
   const [activeTab, setActiveTab] = useState('summary');
   const [qualificationCompleted, setQualificationCompleted] = useState(false);
   const [showQualificationAlert, setShowQualificationAlert] = useState(false);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const profileTriggerRef = useRef<HTMLDivElement>(null);
   
   // Debug log for initial state
   console.log('🚀 UserDashboard mounted with initial state:', { 
@@ -92,14 +95,7 @@ export default function UserDashboard() {
   const [usageTypeFilter, setUsageTypeFilter] = useState('all');
   const [dataBundleFilter, setDataBundleFilter] = useState('all');
 
-  const handleSignOut = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Sign out failed:', error);
-    }
-  };
+
 
   const handleTabClick = (tabId: string) => {
     console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
@@ -709,18 +705,22 @@ export default function UserDashboard() {
                 <span className="text-gray-700 font-medium">0372298622</span>
                 <ChevronDown className="w-4 h-4 text-gray-500" />
               </div>
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                U
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                onClick={handleSignOut}
+              <div 
+                ref={profileTriggerRef}
+                className="relative cursor-pointer"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
+                <div 
+                  className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors"
+                  onClick={() => setShowProfilePopup(!showProfilePopup)}
+                >
+                  U
+                </div>
+                <ProfilePopup 
+                  isOpen={showProfilePopup}
+                  onClose={() => setShowProfilePopup(false)}
+                  triggerRef={profileTriggerRef}
+                />
+              </div>
             </div>
           </div>
         </div>
