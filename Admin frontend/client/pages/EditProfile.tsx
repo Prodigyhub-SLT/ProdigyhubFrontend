@@ -33,6 +33,9 @@ export default function EditProfile() {
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
+    // Set crossOrigin to anonymous to handle CORS
+    img.crossOrigin = 'anonymous';
+    
     img.onload = () => {
       console.log('Image loaded, analyzing colors...');
       canvas.width = img.width;
@@ -71,14 +74,44 @@ export default function EditProfile() {
         }
       } catch (error) {
         console.log('Could not analyze image colors:', error);
+        // Fallback: generate a color based on the user's name
+        generateFallbackColor();
       }
     };
     
     img.onerror = () => {
-      console.log('Failed to load image for color analysis');
+      console.log('Failed to load image for color analysis, using fallback');
+      generateFallbackColor();
     };
     
     img.src = imageUrl;
+  };
+
+  // Fallback function to generate a color based on user's name
+  const generateFallbackColor = () => {
+    if (!user?.name) return;
+    
+    console.log('Generating fallback color from user name');
+    
+    // Generate a consistent color based on the user's name
+    let hash = 0;
+    for (let i = 0; i < user.name.length; i++) {
+      hash = user.name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Generate RGB values from hash
+    const r = Math.abs(hash) % 200 + 55; // 55-255 range for better visibility
+    const g = Math.abs(hash >> 8) % 200 + 55;
+    const b = Math.abs(hash >> 16) % 200 + 55;
+    
+    console.log('Fallback color generated:', `rgb(${r}, ${g}, ${b})`);
+    
+    // Apply the fallback color
+    const profileContainer = document.getElementById('profile-picture-container');
+    if (profileContainer) {
+      profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      console.log('Fallback color applied successfully');
+    }
   };
 
   useEffect(() => {
@@ -102,7 +135,11 @@ export default function EditProfile() {
           generateBackgroundColor(user.avatar);
         }, 100);
       } else {
-        console.log('No avatar found for user');
+        console.log('No avatar found for user, generating fallback color');
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => {
+          generateFallbackColor();
+        }, 100);
       }
     }
   }, [user]);
