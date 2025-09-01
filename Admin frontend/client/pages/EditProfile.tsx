@@ -66,7 +66,7 @@ export default function EditProfile() {
           // Apply the color to the profile picture container
           const profileContainer = document.getElementById('profile-picture-container');
           if (profileContainer) {
-            profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            profileContainer.style.setProperty('background-color', `rgb(${r}, ${g}, ${b})`, 'important');
             console.log('Background color applied successfully');
           } else {
             console.log('Profile container not found');
@@ -109,7 +109,7 @@ export default function EditProfile() {
     // Apply the fallback color
     const profileContainer = document.getElementById('profile-picture-container');
     if (profileContainer) {
-      profileContainer.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      profileContainer.style.setProperty('background-color', `rgb(${r}, ${g}, ${b})`, 'important');
       console.log('Fallback color applied successfully');
     }
   };
@@ -222,7 +222,8 @@ export default function EditProfile() {
           <div className="relative">
             <div 
               id="profile-picture-container"
-              className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg transition-colors duration-300"
+              className="w-20 h-20 rounded-full flex items-center justify-center text-white text-xl font-bold border-4 border-white shadow-lg transition-colors duration-300"
+              style={{ backgroundColor: '#3b82f6' }}
             >
               {user?.avatar ? (
                 <img 
