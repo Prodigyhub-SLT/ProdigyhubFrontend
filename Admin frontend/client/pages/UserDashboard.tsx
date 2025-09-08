@@ -639,7 +639,8 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'customize' && (
-          <RegisteruserCuspage />
+          //<RegisteruserCuspage />
+          <CustomerPackagesTab />
         )}
 
         {activeTab === 'messages' && (
