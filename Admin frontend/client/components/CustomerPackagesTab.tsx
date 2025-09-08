@@ -206,6 +206,47 @@ export default function CustomerPackagesTab() {
 
   const handleUpgrade = async (offering: ProductOffering) => {
     try {
+      // Debug: Log user data
+      console.log('🔍 User data in handleUpgrade:', {
+        user: user,
+        name: user?.name,
+        email: user?.email,
+        phoneNumber: user?.phoneNumber,
+        nic: user?.nic,
+        profile: user?.profile
+      });
+      
+      // If user data is incomplete, try to fetch from MongoDB manually
+      let userData = user;
+      if (user && (!user.phoneNumber && !user.nic)) {
+        try {
+          const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const mongoUserData = await response.json();
+            console.log('✅ Manually fetched MongoDB profile data:', mongoUserData);
+            userData = {
+              ...user,
+              phoneNumber: mongoUserData.phoneNumber || '',
+              nic: mongoUserData.nic || '',
+              profile: {
+                ...user.profile,
+                phone: mongoUserData.phoneNumber || '',
+                nic: mongoUserData.nic || '',
+              }
+            };
+          }
+        } catch (error) {
+          console.warn('Failed to manually fetch user profile:', error);
+        }
+      }
+      
       // Import the order creation API
       const { createOrderWithRetry } = await import('@/lib/api');
       
@@ -223,18 +264,18 @@ export default function CustomerPackagesTab() {
             '@type': 'ProductOfferingRef'
           }
         }],
-        relatedParty: user ? [{
-          id: user.id || user.uid || 'unknown',
-          name: user.name || 'Unknown User',
+        relatedParty: userData ? [{
+          id: userData.id || userData.uid || 'unknown',
+          name: userData.name || 'Unknown User',
           role: 'customer',
           '@type': 'RelatedParty'
         }] : [],
-        customerDetails: user ? {
-          name: user.name || 'Unknown',
-          email: user.email || '',
-          phone: user.phoneNumber || user.profile?.phone || '',
-          nic: user.nic || user.profile?.nic || '',
-          id: user.id || user.uid || 'unknown'
+        customerDetails: userData ? {
+          name: userData.name || 'Unknown',
+          email: userData.email || '',
+          phone: userData.phoneNumber || userData.profile?.phone || '',
+          nic: userData.nic || userData.profile?.nic || '',
+          id: userData.id || userData.uid || 'unknown'
         } : undefined,
         note: [{
           text: `Customer upgrade request for ${offering.name}`,

@@ -300,7 +300,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.warn('Failed to store complete user data:', error);
           }
         } else {
+          const errorText = await response.text();
           console.warn('⚠️ MongoDB profile fetch failed, using basic user data');
+          console.warn('Response status:', response.status);
+          console.warn('Response text:', errorText);
           setUser(userData);
           
           // Store basic user data in localStorage
