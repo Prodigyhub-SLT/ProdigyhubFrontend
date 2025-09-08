@@ -791,7 +791,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
       {/* Spec View Modal */}
       <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
           <DialogHeader className="flex-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -837,47 +837,30 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </div>
               </div>
 
-                                                               {/* Connection Type & Package Type (from categoryDescription) */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Connection Type:</span>
-                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Package Type:</span>
-                        <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
-                      </div>
-                    </div>
+              {/* Description */}
+              {selectedOffering.description && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
                   </div>
+                </div>
+              )}
 
-               {/* Category Information */}
-               {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
-                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Information</h3>
-                   <div className="space-y-3">
-                     {(selectedOffering as any).subCategory && (
-                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                         <span className="font-medium text-gray-700">Sub Category:</span>
-                         <span className="text-gray-900">{(selectedOffering as any).subCategory}</span>
-                       </div>
-                     )}
-                     {(selectedOffering as any).subSubCategory && (
-                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                         <span className="font-medium text-gray-700">Sub-Sub Category:</span>
-                         <span className="text-gray-900">{(selectedOffering as any).subSubCategory}</span>
-                       </div>
-                     )}
-                     {(selectedOffering as any).categoryDescription && (
-                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                         <span className="font-medium text-gray-700">Category Description:</span>
-                         <span className="text-gray-900">{(selectedOffering as any).categoryDescription}</span>
-                       </div>
-                     )}
-                   </div>
-                 </div>
-               ) : null}
+              {/* Connection Type & Package Type */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Connection Type:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Package Type:</span>
+                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                  </div>
+                </div>
+              </div>
 
                {/* Custom Attributes */}
                {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
