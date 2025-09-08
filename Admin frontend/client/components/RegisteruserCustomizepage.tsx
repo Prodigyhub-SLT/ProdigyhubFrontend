@@ -1,749 +1,325 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Package, Wifi, Eye, Filter, X, Tv, BookOpen } from 'lucide-react';
-import { productCatalogApi } from '@/lib/api';
-import { ProductOffering } from '../../shared/product-order-types';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Zap, 
+  Globe, 
+  Signal, 
+  Loader2, 
+  CheckCircle, 
+  AlertCircle, 
+  CustomizeIcon // Assuming you have a custom icon or use lucide-react's Settings or similar
+} from 'lucide-react';
 
-export default function CustomerPackagesTab() {
-  const [offerings, setOfferings] = useState<ProductOffering[]>([]);
-  const [filteredOfferings, setFilteredOfferings] = useState<ProductOffering[]>([]);
-  const [loading, setLoading] = useState(true);
+interface CustomPackageRequest {
+  serviceType: 'fiber' | 'adsl' | 'mobile' | 'other';
+  desiredSpeed: string;
+  dataLimit: string;
+  additionalFeatures: string[];
+  notes: string;
+  // Assuming user is registered, we can fetch or pass userId/address from context or props
+}
+
+interface CustomizeTabProps {
+  userId: string; // Passed from parent component or auth context
+  addressDetails?: { // Optional, if pre-filled from qualification
+    district: string;
+    province: string;
+    postalCode?: string;
+  };
+  onRequestComplete?: () => void;
+}
+
+export function RegisterCustomizePage({ userId, addressDetails, onRequestComplete }: CustomizeTabProps) {
+  const { toast } = useToast();
   
-  // Filter states
-  const [filters, setFilters] = useState({
-    connectionType: 'all',
-    packageUsageType: 'all',
-    packageType: 'all',
-    dataBundle: 'all',
-    searchTerm: ''
+  const [customRequest, setCustomRequest] = useState<CustomPackageRequest>({
+    serviceType: 'fiber',
+    desiredSpeed: '',
+    dataLimit: '',
+    additionalFeatures: [],
+    notes: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestSubmitted, setRequestSubmitted] = useState(false);
 
-  // Spec view modal state
-  const [isSpecViewOpen, setIsSpecViewOpen] = useState(false);
-  const [selectedOffering, setSelectedOffering] = useState<ProductOffering | null>(null);
+  // Sample features for selection
+  const availableFeatures = [
+    'Unlimited Data', 'Voice Calls', 'SMS Bundle', 'International Roaming',
+    'Static IP', 'Parental Controls', 'VPN Support', 'Priority Support'
+  ];
 
-  useEffect(() => {
-    loadOfferings();
-  }, []);
+  const handleInputChange = (field: keyof CustomPackageRequest, value: string) => {
+    setCustomRequest(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
-  useEffect(() => {
-    filterOfferings();
-  }, [offerings, filters]);
+  const handleFeatureToggle = (feature: string) => {
+    setCustomRequest(prev => ({
+      ...prev,
+      additionalFeatures: prev.additionalFeatures.includes(feature)
+        ? prev.additionalFeatures.filter(f => f !== feature)
+        : [...prev.additionalFeatures, feature]
+    }));
+  };
 
-  const loadOfferings = async () => {
+  const isFormValid = () => {
+    return customRequest.desiredSpeed && customRequest.dataLimit && customRequest.notes;
+  };
+
+  const submitCustomRequest = async () => {
+    if (!isFormValid()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields to submit your custom package request.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!addressDetails?.district || !addressDetails?.province) {
+      toast({
+        title: "Address Required",
+        description: "Please complete qualification first or provide address details.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      setLoading(true);
-      const offeringsData = await productCatalogApi.getOfferings({ limit: 100 });
-      
-      // Filter only active offerings
-      const activeOfferings = offeringsData.filter(
-        (offering: any) => offering.lifecycleStatus === 'Active'
-      );
-      
-      setOfferings(activeOfferings);
-    } catch (error) {
-      console.error('Error loading offerings:', error);
-      setOfferings([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterOfferings = () => {
-    let filtered = [...offerings];
-    
-    // Filter by search term
-    if (filters.searchTerm) {
-      filtered = filtered.filter(offering =>
-        offering.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        offering.description?.toLowerCase().includes(filters.searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by Connection Type
-    if (filters.connectionType !== 'all') {
-      filtered = filtered.filter(offering => {
-        const categoryDescription = (offering as any).categoryDescription || '';
-        let matches = false;
-        
-        if (filters.connectionType === 'Data/PEOTV & Voice Packages') {
-          matches = categoryDescription.includes('PEOTV');
-        } else if (filters.connectionType === 'Data Packages') {
-          const isTechData = categoryDescription.includes('4G') || categoryDescription.includes('ADSL');
-          const isExplicitDataPackages = categoryDescription.includes('Data Packages');
-          matches = (isExplicitDataPackages || isTechData) && !categoryDescription.includes('PEOTV');
-        } else if (filters.connectionType === 'Data & Voice') {
-          const isFiber = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre');
-          const isDataPackages = categoryDescription.includes('Data Packages');
-          matches = isFiber && !categoryDescription.includes('PEOTV') && !isDataPackages;
-        }
-        
-        return matches;
-      });
-    }
-
-    // Filter by Package Usage Type
-    if (filters.packageUsageType !== 'all') {
-      filtered = filtered.filter(offering => {
-        const categoryDescription = (offering as any).categoryDescription || '';
-        let matches = false;
-        
-        if (filters.packageUsageType === 'Any Time') {
-          matches = categoryDescription.includes('Any Time') || categoryDescription.includes('Anytime');
-        } else if (filters.packageUsageType === 'Time Based') {
-          matches = categoryDescription.includes('Time Based');
-        } else if (filters.packageUsageType === 'Unlimited') {
-          matches = categoryDescription.includes('Unlimited');
-        }
-        
-        return matches;
-      });
-    }
-
-    // Filter by Package Type
-    if (filters.packageType !== 'all') {
-      filtered = filtered.filter(offering => {
-        const categoryDescription = (offering as any).categoryDescription || '';
-        return categoryDescription.includes(filters.packageType);
-      });
-    }
-
-    // Filter by Data Bundle
-    if (filters.dataBundle !== 'all') {
-      filtered = filtered.filter(offering => {
-        const categoryDescription = (offering as any).categoryDescription || '';
-        return categoryDescription.includes(filters.dataBundle);
-      });
-    }
-
-    setFilteredOfferings(filtered);
-  };
-
-  const getOfferingPrice = (offering: ProductOffering) => {
-    if (offering.productOfferingPrice && offering.productOfferingPrice.length > 0) {
-      const price = offering.productOfferingPrice[0];
-      return {
-        amount: price.price?.taxIncludedAmount?.value || 0,
-        currency: price.price?.taxIncludedAmount?.unit || 'LKR',
-        period: price.priceType === 'oneTime' ? 'one-time' : 'per month'
+      // Prepare data in TMF679 format, similar to QualificationTab
+      const qualificationData = {
+        description: `Custom Package Request for ${customRequest.serviceType.toUpperCase()} by User ${userId}`,
+        instantSyncQualification: true,
+        provideAlternative: true, // Allow alternatives for custom requests
+        provideOnlyAvailable: false,
+        provideResultReason: true,
+        state: "acknowledged",
+        creationDate: new Date().toISOString(),
+        note: [
+          {
+            text: `SLT_LOCATION:${JSON.stringify({
+              address: `${addressDetails.district}, ${addressDetails.province}`,
+              district: addressDetails.district,
+              province: addressDetails.province,
+              postalCode: addressDetails.postalCode || ''
+            })}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_SERVICES:${JSON.stringify([`${customRequest.serviceType.toUpperCase()} Custom Package (Request)`])}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_CUSTOM_DETAILS:${JSON.stringify({
+              desiredSpeed: customRequest.desiredSpeed,
+              dataLimit: customRequest.dataLimit,
+              additionalFeatures: customRequest.additionalFeatures,
+              notes: customRequest.notes
+            })}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_USER_ID:${userId}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          }
+        ],
+        channel: {},
+        checkProductOfferingQualificationItem: [],
+        relatedParty: [{ id: userId, role: 'customer' }],
+        "@baseType": "CheckProductOfferingQualification",
+        "@type": "CheckProductOfferingQualification"
       };
+
+      // Use the TMF679 endpoint for creating qualification requests, as in QualificationTab
+      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+          // Add auth headers if needed for registered users, e.g., Authorization: Bearer token
+        },
+        body: JSON.stringify(qualificationData)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setRequestSubmitted(true);
+        toast({
+          title: "Request Submitted",
+          description: "Your custom package request has been sent to the admin for review. It will appear in the Service Requests tab.",
+        });
+        
+        // Optionally call onRequestComplete to update parent state or navigate
+        if (onRequestComplete) onRequestComplete();
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Failed to submit request: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error submitting custom request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit custom package request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    return null;
-  };
-
-  const getOfferingCategory = (offering: ProductOffering) => {
-    if (Array.isArray(offering.category) && offering.category.length > 0) {
-      return offering.category[0].name || offering.category[0].id || 'Other';
-    } else if (typeof offering.category === 'object' && offering.category) {
-      return (offering.category as any).name || (offering.category as any).id || 'Other';
-    } else if (typeof offering.category === 'string') {
-      return offering.category;
-    }
-    
-    // Fallback: Check if it's a Broadband offering based on name or description
-    const name = (offering.name || '').toLowerCase();
-    const description = (offering.description || '').toLowerCase();
-    
-    if (name.includes('broadband') || description.includes('broadband') || 
-        name.includes('fibre') || name.includes('fiber') || 
-        name.includes('internet') || name.includes('data')) {
-      return 'Broadband';
-    }
-    
-    return 'Other';
-  };
-
-  const getOfferingSpecs = (offering: ProductOffering) => {
-    // Extract Connection Type & Package Type from categoryDescription (for filtering consistency)
-    const categoryDescription = (offering as any).categoryDescription || '';
-    
-    const connectionType = categoryDescription.includes('Fiber') ? 'Fiber' : 
-                          categoryDescription.includes('4G') ? '4G' : 
-                          categoryDescription.includes('ADSL') ? 'ADSL' : 'N/A';
-    
-    const packageType = categoryDescription.includes('Any Time') ? 'Any Time' : 
-                       categoryDescription.includes('Time Based') ? 'Time Based' : 
-                       categoryDescription.includes('Unlimited') ? 'Unlimited' : 'N/A';
-
-    return {
-      connectionType,
-      packageType
-    };
-  };
-
-  // Classify offering into a connection-type group for grouped display
-  const getConnectionTypeGroup = (offering: ProductOffering): 'peotv' | 'dataPackages' | 'dataAndVoice' | 'unknown' => {
-    const desc = (offering as any).categoryDescription || '';
-    if (desc.includes('PEOTV')) return 'peotv';
-    const isDataPackages = desc.includes('Data Packages') || desc.includes('4G') || desc.includes('ADSL');
-    const isFiber = desc.includes('Fiber') || desc.includes('Fibre');
-    if (isDataPackages && !desc.includes('PEOTV')) return 'dataPackages';
-    if (isFiber && !desc.includes('PEOTV') && !isDataPackages) return 'dataAndVoice';
-    return 'unknown';
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      connectionType: 'all',
-      packageUsageType: 'all',
-      packageType: 'all',
-      dataBundle: 'all',
-      searchTerm: ''
-    });
-  };
-
-  const handleViewSpec = (offering: ProductOffering) => {
-    setSelectedOffering(offering);
-    setIsSpecViewOpen(true);
-  };
-
-  const closeSpecView = () => {
-    setIsSpecViewOpen(false);
-    setSelectedOffering(null);
   };
 
   return (
-    <div className="space-y-8">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Broadband Packages</h2>
-        
-        {/* Filter Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex flex-wrap gap-3 items-center">
-            <span className="text-sm font-medium text-gray-700">Filter By:</span>
-            
-            {/* Connection Type Filter */}
-            <Select 
-              value={filters.connectionType} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, connectionType: value }))}
+    <div className="max-w-6xl mx-auto space-y-8">
+      {/* Header Banner */}
+      <Alert className="border-blue-200 bg-blue-50 text-blue-800">
+        <AlertDescription className="text-sm">
+          🎯 <strong>Customize Your Package:</strong> As a registered customer, request personalized service packages. Fill in your preferences and submit for admin approval.
+        </AlertDescription>
+      </Alert>
+      
+      {/* Custom Request Form Section */}
+      <Card className="bg-white shadow-lg border-0">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-gray-800">
+            Custom Package Request
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            Tell us your requirements for a tailored internet package
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Service Type */}
+          <div className="space-y-2">
+            <Label htmlFor="serviceType" className="text-gray-700">Service Type *</Label>
+            <Select
+              value={customRequest.serviceType}
+              onValueChange={(value) => handleInputChange('serviceType', value)}
             >
-              <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
-                <SelectValue placeholder="All Connection Types" />
+              <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                <SelectValue placeholder="Select service type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Connection Types</SelectItem>
-                <SelectItem value="Data/PEOTV & Voice Packages">Data/PEOTV & Voice Packages</SelectItem>
-                <SelectItem value="Data Packages">Data Packages</SelectItem>
-                <SelectItem value="Data & Voice">Data & Voice</SelectItem>
+                <SelectItem value="fiber">Fiber Internet</SelectItem>
+                <SelectItem value="adsl">ADSL Internet</SelectItem>
+                <SelectItem value="mobile">LTE/4G Mobile</SelectItem>
+                <SelectItem value="other">Other/Custom</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Package Usage Type Filter */}
-            <Select 
-              value={filters.packageUsageType} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, packageUsageType: value }))}
-            >
-              <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
-                <SelectValue placeholder="All Usage Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Usage Types</SelectItem>
-                <SelectItem value="Any Time">Any Time</SelectItem>
-                <SelectItem value="Time Based">Time Based</SelectItem>
-                <SelectItem value="Unlimited">Unlimited</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Package Type Filter */}
-            <Select 
-              value={filters.packageType} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, packageType: value }))}
-            >
-              <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
-                <SelectValue placeholder="All Package Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Package Types</SelectItem>
-                <SelectItem value="4G">4G</SelectItem>
-                <SelectItem value="ADSL">ADSL</SelectItem>
-                <SelectItem value="Fiber">Fiber</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Data Bundle Filter */}
-            <Select 
-              value={filters.dataBundle} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, dataBundle: value }))}
-            >
-              <SelectTrigger className="w-48 bg-blue-600 text-white border-blue-600 rounded-full">
-                <SelectValue placeholder="All Data Bundles" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Data Bundles</SelectItem>
-                <SelectItem value="40GB">40GB</SelectItem>
-                <SelectItem value="50GB">50GB</SelectItem>
-                <SelectItem value="85GB">85GB</SelectItem>
-                <SelectItem value="100GB">100GB</SelectItem>
-                <SelectItem value="115GB">115GB</SelectItem>
-                <SelectItem value="200GB">200GB</SelectItem>
-                <SelectItem value="400GB">400GB</SelectItem>
-                <SelectItem value="Unlimited">Unlimited</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Reset Button */}
-            {(filters.connectionType !== 'all' || filters.packageUsageType !== 'all' || 
-              filters.packageType !== 'all' || filters.searchTerm !== '' || filters.dataBundle !== 'all') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetFilters}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Reset
-              </Button>
-            )}
           </div>
-        </div>
 
-        {/* Search Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search offerings..."
-              value={filters.searchTerm}
-              onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-              className="pl-10"
+          {/* Desired Speed and Data Limit */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="desiredSpeed" className="text-gray-700">Desired Speed (Mbps) *</Label>
+              <Input
+                id="desiredSpeed"
+                value={customRequest.desiredSpeed}
+                onChange={(e) => handleInputChange('desiredSpeed', e.target.value)}
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                placeholder="e.g., 500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dataLimit" className="text-gray-700">Data Limit (GB) *</Label>
+              <Input
+                id="dataLimit"
+                value={customRequest.dataLimit}
+                onChange={(e) => handleInputChange('dataLimit', e.target.value)}
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                placeholder="e.g., Unlimited or 1000"
+              />
+            </div>
+          </div>
+
+          {/* Additional Features */}
+          <div className="space-y-2">
+            <Label className="text-gray-700">Additional Features</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {availableFeatures.map((feature) => (
+                <Badge
+                  key={feature}
+                  variant={customRequest.additionalFeatures.includes(feature) ? "default" : "outline"}
+                  className="cursor-pointer py-2 px-3 text-sm"
+                  onClick={() => handleFeatureToggle(feature)}
+                >
+                  {feature}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-gray-700">Additional Notes *</Label>
+            <Textarea
+              id="notes"
+              value={customRequest.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-[100px]"
+              placeholder="Describe any other requirements or preferences..."
             />
           </div>
-        </div>
 
-        {/* Offerings Display */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-600 mt-4">Loading packages...</p>
-          </div>
-        ) : filteredOfferings.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No packages found</h3>
-            <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
-          </div>
-        ) : (
-          <div className="space-y-10 max-w-6xl mx-auto">
-            {/* Group 1: Data/PEOTV & Voice Packages */}
-            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'peotv').length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <Tv className="w-4 h-4 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Data/PEOTV & Voice Packages</h2>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'peotv').map((offering) => {
-                    const price = getOfferingPrice(offering);
-                    const category = getOfferingCategory(offering);
-                    const specs = getOfferingSpecs(offering);
-                    return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
-                          </div>
-                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
-                        </div>
-                        <div className="p-3 bg-white flex-1">
-                          <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                              {getOfferingCategory(offering).toUpperCase()}
-                            </Badge>
-                          </div>
-                          <div className="space-y-2 mb-3">
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
-                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
-                            </div>
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-sm font-medium text-gray-600">Package Type</span>
-                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
-                            </div>
-                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
-                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
-                                <span className="text-sm text-gray-900 font-semibold">
-                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                            <div className="space-y-2">
-                              {(offering as any).customAttributes
-                                .filter((attr: any) => 
-                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
-                                )
-                                .map((attr: any, index: number) => (
-                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
-                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
-                                  </div>
-                                ))
-                              }
-                            </div>
-                          )}
-                        </div>
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
-                          <div className="text-center mb-2">
-                            <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
-                            <div className="text-2xl font-bold">
-                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {/* Group 2: Data Packages */}
-            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataPackages').length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-                    <Wifi className="w-4 h-4 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Data Packages</h2>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataPackages').map((offering) => {
-                    const price = getOfferingPrice(offering);
-                    const category = getOfferingCategory(offering);
-                    const specs = getOfferingSpecs(offering);
-                    return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
-                          </div>
-                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
-                        </div>
-                        <div className="p-3 bg-white flex-1">
-                          <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                              {getOfferingCategory(offering).toUpperCase()}
-                            </Badge>
-                          </div>
-                          <div className="space-y-2 mb-3">
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
-                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
-                            </div>
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-sm font-medium text-gray-600">Package Type</span>
-                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
-                            </div>
-                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
-                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
-                                <span className="text-sm text-gray-900 font-semibold">
-                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                            <div className="space-y-2">
-                              {(offering as any).customAttributes
-                                .filter((attr: any) => 
-                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
-                                )
-                                .map((attr: any, index: number) => (
-                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
-                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
-                                  </div>
-                                ))
-                              }
-                            </div>
-                          )}
-                        </div>
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
-                          <div className="text-center mb-2">
-                            <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
-                            <div className="text-2xl font-bold">
-                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {/* Group 3: Data & Voice */}
-            {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndVoice').length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                    <Wifi className="w-4 h-4 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Data & Voice</h2>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredOfferings.filter(o => getConnectionTypeGroup(o) === 'dataAndVoice').map((offering) => {
-                    const price = getOfferingPrice(offering);
-                    const category = getOfferingCategory(offering);
-                    const specs = getOfferingSpecs(offering);
-                    return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
-                          </div>
-                          <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
-                        </div>
-                        <div className="p-3 bg-white flex-1">
-                          <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                              {getOfferingCategory(offering).toUpperCase()}
-                            </Badge>
-                          </div>
-                          <div className="space-y-2 mb-3">
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
-                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
-                            </div>
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-sm font-medium text-gray-600">Package Type</span>
-                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
-                            </div>
-                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
-                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
-                                <span className="text-sm text-gray-900 font-semibold">
-                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                            <div className="space-y-2">
-                              {(offering as any).customAttributes
-                                .filter((attr: any) => 
-                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
-                                )
-                                .map((attr: any, index: number) => (
-                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
-                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
-                                  </div>
-                                ))
-                              }
-                            </div>
-                          )}
-                        </div>
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
-                          <div className="text-center mb-2">
-                            <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
-                            <div className="text-2xl font-bold">
-                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Spec View Modal */}
-      <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="flex-none">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <BookOpen className="w-6 h-6 text-blue-600" />
-                <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900">{selectedOffering?.name}</DialogTitle>
-                  <DialogDescription className="text-sm text-gray-600 mt-1">
-                    View complete specification information and characteristics
-                  </DialogDescription>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeSpecView}
-                className="h-8 w-8 p-0 rounded-full"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogHeader>
-          
-          {selectedOffering && (
-            <div className="space-y-6 p-6 pt-0">
-              {/* Basic Information */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
-                    ACTIVE
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-700">Category:</span>
-                    <span className="text-gray-900">{getOfferingCategory(selectedOffering)}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Brand & Version:</span>
-                    <span className="text-gray-900 ml-2">ProdigyHub v1.0</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Connection Type & Package Type */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Connection Type:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Package Type:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Category Information */}
-              {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Information</h3>
-                  <div className="space-y-3">
-                    {(selectedOffering as any).subCategory && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Sub Category:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).subCategory}</span>
-                      </div>
-                    )}
-                    {(selectedOffering as any).subSubCategory && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Sub-Sub Category:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).subSubCategory}</span>
-                      </div>
-                    )}
-                    {(selectedOffering as any).categoryDescription && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Category Description:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).categoryDescription}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Custom Attributes */}
-              {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Attributes</h3>
-                  <div className="space-y-3">
-                    {(selectedOffering as any).customAttributes.map((attr: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">{attr.name}:</span>
-                        <span className="text-gray-900">{attr.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Pricing Information */}
-              {getOfferingPrice(selectedOffering) && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Details</h3>
-                  <div className="bg-blue-600 text-white p-6 relative overflow-hidden rounded-lg">
-                    <div className="absolute inset-0 bg-white/10"></div>
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-                    <div className="text-center relative z-10">
-                      <div className="text-3xl font-bold mb-2 drop-shadow-sm">
-                        {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
-                      </div>
-                      <div className="text-lg opacity-90 mb-4">
-                        {getOfferingPrice(selectedOffering)!.period}
-                      </div>
-                      <div className="space-y-2 opacity-80">
-                        <div className="text-sm">Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
-                        <div className="text-sm">Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {/* Submit Button */}
+          <div className="flex justify-center pt-4">
+            <Button
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold"
+              onClick={submitCustomRequest}
+              disabled={!isFormValid() || isSubmitting || requestSubmitted}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : requestSubmitted ? (
+                'Request Submitted'
+              ) : (
+                'Submit Custom Request'
               )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-              {/* Timestamps */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Timestamps</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="font-medium text-gray-700">Created:</span>
-                    <span className="text-gray-900 ml-2">
-                      {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Last Updated:</span>
-                    <span className="text-gray-900 ml-2">
-                      {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : 'N/A'}
-                    </span>
-                  </div>
+      {/* Success Section - Show after submission */}
+      {requestSubmitted && (
+        <Card className="bg-white shadow-lg border-0">
+          <CardContent className="space-y-6 pt-6">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+              <div className="text-center space-y-4">
+                <div className="text-2xl font-bold text-green-700 mb-2">
+                  ✅ Request Submitted Successfully!
                 </div>
+                <p className="text-green-700 text-lg">
+                  Your custom package request has been sent to the admin. You will be notified once it's reviewed.
+                </p>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
