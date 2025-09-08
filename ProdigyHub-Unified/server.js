@@ -143,7 +143,18 @@ app.use(limiter);
 // CORS - Enhanced for all APIs
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? 
-    process.env.ALLOWED_ORIGINS?.split(',') : 
+    (process.env.ALLOWED_ORIGINS?.split(',') || [
+      'https://sltprodigyhub.vercel.app',
+      'https://sltprodigyhub-git-thejana-jayalaths-projects.vercel.app',
+      'https://sltprodigyhub-2i58cdit4-jayalaths-projects.vercel.app',
+      'https://prodigyhub.vercel.app',
+      'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
+      'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
+      'https://prodigyhub.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:8080'
+    ]) : 
     ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', '*'],
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
