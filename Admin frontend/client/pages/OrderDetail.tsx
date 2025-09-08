@@ -314,25 +314,19 @@ export default function OrderDetail() {
                           
                           {/* Enhanced user details for customers */}
                           {party.role === 'customer' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 p-3 bg-slate-50 rounded-lg">
-                              {(party as any).email && (
-                                <div>
-                                  <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Email</span>
-                                  <p className="text-sm text-slate-900">{(party as any).email}</p>
-                                </div>
-                              )}
-                              {(party as any).phoneNumber && (
-                                <div>
-                                  <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Phone</span>
-                                  <p className="text-sm text-slate-900">{(party as any).phoneNumber}</p>
-                                </div>
-                              )}
-                              {(party as any).nic && (
-                                <div>
-                                  <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">NIC Number</span>
-                                  <p className="text-sm text-slate-900">{(party as any).nic}</p>
-                                </div>
-                              )}
+                            <div className="mt-3 p-3 bg-slate-50 rounded-lg">
+                              <h4 className="text-sm font-medium text-slate-700 mb-2">Customer Information</h4>
+                              <div className="space-y-1 text-sm text-slate-600">
+                                {order.note && order.note
+                                  .filter(note => note.text.includes('Customer Details') || note.text.includes('Customer Phone') || note.text.includes('Customer NIC'))
+                                  .map((note, noteIndex) => (
+                                    <div key={noteIndex} className="flex items-center">
+                                      <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                      <span>{note.text}</span>
+                                    </div>
+                                  ))
+                                }
+                              </div>
                             </div>
                           )}
                         </div>

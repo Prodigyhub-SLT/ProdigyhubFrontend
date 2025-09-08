@@ -227,18 +227,36 @@ export default function CustomerPackagesTab() {
           id: user.id || user.uid || 'unknown',
           name: user.name || 'Unknown User',
           role: 'customer',
-          '@type': 'RelatedParty',
-          // Add additional user details as custom attributes
-          email: user.email,
-          phoneNumber: user.phoneNumber || user.profile?.phone,
-          nic: user.nic || user.profile?.nic
+          '@type': 'RelatedParty'
         }] : [],
-        note: [{
-          text: `Customer upgrade request for ${offering.name}. Customer: ${user?.name || 'Unknown'} (${user?.email || 'No email'})`,
-          author: 'Customer',
-          date: new Date().toISOString(),
-          '@type': 'Note'
-        }],
+        note: [
+          {
+            text: `Customer upgrade request for ${offering.name}`,
+            author: 'Customer',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          ...(user ? [
+            {
+              text: `Customer Details - Name: ${user.name || 'Unknown'}, Email: ${user.email || 'No email'}`,
+              author: 'System',
+              date: new Date().toISOString(),
+              '@type': 'Note'
+            },
+            ...(user.phoneNumber || user.profile?.phone ? [{
+              text: `Customer Phone: ${user.phoneNumber || user.profile?.phone}`,
+              author: 'System',
+              date: new Date().toISOString(),
+              '@type': 'Note'
+            }] : []),
+            ...(user.nic || user.profile?.nic ? [{
+              text: `Customer NIC: ${user.nic || user.profile?.nic}`,
+              author: 'System',
+              date: new Date().toISOString(),
+              '@type': 'Note'
+            }] : [])
+          ] : [])
+        ],
         '@type': 'ProductOrder'
       };
 
