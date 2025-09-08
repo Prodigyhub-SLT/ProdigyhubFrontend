@@ -202,6 +202,12 @@ export default function CustomerPackagesTab() {
     setIsSpecViewOpen(true);
   };
 
+  const handleUpgrade = (offering: ProductOffering) => {
+    // TODO: Implement upgrade functionality
+    console.log('Upgrade clicked for offering:', offering.name);
+    // You can add navigation to upgrade page or show upgrade dialog here
+  };
+
   const closeSpecView = () => {
     setIsSpecViewOpen(false);
     setSelectedOffering(null);
@@ -400,14 +406,24 @@ export default function CustomerPackagesTab() {
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              View
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleUpgrade(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              Upgrade
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     );
@@ -487,14 +503,24 @@ export default function CustomerPackagesTab() {
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              View
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleUpgrade(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              Upgrade
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     );
@@ -574,14 +600,24 @@ export default function CustomerPackagesTab() {
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              View
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleUpgrade(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              Upgrade
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     );
