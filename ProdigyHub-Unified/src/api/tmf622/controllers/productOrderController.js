@@ -22,11 +22,16 @@ class ProductOrderController {
       const orderId = uuidv4();
       const currentTime = new Date().toISOString();
 
+      // Build a safe href even in serverless environments where req.get('host') may be undefined
+      const fallbackHost = process.env.VERCEL_URL || process.env.HOST || 'localhost:3000';
+      const host = (req && typeof req.get === 'function' && req.get('host')) ? req.get('host') : fallbackHost;
+      const protocol = (req && req.protocol) ? req.protocol : (process.env.PROTOCOL || 'https');
+
       // Create the product order with TMF622 compliant structure
       const productOrder = {
         "@type": "ProductOrder",  // ALWAYS FIRST
         id: orderId,
-        href: `${req.protocol}://${req.get('host')}/productOrderingManagement/v4/productOrder/${orderId}`,
+        href: `${protocol}://${host}/productOrderingManagement/v4/productOrder/${orderId}`,
         category: orderData.category || "B2C product order",
         description: orderData.description || "",
         externalId: orderData.externalId || [],
@@ -41,7 +46,10 @@ class ProductOrderController {
         channel: orderData.channel || [],
         note: orderData.note || [],
         productOrderItem: this.processProductOrderItems(orderData.productOrderItem || [], req),
-        relatedParty: orderData.relatedParty || [],
+        // Preserve any extra fields included for related parties (e.g., email, phone, nic)
+        relatedParty: Array.isArray(orderData.relatedParty) ? orderData.relatedParty.map(p => ({ ...p })) : [],
+        // New: Persist customer details explicitly if provided by the client
+        customerDetails: orderData.customerDetails ? { ...orderData.customerDetails } : undefined,
         orderTotalPrice: this.calculateOrderTotalPrice(orderData.productOrderItem || []),
         payment: orderData.payment || [],
         billingAccount: orderData.billingAccount,
@@ -61,6 +69,9 @@ class ProductOrderController {
 
     } catch (error) {
       console.error('❌ Error creating product order:', error);
+      if (error && error.stack) {
+        console.error('❌ Stack:', error.stack);
+      }
       res.status(500).json({
         "@type": "Error",
         code: "500",
