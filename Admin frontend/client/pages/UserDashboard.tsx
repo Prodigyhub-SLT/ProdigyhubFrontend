@@ -9,6 +9,7 @@ import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
+import RegisteruserCuspage from '../components/RegisteruserCustomizepage';
 import { 
   Wifi, 
   Tv, 
@@ -275,18 +276,6 @@ export default function UserDashboard() {
     return () => clearInterval(interval);
   }, [activeTab, qualificationCompleted]);
 
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
@@ -304,7 +293,6 @@ export default function UserDashboard() {
                 </div>
               </div>
             </div>
-            
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">My SLT Portal</span>
               <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
@@ -651,14 +639,7 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'customize' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Customize</CardTitle>
-                <CardDescription className="text-gray-600">Customization features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <RegisteruserCuspage />
         )}
 
         {activeTab === 'messages' && (
