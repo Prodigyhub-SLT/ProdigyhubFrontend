@@ -8,8 +8,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Search, Package, Wifi, Eye, Filter, X, Tv, BookOpen } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { ProductOffering } from '../../shared/product-order-types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CustomerPackagesTab() {
+  const { user } = useAuth();
   const [offerings, setOfferings] = useState<ProductOffering[]>([]);
   const [filteredOfferings, setFilteredOfferings] = useState<ProductOffering[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,10 +204,54 @@ export default function CustomerPackagesTab() {
     setIsSpecViewOpen(true);
   };
 
-  const handleUpgrade = (offering: ProductOffering) => {
-    // TODO: Implement upgrade functionality
-    console.log('Upgrade clicked for offering:', offering.name);
-    // You can add navigation to upgrade page or show upgrade dialog here
+  const handleUpgrade = async (offering: ProductOffering) => {
+    try {
+      // Import the order creation API
+      const { createOrderWithRetry } = await import('@/lib/api');
+      
+      // Create order data with user information
+      const orderData = {
+        category: 'B2C product order',
+        description: `Upgrade request for ${offering.name}`,
+        priority: '2', // High priority for upgrades
+        productOrderItem: [{
+          action: 'add' as const,
+          quantity: 1,
+          productOffering: {
+            id: offering.id,
+            name: offering.name,
+            '@type': 'ProductOfferingRef'
+          }
+        }],
+        relatedParty: user ? [{
+          id: user.id || user.uid || 'unknown',
+          name: user.name || 'Unknown User',
+          role: 'customer',
+          '@type': 'RelatedParty',
+          // Add additional user details as custom attributes
+          email: user.email,
+          phoneNumber: user.phoneNumber || user.profile?.phone,
+          nic: user.nic || user.profile?.nic
+        }] : [],
+        note: [{
+          text: `Customer upgrade request for ${offering.name}. Customer: ${user?.name || 'Unknown'} (${user?.email || 'No email'})`,
+          author: 'Customer',
+          date: new Date().toISOString(),
+          '@type': 'Note'
+        }],
+        '@type': 'ProductOrder'
+      };
+
+      // Create the order
+      const order = await createOrderWithRetry(orderData);
+      
+      // Show success message
+      alert(`Upgrade order created successfully! Order ID: ${order.id}`);
+      
+    } catch (error) {
+      console.error('Error creating upgrade order:', error);
+      alert('Failed to create upgrade order. Please try again.');
+    }
   };
 
   const closeSpecView = () => {

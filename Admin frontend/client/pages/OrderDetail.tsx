@@ -298,18 +298,44 @@ export default function OrderDetail() {
               <CardContent>
                 <div className="space-y-4">
                   {order.relatedParty.map((party, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 border border-slate-200 rounded-lg">
-                      <div className="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-lg">
-                        <User className="w-5 h-5 text-slate-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <p className="font-semibold text-slate-900">{party.name}</p>
-                          <Badge variant="outline" className="capitalize">
-                            {party.role}
-                          </Badge>
+                    <div key={index} className="p-4 border border-slate-200 rounded-lg">
+                      <div className="flex items-start space-x-4">
+                        <div className="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-lg">
+                          <User className="w-5 h-5 text-slate-600" />
                         </div>
-                        <p className="text-sm text-slate-500">ID: {party.id}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <p className="font-semibold text-slate-900">{party.name}</p>
+                            <Badge variant="outline" className="capitalize">
+                              {party.role}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-slate-500 mb-3">ID: {party.id}</p>
+                          
+                          {/* Enhanced user details for customers */}
+                          {party.role === 'customer' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 p-3 bg-slate-50 rounded-lg">
+                              {(party as any).email && (
+                                <div>
+                                  <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Email</span>
+                                  <p className="text-sm text-slate-900">{(party as any).email}</p>
+                                </div>
+                              )}
+                              {(party as any).phoneNumber && (
+                                <div>
+                                  <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Phone</span>
+                                  <p className="text-sm text-slate-900">{(party as any).phoneNumber}</p>
+                                </div>
+                              )}
+                              {(party as any).nic && (
+                                <div>
+                                  <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">NIC Number</span>
+                                  <p className="text-sm text-slate-900">{(party as any).nic}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
