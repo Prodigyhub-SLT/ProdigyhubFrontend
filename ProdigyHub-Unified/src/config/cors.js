@@ -47,6 +47,7 @@ const corsConfig = {
       const defaultOrigins = [
         'https://sltprodigyhub.vercel.app', // Your Vercel frontend
         'https://sltprodigyhub-git-thejana-jayalaths-projects.vercel.app', // Current branch
+        'https://sltprodigyhub-2i58cdit4-jayalaths-projects.vercel.app', // Alternative branch URL
         'https://prodigyhub.vercel.app',    // Your Vercel frontend alternative
         'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
         'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
