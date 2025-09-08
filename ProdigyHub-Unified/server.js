@@ -1480,9 +1480,53 @@ class TMF622Controller {
   async createProductOrder(req, res) {
     try {
       const { ProductOrder } = require('./src/models/AllTMFModels');
+      const body = { ...req.body };
+
+      // Normalize productOrderItem
+      const normalizedItems = Array.isArray(body.productOrderItem) ? body.productOrderItem.map((item) => ({
+        id: item.id || `item-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        action: item.action || 'add',
+        quantity: item.quantity || 1,
+        productOffering: item.productOffering,
+        product: item.product,
+        itemPrice: item.itemPrice || [],
+        itemTotalPrice: item.itemTotalPrice,
+        note: item.note || [],
+        state: 'acknowledged',
+        '@type': 'ProductOrderItem'
+      })) : [];
+
+      // Normalize relatedParty to schema { partyOrPartyRole: { id, name, '@type' }, role }
+      const normalizedRelatedParty = Array.isArray(body.relatedParty) ? body.relatedParty.map((p) => ({
+        partyOrPartyRole: {
+          id: p.id || p.partyOrPartyRole?.id || '',
+          name: p.name || p.partyOrPartyRole?.name || 'Unknown',
+          '@type': p['@referredType'] || p['@type'] || 'Individual'
+        },
+        role: p.role || 'customer',
+        '@type': 'RelatedPartyRefOrPartyRoleRef'
+      })) : [];
+
       const orderData = {
-        ...req.body,
-        '@type': 'ProductOrder'
+        '@type': 'ProductOrder',
+        id: body.id,
+        description: body.description || '',
+        category: body.category || 'B2C product order',
+        priority: body.priority || '4',
+        state: 'acknowledged',
+        requestedStartDate: body.requestedStartDate || new Date().toISOString(),
+        requestedCompletionDate: body.requestedCompletionDate || new Date().toISOString(),
+        note: Array.isArray(body.note) ? body.note : [],
+        productOrderItem: normalizedItems,
+        relatedParty: normalizedRelatedParty,
+        orderTotalPrice: body.orderTotalPrice,
+        payment: body.payment,
+        billingAccount: body.billingAccount,
+        agreement: body.agreement,
+        quote: body.quote,
+        productOfferingQualification: body.productOfferingQualification,
+        // persist custom customer details if provided
+        customerDetails: body.customerDetails
       };
       
       const order = new ProductOrder(orderData);
@@ -1490,6 +1534,7 @@ class TMF622Controller {
       
       res.status(201).json(order);
     } catch (error) {
+      console.error('TMF622 createProductOrder error:', error?.message, error?.stack);
       handleError(res, error, 'create product order');
     }
   }
