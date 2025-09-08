@@ -294,6 +294,12 @@ export default function OrderDetail() {
               <CardHeader>
                 <CardTitle>Related Parties ({order.relatedParty.length})</CardTitle>
                 <CardDescription>People and organizations associated with this order</CardDescription>
+                {/* Debug info */}
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                  <p><strong>Debug - Order Data:</strong></p>
+                  <p>customerDetails: {JSON.stringify((order as any).customerDetails)}</p>
+                  <p>relatedParty: {JSON.stringify(order.relatedParty)}</p>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

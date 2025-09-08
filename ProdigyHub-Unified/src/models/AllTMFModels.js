@@ -530,6 +530,14 @@ const ProductOrderSchema = new mongoose.Schema({
   agreement: mongoose.Schema.Types.Mixed,
   quote: mongoose.Schema.Types.Mixed,
   productOfferingQualification: mongoose.Schema.Types.Mixed,
+  // Custom field for storing customer details
+  customerDetails: {
+    name: String,
+    email: String,
+    phone: String,
+    nic: String,
+    id: String
+  },
   '@type': { type: String, default: 'ProductOrder' }
 }, {
   timestamps: true,
