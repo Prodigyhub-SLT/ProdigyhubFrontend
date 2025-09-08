@@ -692,32 +692,15 @@ export default function CustomerPackagesTab() {
                 </div>
               </div>
 
-              {/* Category Information */}
-              {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
+              {/* Description */}
+              {selectedOffering.description && (
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Information</h3>
-                  <div className="space-y-3">
-                    {(selectedOffering as any).subCategory && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Sub Category:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).subCategory}</span>
-                      </div>
-                    )}
-                    {(selectedOffering as any).subSubCategory && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Sub-Sub Category:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).subSubCategory}</span>
-                      </div>
-                    )}
-                    {(selectedOffering as any).categoryDescription && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Category Description:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).categoryDescription}</span>
-                      </div>
-                    )}
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
                   </div>
                 </div>
-              ) : null}
+              )}
 
               {/* Custom Attributes */}
               {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
