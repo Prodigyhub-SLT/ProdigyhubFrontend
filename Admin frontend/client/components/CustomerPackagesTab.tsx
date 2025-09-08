@@ -631,7 +631,7 @@ export default function CustomerPackagesTab() {
 
       {/* Spec View Modal */}
       <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
           <DialogHeader className="flex-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -677,6 +677,16 @@ export default function CustomerPackagesTab() {
                 </div>
               </div>
 
+              {/* Description */}
+              {selectedOffering.description && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Connection Type & Package Type */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
@@ -691,16 +701,6 @@ export default function CustomerPackagesTab() {
                   </div>
                 </div>
               </div>
-
-              {/* Description */}
-              {selectedOffering.description && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
-                  </div>
-                </div>
-              )}
 
               {/* Custom Attributes */}
               {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
