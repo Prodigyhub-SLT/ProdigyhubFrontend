@@ -9,14 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Zap, 
-  Globe, 
-  Signal, 
+  Settings, 
   Loader2, 
   CheckCircle, 
-  AlertCircle, 
-  Settings, 
-  X
+  X 
 } from 'lucide-react';
 
 interface CustomPackageRequest {
@@ -29,7 +25,7 @@ interface CustomPackageRequest {
 
 interface CustomizeTabProps {
   userId: string; // Passed from parent component or auth context
-  addressDetails?: { // Optional, if pre-filled from qualification
+  addressDetails?: { // Optional, pre-filled from qualification
     district: string;
     province: string;
     postalCode?: string;
@@ -37,7 +33,7 @@ interface CustomizeTabProps {
   onRequestComplete?: () => void;
 }
 
-export function RegisterCustomizePage({ userId, addressDetails, onRequestComplete }: CustomizeTabProps) {
+const RegisterCustomizePage: React.FC<CustomizeTabProps> = ({ userId, addressDetails, onRequestComplete }) => {
   const { toast } = useToast();
   
   const [customRequest, setCustomRequest] = useState<CustomPackageRequest>({
@@ -51,7 +47,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
 
-  // Sample features for selection, similar to package attributes
+  // Sample features for selection, aligned with CustomerPackagesTab attributes
   const availableFeatures = [
     'Unlimited Data', 'Voice Calls', 'SMS Bundle', 'International Roaming',
     'Static IP', 'Parental Controls', 'VPN Support', 'Priority Support'
@@ -109,11 +105,11 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
 
     setIsSubmitting(true);
     try {
-      // Prepare data in TMF679 format, similar to QualificationTab
+      // Prepare data in TMF679 format, consistent with QualificationTab
       const qualificationData = {
         description: `Custom Package Request for ${customRequest.serviceType.toUpperCase()} by User ${userId}`,
         instantSyncQualification: true,
-        provideAlternative: true, // Allow alternatives for custom requests
+        provideAlternative: true,
         provideOnlyAvailable: false,
         provideResultReason: true,
         state: "acknowledged",
@@ -161,14 +157,14 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
         "@type": "CheckProductOfferingQualification"
       };
 
-      // Use the TMF679 endpoint for creating qualification requests, as in QualificationTab
+      // Submit to TMF679 endpoint
       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Origin': window.location.origin
-          // Add auth headers if needed for registered users, e.g., Authorization: Bearer token
+          // Add auth headers if required, e.g., Authorization: Bearer token
         },
         body: JSON.stringify(qualificationData)
       });
@@ -181,7 +177,6 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
           description: "Your custom package request has been sent to the admin for review. It will appear in the Service Requests tab.",
         });
         
-        // Optionally call onRequestComplete to update parent state or navigate
         if (onRequestComplete) onRequestComplete();
       } else {
         const errorText = await response.text();
@@ -204,7 +199,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Customize Your Package</h2>
         
-        {/* Info Bar similar to filter bar */}
+        {/* Info Bar similar to CustomerPackagesTab filter bar */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex flex-wrap gap-3 items-center">
             <span className="text-sm font-medium text-gray-700">Request a Custom Package:</span>
@@ -230,7 +225,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
             </div>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            {/* Service Type - Using Select similar to filters */}
+            {/* Service Type */}
             <Select 
               value={customRequest.serviceType} 
               onValueChange={(value) => handleInputChange('serviceType', value)}
@@ -246,7 +241,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
               </SelectContent>
             </Select>
 
-            {/* Desired Speed and Data Limit - Grid like in modal */}
+            {/* Desired Speed and Data Limit */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="desiredSpeed" className="text-sm font-medium text-gray-700">Desired Speed (Mbps) *</Label>
@@ -270,7 +265,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
               </div>
             </div>
 
-            {/* Additional Features - Badges like in packages */}
+            {/* Additional Features */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Additional Features</Label>
               <div className="flex flex-wrap gap-2">
@@ -299,7 +294,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
               />
             </div>
 
-            {/* Submit Button - Similar to view spec button */}
+            {/* Buttons */}
             <div className="flex justify-end gap-3 pt-4">
               <Button 
                 variant="ghost" 
@@ -329,7 +324,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
           </CardContent>
         </Card>
 
-        {/* Success Section - Show after submission, similar to pricing card */}
+        {/* Success Section */}
         {requestSubmitted && (
           <Card className="bg-white rounded-lg shadow-sm mt-8">
             <CardContent className="p-6">
@@ -341,7 +336,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
                   <CheckCircle className="w-12 h-12 mx-auto mb-2" />
                   <div className="text-2xl font-bold">Request Submitted Successfully!</div>
                   <div className="text-lg opacity-90">
-                    Your custom package request has been sent for review.
+                    Your custom package request has been sent for admin review.
                   </div>
                   <div className="text-sm opacity-80">
                     You will be notified once the admin processes your request.
@@ -354,4 +349,6 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
       </div>
     </div>
   );
-}
+};
+
+export default RegisterCustomizePage;

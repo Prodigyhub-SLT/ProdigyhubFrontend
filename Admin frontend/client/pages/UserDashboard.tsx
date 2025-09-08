@@ -9,7 +9,7 @@ import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
-import RegisteruserCuspage from '../components/RegisteruserCustomizepage';
+import RegisterCustomizePage from '../components/RegisteruserCustomizepage';
 import { 
   Wifi, 
   Tv, 
@@ -639,7 +639,7 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'customize' && (
-          <RegisteruserCuspage />
+          <RegisterCustomizePage />
           //<CustomerPackagesTab />
         )}
 
