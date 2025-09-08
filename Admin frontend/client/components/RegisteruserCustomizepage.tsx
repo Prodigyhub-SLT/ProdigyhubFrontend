@@ -15,7 +15,8 @@ import {
   Loader2, 
   CheckCircle, 
   AlertCircle, 
-  CustomizeIcon // Assuming you have a custom icon or use lucide-react's Settings or similar
+  Settings, 
+  X
 } from 'lucide-react';
 
 interface CustomPackageRequest {
@@ -24,7 +25,6 @@ interface CustomPackageRequest {
   dataLimit: string;
   additionalFeatures: string[];
   notes: string;
-  // Assuming user is registered, we can fetch or pass userId/address from context or props
 }
 
 interface CustomizeTabProps {
@@ -51,7 +51,7 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
 
-  // Sample features for selection
+  // Sample features for selection, similar to package attributes
   const availableFeatures = [
     'Unlimited Data', 'Voice Calls', 'SMS Bundle', 'International Roaming',
     'Static IP', 'Parental Controls', 'VPN Support', 'Priority Support'
@@ -75,6 +75,17 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
 
   const isFormValid = () => {
     return customRequest.desiredSpeed && customRequest.dataLimit && customRequest.notes;
+  };
+
+  const resetForm = () => {
+    setCustomRequest({
+      serviceType: 'fiber',
+      desiredSpeed: '',
+      dataLimit: '',
+      additionalFeatures: [],
+      notes: ''
+    });
+    setRequestSubmitted(false);
   };
 
   const submitCustomRequest = async () => {
@@ -189,34 +200,43 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header Banner */}
-      <Alert className="border-blue-200 bg-blue-50 text-blue-800">
-        <AlertDescription className="text-sm">
-          🎯 <strong>Customize Your Package:</strong> As a registered customer, request personalized service packages. Fill in your preferences and submit for admin approval.
-        </AlertDescription>
-      </Alert>
-      
-      {/* Custom Request Form Section */}
-      <Card className="bg-white shadow-lg border-0">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            Custom Package Request
-          </CardTitle>
-          <CardDescription className="text-gray-600">
-            Tell us your requirements for a tailored internet package
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Service Type */}
-          <div className="space-y-2">
-            <Label htmlFor="serviceType" className="text-gray-700">Service Type *</Label>
-            <Select
-              value={customRequest.serviceType}
+    <div className="space-y-8">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">Customize Your Package</h2>
+        
+        {/* Info Bar similar to filter bar */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="flex flex-wrap gap-3 items-center">
+            <span className="text-sm font-medium text-gray-700">Request a Custom Package:</span>
+            <Alert className="border-blue-200 bg-blue-50 text-blue-800 flex-1">
+              <AlertDescription className="text-sm">
+                🎯 As a registered customer, create a personalized service package. Specify your preferences and submit for admin review.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+
+        {/* Custom Request Form Section */}
+        <Card className="bg-white rounded-lg shadow-sm">
+          <CardHeader className="pb-0">
+            <div className="flex items-center gap-3">
+              <Settings className="w-6 h-6 text-blue-600" />
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-800">Package Customization</CardTitle>
+                <CardDescription className="text-sm text-gray-600 mt-1">
+                  Define your ideal internet package requirements
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            {/* Service Type - Using Select similar to filters */}
+            <Select 
+              value={customRequest.serviceType} 
               onValueChange={(value) => handleInputChange('serviceType', value)}
             >
-              <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                <SelectValue placeholder="Select service type" />
+              <SelectTrigger className="w-full bg-blue-600 text-white border-blue-600 rounded-full">
+                <SelectValue placeholder="Select Service Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="fiber">Fiber Internet</SelectItem>
@@ -225,101 +245,113 @@ export function RegisterCustomizePage({ userId, addressDetails, onRequestComplet
                 <SelectItem value="other">Other/Custom</SelectItem>
               </SelectContent>
             </Select>
-          </div>
 
-          {/* Desired Speed and Data Limit */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="desiredSpeed" className="text-gray-700">Desired Speed (Mbps) *</Label>
-              <Input
-                id="desiredSpeed"
-                value={customRequest.desiredSpeed}
-                onChange={(e) => handleInputChange('desiredSpeed', e.target.value)}
-                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-                placeholder="e.g., 500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dataLimit" className="text-gray-700">Data Limit (GB) *</Label>
-              <Input
-                id="dataLimit"
-                value={customRequest.dataLimit}
-                onChange={(e) => handleInputChange('dataLimit', e.target.value)}
-                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-                placeholder="e.g., Unlimited or 1000"
-              />
-            </div>
-          </div>
-
-          {/* Additional Features */}
-          <div className="space-y-2">
-            <Label className="text-gray-700">Additional Features</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {availableFeatures.map((feature) => (
-                <Badge
-                  key={feature}
-                  variant={customRequest.additionalFeatures.includes(feature) ? "default" : "outline"}
-                  className="cursor-pointer py-2 px-3 text-sm"
-                  onClick={() => handleFeatureToggle(feature)}
-                >
-                  {feature}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-gray-700">Additional Notes *</Label>
-            <Textarea
-              id="notes"
-              value={customRequest.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-[100px]"
-              placeholder="Describe any other requirements or preferences..."
-            />
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-center pt-4">
-            <Button
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold"
-              onClick={submitCustomRequest}
-              disabled={!isFormValid() || isSubmitting || requestSubmitted}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : requestSubmitted ? (
-                'Request Submitted'
-              ) : (
-                'Submit Custom Request'
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Success Section - Show after submission */}
-      {requestSubmitted && (
-        <Card className="bg-white shadow-lg border-0">
-          <CardContent className="space-y-6 pt-6">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
-              <div className="text-center space-y-4">
-                <div className="text-2xl font-bold text-green-700 mb-2">
-                  ✅ Request Submitted Successfully!
-                </div>
-                <p className="text-green-700 text-lg">
-                  Your custom package request has been sent to the admin. You will be notified once it's reviewed.
-                </p>
+            {/* Desired Speed and Data Limit - Grid like in modal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="desiredSpeed" className="text-sm font-medium text-gray-700">Desired Speed (Mbps) *</Label>
+                <Input
+                  id="desiredSpeed"
+                  value={customRequest.desiredSpeed}
+                  onChange={(e) => handleInputChange('desiredSpeed', e.target.value)}
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                  placeholder="e.g., 500"
+                />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="dataLimit" className="text-sm font-medium text-gray-700">Data Limit (GB) *</Label>
+                <Input
+                  id="dataLimit"
+                  value={customRequest.dataLimit}
+                  onChange={(e) => handleInputChange('dataLimit', e.target.value)}
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                  placeholder="e.g., Unlimited or 1000"
+                />
+              </div>
+            </div>
+
+            {/* Additional Features - Badges like in packages */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Additional Features</Label>
+              <div className="flex flex-wrap gap-2">
+                {availableFeatures.map((feature) => (
+                  <Badge
+                    key={feature}
+                    variant={customRequest.additionalFeatures.includes(feature) ? "default" : "outline"}
+                    className="cursor-pointer py-1 px-3 text-sm rounded-full"
+                    onClick={() => handleFeatureToggle(feature)}
+                  >
+                    {feature}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-sm font-medium text-gray-700">Additional Notes *</Label>
+              <Textarea
+                id="notes"
+                value={customRequest.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-[120px]"
+                placeholder="Describe any other requirements, preferences, or special requests..."
+              />
+            </div>
+
+            {/* Submit Button - Similar to view spec button */}
+            <div className="flex justify-end gap-3 pt-4">
+              <Button 
+                variant="ghost" 
+                onClick={resetForm}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Reset Form
+              </Button>
+              <Button
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-full"
+                onClick={submitCustomRequest}
+                disabled={!isFormValid() || isSubmitting || requestSubmitted}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : requestSubmitted ? (
+                  'Request Submitted'
+                ) : (
+                  'Submit Request'
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
-      )}
+
+        {/* Success Section - Show after submission, similar to pricing card */}
+        {requestSubmitted && (
+          <Card className="bg-white rounded-lg shadow-sm mt-8">
+            <CardContent className="p-6">
+              <div className="bg-blue-600 text-white p-6 relative overflow-hidden rounded-lg">
+                <div className="absolute inset-0 bg-white/10"></div>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                <div className="text-center relative z-10 space-y-2">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-2" />
+                  <div className="text-2xl font-bold">Request Submitted Successfully!</div>
+                  <div className="text-lg opacity-90">
+                    Your custom package request has been sent for review.
+                  </div>
+                  <div className="text-sm opacity-80">
+                    You will be notified once the admin processes your request.
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
