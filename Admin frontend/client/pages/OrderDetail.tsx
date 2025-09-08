@@ -316,17 +316,46 @@ export default function OrderDetail() {
                           {party.role === 'customer' && (
                             <div className="mt-3 p-3 bg-slate-50 rounded-lg">
                               <h4 className="text-sm font-medium text-slate-700 mb-2">Customer Information</h4>
-                              <div className="space-y-1 text-sm text-slate-600">
-                                {order.note && order.note
-                                  .filter(note => note.text.includes('Customer Details') || note.text.includes('Customer Phone') || note.text.includes('Customer NIC'))
-                                  .map((note, noteIndex) => (
-                                    <div key={noteIndex} className="flex items-center">
-                                      <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                                      <span>{note.text}</span>
+                              {(order as any).customerDetails ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {(order as any).customerDetails.name && (
+                                    <div>
+                                      <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Name</span>
+                                      <p className="text-sm text-slate-900">{(order as any).customerDetails.name}</p>
                                     </div>
-                                  ))
-                                }
-                              </div>
+                                  )}
+                                  {(order as any).customerDetails.email && (
+                                    <div>
+                                      <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Email</span>
+                                      <p className="text-sm text-slate-900">{(order as any).customerDetails.email}</p>
+                                    </div>
+                                  )}
+                                  {(order as any).customerDetails.phone && (
+                                    <div>
+                                      <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">Phone</span>
+                                      <p className="text-sm text-slate-900">{(order as any).customerDetails.phone}</p>
+                                    </div>
+                                  )}
+                                  {(order as any).customerDetails.nic && (
+                                    <div>
+                                      <span className="text-xs font-medium text-slate-600 uppercase tracking-wide">NIC Number</span>
+                                      <p className="text-sm text-slate-900">{(order as any).customerDetails.nic}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="space-y-1 text-sm text-slate-600">
+                                  {order.note && order.note
+                                    .filter(note => note.text.includes('Customer Details') || note.text.includes('Customer Phone') || note.text.includes('Customer NIC'))
+                                    .map((note, noteIndex) => (
+                                      <div key={noteIndex} className="flex items-center">
+                                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                        <span>{note.text}</span>
+                                      </div>
+                                    ))
+                                  }
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

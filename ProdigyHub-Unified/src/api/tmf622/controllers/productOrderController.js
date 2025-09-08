@@ -19,13 +19,64 @@ class ProductOrderController {
       const orderData = req.body;
       
       // Generate unique ID
-      const orderId = uuidv4();
+      const orderId = orderData.id || uuidv4();
       const currentTime = new Date().toISOString();
 
       // Build a safe href even in serverless environments where req.get('host') may be undefined
       const fallbackHost = process.env.VERCEL_URL || process.env.HOST || 'localhost:3000';
       const host = (req && typeof req.get === 'function' && req.get('host')) ? req.get('host') : fallbackHost;
       const protocol = (req && req.protocol) ? req.protocol : (process.env.PROTOCOL || 'https');
+
+      // Process product order items safely
+      let processedItems = [];
+      try {
+        processedItems = this.processProductOrderItems(orderData.productOrderItem || [], req);
+      } catch (itemError) {
+        console.error('❌ Error processing product order items:', itemError);
+        // Continue with empty items array if processing fails
+        processedItems = [];
+      }
+
+      // Process related parties safely
+      let processedRelatedParty = [];
+      try {
+        if (Array.isArray(orderData.relatedParty)) {
+          processedRelatedParty = orderData.relatedParty.map(party => {
+            // Ensure required fields exist
+            return {
+              id: party.id || uuidv4(),
+              name: party.name || 'Unknown',
+              role: party.role || 'customer',
+              '@type': party['@type'] || 'RelatedParty',
+              // Preserve any additional fields
+              ...party
+            };
+          });
+        }
+      } catch (partyError) {
+        console.error('❌ Error processing related parties:', partyError);
+        // Continue with empty array if processing fails
+        processedRelatedParty = [];
+      }
+
+      // Process notes safely
+      let processedNotes = [];
+      try {
+        if (Array.isArray(orderData.note)) {
+          processedNotes = orderData.note.map(note => ({
+            id: note.id || uuidv4(),
+            text: note.text || '',
+            author: note.author || 'System',
+            date: note.date || currentTime,
+            '@type': note['@type'] || 'Note',
+            ...note
+          }));
+        }
+      } catch (noteError) {
+        console.error('❌ Error processing notes:', noteError);
+        // Continue with empty array if processing fails
+        processedNotes = [];
+      }
 
       // Create the product order with TMF622 compliant structure
       const productOrder = {
@@ -37,19 +88,18 @@ class ProductOrderController {
         externalId: orderData.externalId || [],
         priority: orderData.priority || "4",
         state: "acknowledged",
-        orderDate: currentTime,
+        orderDate: orderData.orderDate || currentTime,
         creationDate: currentTime,
         requestedStartDate: orderData.requestedStartDate || currentTime,
         requestedCompletionDate: orderData.requestedCompletionDate || currentTime,
         expectedCompletionDate: orderData.expectedCompletionDate,
         completionDate: null,
         channel: orderData.channel || [],
-        note: orderData.note || [],
-        productOrderItem: this.processProductOrderItems(orderData.productOrderItem || [], req),
-        // Preserve any extra fields included for related parties (e.g., email, phone, nic)
-        relatedParty: Array.isArray(orderData.relatedParty) ? orderData.relatedParty.map(p => ({ ...p })) : [],
-        // New: Persist customer details explicitly if provided by the client
-        customerDetails: orderData.customerDetails ? { ...orderData.customerDetails } : undefined,
+        note: processedNotes,
+        productOrderItem: processedItems,
+        relatedParty: processedRelatedParty,
+        // Store customer details as a custom field
+        customerDetails: orderData.customerDetails || undefined,
         orderTotalPrice: this.calculateOrderTotalPrice(orderData.productOrderItem || []),
         payment: orderData.payment || [],
         billingAccount: orderData.billingAccount,
