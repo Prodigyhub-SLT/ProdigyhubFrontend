@@ -67,11 +67,12 @@ const PORT = process.env.PORT || 3000;
 
 const { getCorsConfig, tmfCorsMiddleware, corsErrorHandler } = require('./src/config/cors');
 // CORS Configuration - CRITICAL: Add this BEFORE your routes
-const corsConfig = getCorsConfig();
-app.use(cors(corsConfig));
+// TEMPORARILY DISABLED - Using second CORS config instead
+// const corsConfig = getCorsConfig();
+// app.use(cors(corsConfig));
 
 // Add enhanced TMF CORS middleware
-app.use(tmfCorsMiddleware);
+// app.use(tmfCorsMiddleware);
 
 // Additional CORS middleware for stubborn browsers
 app.use((req, res, next) => {
@@ -141,21 +142,25 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS - Enhanced for all APIs
+const allowedOrigins = process.env.NODE_ENV === 'production' ? 
+  (process.env.ALLOWED_ORIGINS?.split(',') || [
+    'https://sltprodigyhub.vercel.app',
+    'https://sltprodigyhub-git-thejana-jayalaths-projects.vercel.app',
+    'https://sltprodigyhub-2i58cdit4-jayalaths-projects.vercel.app',
+    'https://prodigyhub.vercel.app',
+    'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
+    'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
+    'https://prodigyhub.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8080'
+  ]) : 
+  ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', '*'];
+
+console.log('🔧 CORS - Using second config with origins:', allowedOrigins);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 
-    (process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://sltprodigyhub.vercel.app',
-      'https://sltprodigyhub-git-thejana-jayalaths-projects.vercel.app',
-      'https://sltprodigyhub-2i58cdit4-jayalaths-projects.vercel.app',
-      'https://prodigyhub.vercel.app',
-      'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
-      'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
-      'https://prodigyhub.onrender.com',
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://localhost:8080'
-    ]) : 
-    ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', '*'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
