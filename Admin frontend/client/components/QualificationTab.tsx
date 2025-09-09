@@ -280,40 +280,6 @@ export function QualificationTab({ onQualificationComplete, user }: Qualificatio
     };
 
     try {
-      // First, update user address in users collection
-      if (user?.email) {
-        console.log('🔄 Updating user address in users collection...');
-        
-        const addressData = {
-          street: addressDetails.street || `${addressDetails.district}, ${addressDetails.province}`,
-          city: addressDetails.city || addressDetails.district,
-          district: addressDetails.district,
-          province: addressDetails.province,
-          postalCode: addressDetails.postalCode || ''
-        };
-
-        try {
-          const userUpdateResponse = await fetch(`/api/users/email/${encodeURIComponent(user.email)}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              address: addressData,
-              updatedAt: new Date().toISOString()
-            })
-          });
-
-          if (userUpdateResponse.ok) {
-            console.log('✅ User address updated successfully');
-          } else {
-            console.warn('⚠️ Failed to update user address:', await userUpdateResponse.text());
-          }
-        } catch (userUpdateError) {
-          console.warn('⚠️ Error updating user address:', userUpdateError);
-        }
-      }
-
       // Use the SAME endpoint that the admin dashboard uses
       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',

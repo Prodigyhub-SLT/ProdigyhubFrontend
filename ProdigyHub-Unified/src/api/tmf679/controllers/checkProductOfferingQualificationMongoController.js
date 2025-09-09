@@ -1,5 +1,6 @@
-const { CheckProductOfferingQualification } = require('../../../models/AllTMFModels');
+const { CheckProductOfferingQualification, User } = require('../../../models/AllTMFModels');
 const { applyFieldSelection, validateRequiredFields, cleanForJsonResponse } = require('../utils/helpers');
+const { syncAddressToUser } = require('../utils/addressSyncUtils');
 
 const checkProductOfferingQualificationMongoController = {
   
@@ -110,6 +111,15 @@ const checkProductOfferingQualificationMongoController = {
       const newPOQ = new CheckProductOfferingQualification(data);
       const savedPOQ = await newPOQ.save();
       
+      // Also update user collection with address details
+      try {
+        await syncAddressToUser(savedPOQ);
+        console.log('✅ User address synced successfully');
+      } catch (syncError) {
+        console.warn('⚠️ Failed to sync address to user:', syncError.message);
+        // Don't fail the qualification creation if user sync fails
+      }
+      
       res.status(201).json(cleanForJsonResponse(savedPOQ.toObject()));
     } catch (error) {
       console.error('Error in createCheckPOQ:', error);
@@ -142,6 +152,15 @@ const checkProductOfferingQualificationMongoController = {
           error: 'Not Found',
           message: `CheckProductOfferingQualification with id ${id} not found`
         });
+      }
+      
+      // Also update user collection with address details if qualification was updated
+      try {
+        await syncAddressToUser(updatedPOQ);
+        console.log('✅ User address synced successfully after update');
+      } catch (syncError) {
+        console.warn('⚠️ Failed to sync address to user after update:', syncError.message);
+        // Don't fail the qualification update if user sync fails
       }
       
       res.status(200).json(cleanForJsonResponse(updatedPOQ.toObject()));
