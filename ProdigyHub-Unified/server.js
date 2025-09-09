@@ -2247,6 +2247,10 @@ app.use('/areaManagement/v5', areaManagementRoutes);
 const userRoutes = require('./src/api/users/routes/userRoutes');
 app.use('/users', userRoutes);
 
+// Address Sync API
+const addressSyncRoutes = require('./src/api/tmf679/routes/addressSyncRoutes');
+app.use('/api', addressSyncRoutes);
+
 // TMF622 - Product Ordering Management
 // Product Orders
 app.get('/productOrderingManagement/v4/productOrder', (req, res) => tmf622Controller.getProductOrders(req, res));

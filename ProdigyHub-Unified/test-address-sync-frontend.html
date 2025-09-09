@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Sync Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Address Sync Test</h1>
+        
+        <div>
+            <button onclick="checkStatus()">Check Status</button>
+            <button onclick="syncAddresses()">Sync Addresses</button>
+            <button onclick="getUsers()">Get Users</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://sltprodigyhub.vercel.app/api';
+        
+        function showResult(message, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="result ${isError ? 'error' : 'success'}">${message}</div>`;
+        }
+        
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/sync-addresses/status`);
+                const data = await response.json();
+                
+                showResult(`
+                    <h3>Sync Status</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `);
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        }
+        
+        async function syncAddresses() {
+            try {
+                showResult('Syncing addresses... Please wait...');
+                
+                const response = await fetch(`${API_BASE}/sync-addresses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                showResult(`
+                    <h3>Sync Results</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `);
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        }
+        
+        async function getUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const data = await response.json();
+                
+                // Show only users with addresses
+                const usersWithAddress = data.filter(user => user.address && user.address.district);
+                
+                showResult(`
+                    <h3>Users with Addresses (${usersWithAddress.length})</h3>
+                    <pre>${JSON.stringify(usersWithAddress, null, 2)}</pre>
+                `);
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        }
+        
+        // Check status on page load
+        window.onload = checkStatus;
+    </script>
+</body>
+</html>
