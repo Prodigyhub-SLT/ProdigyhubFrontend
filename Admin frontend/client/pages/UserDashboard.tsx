@@ -647,7 +647,10 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'qualification' && (
-          <QualificationTab onQualificationComplete={handleQualificationComplete} />
+            <QualificationTab 
+              onQualificationComplete={handleQualificationComplete} 
+              user={user}
+            />
         )}
 
         {activeTab === 'customize' && (

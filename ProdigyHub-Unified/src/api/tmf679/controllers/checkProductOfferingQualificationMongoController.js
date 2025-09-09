@@ -1,6 +1,5 @@
-const { CheckProductOfferingQualification, User } = require('../../../models/AllTMFModels');
+const { CheckProductOfferingQualification } = require('../../../models/AllTMFModels');
 const { applyFieldSelection, validateRequiredFields, cleanForJsonResponse } = require('../utils/helpers');
-const { syncAddressToUser } = require('../utils/addressSyncUtils');
 
 const checkProductOfferingQualificationMongoController = {
   
@@ -111,9 +110,6 @@ const checkProductOfferingQualificationMongoController = {
       const newPOQ = new CheckProductOfferingQualification(data);
       const savedPOQ = await newPOQ.save();
       
-      // Extract address from notes and sync to user collection
-      await syncAddressToUser(savedPOQ);
-      
       res.status(201).json(cleanForJsonResponse(savedPOQ.toObject()));
     } catch (error) {
       console.error('Error in createCheckPOQ:', error);
@@ -147,9 +143,6 @@ const checkProductOfferingQualificationMongoController = {
           message: `CheckProductOfferingQualification with id ${id} not found`
         });
       }
-      
-      // Extract address from notes and sync to user collection
-      await syncAddressToUser(updatedPOQ);
       
       res.status(200).json(cleanForJsonResponse(updatedPOQ.toObject()));
     } catch (error) {

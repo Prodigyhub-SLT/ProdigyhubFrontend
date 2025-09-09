@@ -146,6 +146,42 @@ const userController = {
     }
   },
 
+  // PUT /api/users/email/:email - Update user by email
+  updateUserByEmail: async (req, res) => {
+    try {
+      const { email } = req.params;
+      const updateData = req.body;
+      
+      // Remove immutable fields
+      delete updateData.id;
+      delete updateData.email;
+      delete updateData.createdAt;
+      
+      updateData.updatedAt = new Date();
+
+      const updatedUser = await User.findOneAndUpdate(
+        { email },
+        updateData,
+        { new: true, runValidators: true }
+      ).select('-__v');
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'User not found'
+        });
+      }
+
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error('Error in updateUserByEmail:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
   // PUT /api/users/:id - Update user
   updateUser: async (req, res) => {
     try {

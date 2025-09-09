@@ -40,6 +40,7 @@ router.put('/update', userController.updateUserProfile);
 
 // User search operations
 router.get('/email/:email', userController.getUserByEmail);
+router.put('/email/:email', userController.updateUserByEmail);
 router.get('/district/:district', userController.getUsersByDistrict);
 router.get('/province/:province', userController.getUsersByProvince);
 

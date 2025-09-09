@@ -177,29 +177,36 @@ async function updateUserAddress(user, address) {
  */
 async function syncAddressToUser(qualification) {
   try {
+    console.log('🔄 Starting address sync for qualification:', qualification.id);
+    
     // Extract address from qualification
     const address = extractAddressFromQualification(qualification);
     if (!address) {
-      console.log('No address information found in qualification');
+      console.log('❌ No address information found in qualification');
       return false;
     }
+    
+    console.log('✅ Extracted address:', address);
 
     // Extract user email
     const userEmail = extractUserEmailFromQualification(qualification);
+    console.log('📧 Extracted user email:', userEmail);
     
     // Find user
     const user = await findUserForAddressUpdate(userEmail);
     if (!user) {
-      console.log('No user found to update with address information');
+      console.log('❌ No user found to update with address information');
       return false;
     }
+    
+    console.log('✅ Found user for update:', user.email);
 
     // Update user with address
     const updatedUser = await updateUserAddress(user, address);
     return updatedUser !== null;
 
   } catch (error) {
-    console.error('Error syncing address to user:', error);
+    console.error('❌ Error syncing address to user:', error);
     return false;
   }
 }
