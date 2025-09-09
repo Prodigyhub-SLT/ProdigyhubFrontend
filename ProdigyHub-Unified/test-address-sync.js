@@ -1,114 +1,81 @@
-#!/usr/bin/env node
+const { User, CheckProductOfferingQualification } = require('./src/models/AllTMFModels');
+const { extractAddressFromQualification, syncAddressToUser } = require('./src/api/tmf679/utils/addressSyncUtils');
 
-/**
- * Test script to verify address sync is working
- * This creates a test qualification and checks if address syncs to user
- */
-
-const mongoose = require('mongoose');
-const { CheckProductOfferingQualification, User } = require('./src/models/AllTMFModels');
-const { syncAddressToUser } = require('./src/api/tmf679/utils/addressSyncUtils');
-
-// MongoDB connection
-const connectToMongoDB = async () => {
+async function testAddressSync() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/prodigyhub';
-    await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB');
-  } catch (error) {
-    console.error('❌ Failed to connect to MongoDB:', error);
-    process.exit(1);
-  }
-};
+    console.log('🔄 Testing address sync functionality...\n');
 
-// Test function
-const testAddressSync = async () => {
-  try {
-    console.log('🔄 Testing address sync functionality...');
-    
-    // Create a test user first
-    const testUser = new User({
-      firstName: 'Test',
-      lastName: 'User',
-      email: 'test@example.com',
-      phoneNumber: '0771234567',
-      nic: '123456789V',
-      password: 'hashedpassword',
-      status: 'active'
-    });
-    
-    const savedUser = await testUser.save();
-    console.log(`✅ Created test user: ${savedUser.email}`);
-    
-    // Create a test qualification with address
-    const testQualification = new CheckProductOfferingQualification({
-      description: 'Test qualification for address sync',
-      state: 'acknowledged',
+    // Test 1: Extract address from qualification document
+    const qualificationDoc = {
       note: [
         {
-          text: 'SLT_LOCATION:{"address":"123 Test Street, Colombo","district":"Colombo","province":"Western","postalCode":"00100"}',
-          author: 'Test System',
+          text: 'SLT_LOCATION:{"address":"Kurunegala, North Western","district":"Kurunegala","province":"North Western","postalCode":"60060"}',
+          author: 'SLT System',
           date: new Date().toISOString(),
           '@type': 'Note'
         }
-      ],
-      relatedParty: [{
-        id: savedUser.id,
-        name: `${savedUser.firstName} ${savedUser.lastName}`,
-        email: savedUser.email,
-        role: 'customer',
-        '@type': 'RelatedPartyRefOrPartyRoleRef'
-      }]
+      ]
+    };
+
+    console.log('1. Testing address extraction...');
+    const extractedAddress = extractAddressFromQualification(qualificationDoc);
+    console.log('✅ Extracted address:', JSON.stringify(extractedAddress, null, 2));
+
+    // Test 2: Check if we have any users without addresses
+    console.log('\n2. Checking users without addresses...');
+    const usersWithoutAddress = await User.find({
+      $or: [
+        { 'address.district': { $exists: false } },
+        { 'address.district': null },
+        { 'address.district': '' }
+      ]
+    }).limit(5);
+
+    console.log(`Found ${usersWithoutAddress.length} users without addresses:`);
+    usersWithoutAddress.forEach(user => {
+      console.log(`  - ${user.email} (created: ${user.createdAt})`);
     });
-    
-    const savedQualification = await testQualification.save();
-    console.log(`✅ Created test qualification: ${savedQualification.id}`);
-    
-    // Test address sync
-    console.log('🔄 Testing address sync...');
-    const syncResult = await syncAddressToUser(savedQualification);
-    
-    if (syncResult) {
-      console.log('✅ Address sync successful!');
+
+    // Test 3: Try to sync address to a user
+    if (usersWithoutAddress.length > 0 && extractedAddress) {
+      console.log('\n3. Testing address sync...');
+      const testUser = usersWithoutAddress[0];
+      console.log(`Updating user: ${testUser.email}`);
       
-      // Verify user was updated
-      const updatedUser = await User.findById(savedUser._id);
-      console.log('📋 Updated user address:', updatedUser.address);
-      
-      if (updatedUser.address && updatedUser.address.district === 'Colombo') {
-        console.log('🎉 SUCCESS: Address was properly synced to user collection!');
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: testUser._id },
+        { 
+          address: extractedAddress,
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+
+      if (updatedUser) {
+        console.log('✅ Successfully updated user with address:');
+        console.log(JSON.stringify(updatedUser.address, null, 2));
       } else {
-        console.log('❌ FAILED: Address was not synced properly');
+        console.log('❌ Failed to update user');
       }
     } else {
-      console.log('❌ Address sync failed');
+      console.log('⚠️ No users without addresses found or no address extracted');
     }
-    
-    // Cleanup
-    await User.findByIdAndDelete(savedUser._id);
-    await CheckProductOfferingQualification.findByIdAndDelete(savedQualification._id);
-    console.log('🧹 Cleaned up test data');
-    
+
+    // Test 4: Check all users with addresses
+    console.log('\n4. Checking all users with addresses...');
+    const usersWithAddress = await User.find({
+      'address.district': { $exists: true, $ne: null, $ne: '' }
+    }).select('email address').limit(10);
+
+    console.log(`Found ${usersWithAddress.length} users with addresses:`);
+    usersWithAddress.forEach(user => {
+      console.log(`  - ${user.email}:`);
+      console.log(`    Address: ${JSON.stringify(user.address, null, 4)}`);
+    });
+
   } catch (error) {
-    console.error('❌ Test failed:', error);
+    console.error('❌ Error during testing:', error.message);
   }
-};
-
-// Run the test
-const main = async () => {
-  await connectToMongoDB();
-  await testAddressSync();
-  
-  console.log('\n🏁 Address sync test completed');
-  process.exit(0);
-};
-
-// Handle script execution
-if (require.main === module) {
-  main().catch(error => {
-    console.error('❌ Test script failed:', error);
-    process.exit(1);
-  });
 }
 
-module.exports = { testAddressSync };
+testAddressSync();

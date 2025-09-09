@@ -129,16 +129,29 @@ const checkProductOfferingQualificationMongoController = {
           derivedEmail = extractUserEmailFromQualification(savedPOQ);
         }
 
-        if (derivedEmail && derivedAddress) {
-          await User.findOneAndUpdate(
-            { email: derivedEmail },
-            { address: derivedAddress, updatedAt: new Date() },
-            { new: true }
-          );
-          console.log('✅ User address synced successfully (create)');
+        if (derivedAddress) {
+          if (derivedEmail) {
+            // Try to find user by email first
+            const user = await User.findOne({ email: derivedEmail });
+            if (user) {
+              await User.findOneAndUpdate(
+                { email: derivedEmail },
+                { address: derivedAddress, updatedAt: new Date() },
+                { new: true }
+              );
+              console.log('✅ User address synced successfully (create) for:', derivedEmail);
+            } else {
+              console.warn('⚠️ User not found for email:', derivedEmail);
+              // Try to find any recent user without address to update
+              await syncAddressToUser(savedPOQ);
+            }
+          } else {
+            console.warn('⚠️ No user email found in qualification, trying fallback sync');
+            // Try to find any recent user without address to update
+            await syncAddressToUser(savedPOQ);
+          }
         } else {
-          // As a final fallback, attempt generic sync
-          await syncAddressToUser(savedPOQ);
+          console.warn('⚠️ No address found in qualification');
         }
       } catch (syncError) {
         console.warn('⚠️ Failed to sync address to user (create):', syncError.message);

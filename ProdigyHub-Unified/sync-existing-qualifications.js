@@ -1,84 +1,55 @@
-#!/usr/bin/env node
+const { User, CheckProductOfferingQualification } = require('./src/models/AllTMFModels');
+const { extractAddressFromQualification, syncAddressToUser } = require('./src/api/tmf679/utils/addressSyncUtils');
 
-/**
- * Script to sync existing qualifications to user collection
- * This will process all existing qualifications and update users with address information
- */
-
-const mongoose = require('mongoose');
-const { CheckProductOfferingQualification, User } = require('./src/models/AllTMFModels');
-const { syncAddressToUser } = require('./src/api/tmf679/utils/addressSyncUtils');
-
-// MongoDB connection
-const connectToMongoDB = async () => {
+async function syncExistingQualifications() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/prodigyhub';
-    await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB');
-  } catch (error) {
-    console.error('❌ Failed to connect to MongoDB:', error);
-    process.exit(1);
-  }
-};
+    console.log('🔄 Syncing existing qualifications to users...\n');
 
-// Sync existing qualifications
-const syncExistingQualifications = async () => {
-  try {
-    console.log('🔄 Starting sync of existing qualifications...');
-    
-    // Get all qualifications with address data
+    // Get all qualifications with SLT_LOCATION notes
     const qualifications = await CheckProductOfferingQualification.find({
       'note.text': { $regex: /SLT_LOCATION:/ }
-    }).sort({ createdAt: -1 });
+    }).limit(10);
 
-    console.log(`📊 Found ${qualifications.length} qualifications with address data`);
-
-    let syncedCount = 0;
-    let errorCount = 0;
+    console.log(`Found ${qualifications.length} qualifications with location data\n`);
 
     for (const qualification of qualifications) {
-      try {
-        console.log(`\n🔄 Processing qualification ${qualification.id}...`);
-        
-        const success = await syncAddressToUser(qualification);
-        
-        if (success) {
-          syncedCount++;
-          console.log(`✅ Successfully synced qualification ${qualification.id}`);
-        } else {
-          console.log(`⚠️  No user found for qualification ${qualification.id}`);
-        }
-      } catch (error) {
-        errorCount++;
-        console.error(`❌ Error processing qualification ${qualification.id}:`, error.message);
+      console.log(`Processing qualification: ${qualification.id}`);
+      
+      // Extract address from qualification
+      const address = extractAddressFromQualification(qualification);
+      if (!address) {
+        console.log('  ⚠️ No address found in qualification');
+        continue;
       }
+
+      console.log('  📍 Address:', JSON.stringify(address, null, 2));
+
+      // Try to sync to user
+      const success = await syncAddressToUser(qualification);
+      if (success) {
+        console.log('  ✅ Successfully synced to user');
+      } else {
+        console.log('  ❌ Failed to sync to user');
+      }
+      
+      console.log(''); // Empty line for readability
     }
 
-    console.log('\n📈 Sync Summary:');
-    console.log(`✅ Successfully synced: ${syncedCount}`);
-    console.log(`⚠️  No user found: ${qualifications.length - syncedCount - errorCount}`);
-    console.log(`❌ Errors: ${errorCount}`);
+    // Show final results
+    console.log('📊 Final Results:');
+    const usersWithAddress = await User.find({
+      'address.district': { $exists: true, $ne: null, $ne: '' }
+    }).countDocuments();
+
+    const totalUsers = await User.countDocuments();
+    
+    console.log(`  - Total users: ${totalUsers}`);
+    console.log(`  - Users with addresses: ${usersWithAddress}`);
+    console.log(`  - Users without addresses: ${totalUsers - usersWithAddress}`);
 
   } catch (error) {
-    console.error('❌ Error in sync process:', error);
+    console.error('❌ Error during sync:', error.message);
   }
-};
-
-// Run the sync
-const main = async () => {
-  await connectToMongoDB();
-  await syncExistingQualifications();
-  
-  console.log('\n🏁 Qualification sync completed');
-  process.exit(0);
-};
-
-// Handle script execution
-if (require.main === module) {
-  main().catch(error => {
-    console.error('❌ Script failed:', error);
-    process.exit(1);
-  });
 }
 
-module.exports = { syncExistingQualifications };
+syncExistingQualifications();

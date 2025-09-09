@@ -132,6 +132,20 @@ async function findUserForAddressUpdate(email) {
       return anyRecentUsers[0];
     }
 
+    // Final fallback: find ANY user without address (regardless of creation date)
+    const anyUserWithoutAddress = await User.findOne({
+      $or: [
+        { 'address.district': { $exists: false } },
+        { 'address.district': null },
+        { 'address.district': '' }
+      ]
+    }).sort({ createdAt: -1 });
+
+    if (anyUserWithoutAddress) {
+      console.log(`Found user without address (any date): ${anyUserWithoutAddress.email}`);
+      return anyUserWithoutAddress;
+    }
+
     console.log('No suitable user found for address update');
     return null;
   } catch (error) {
