@@ -262,7 +262,13 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
       ],
       channel: {},
       checkProductOfferingQualificationItem: [],
-      relatedParty: [],
+      relatedParty: [{
+        id: 'user-qualification',
+        name: 'Customer',
+        email: 'customer@example.com', // This will be updated by the backend
+        role: 'customer',
+        '@type': 'RelatedPartyRefOrPartyRoleRef'
+      }],
       "@baseType": "CheckProductOfferingQualification",
       "@type": "CheckProductOfferingQualification"
     };

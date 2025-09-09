@@ -288,7 +288,13 @@ export default function NewCustomerOnboarding() {
       ],
       channel: {},
       checkProductOfferingQualificationItem: [],
-      relatedParty: [],
+      relatedParty: [{
+        id: user?.uid || 'unknown',
+        name: `${userDetails.firstName} ${userDetails.lastName}`,
+        email: userDetails.email,
+        role: 'customer',
+        '@type': 'RelatedPartyRefOrPartyRoleRef'
+      }],
       "@baseType": "CheckProductOfferingQualification",
       "@type": "CheckProductOfferingQualification"
     };

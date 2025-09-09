@@ -226,7 +226,13 @@ const mongoAPI = {
         ],
         channel: {},
         checkProductOfferingQualificationItem: [],
-        relatedParty: [],
+        relatedParty: [{
+          id: 'admin-qualification',
+          name: 'Admin User',
+          email: 'admin@example.com',
+          role: 'admin',
+          '@type': 'RelatedPartyRefOrPartyRoleRef'
+        }],
         "@baseType": "CheckProductOfferingQualification",
         "@type": "CheckProductOfferingQualification"
       };

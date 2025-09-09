@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const checkPOQController = require('../controllers/checkProductOfferingQualificationController');
+const checkPOQController = require('../controllers/checkProductOfferingQualificationMongoController');
 
 // GET /checkProductOfferingQualification - List or find CheckProductOfferingQualification objects
 router.get('/', checkPOQController.listCheckPOQ);
