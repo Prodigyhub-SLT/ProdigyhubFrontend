@@ -1,6 +1,6 @@
 const { CheckProductOfferingQualification, User } = require('../../../models/AllTMFModels');
 const { applyFieldSelection, validateRequiredFields, cleanForJsonResponse } = require('../utils/helpers');
-const { syncAddressToUser } = require('../utils/addressSyncUtils');
+const { syncAddressToUser, extractAddressFromQualification, extractUserEmailFromQualification } = require('../utils/addressSyncUtils');
 
 const checkProductOfferingQualificationMongoController = {
   
@@ -107,16 +107,41 @@ const checkProductOfferingQualificationMongoController = {
         });
       }
       
+      // Extract address and user email from the incoming payload BEFORE save (schema may omit unknown fields)
+      let derivedAddress = extractAddressFromQualification({ note: data?.note || [] });
+      let derivedEmail = extractUserEmailFromQualification({
+        relatedParty: data?.relatedParty || [],
+        description: data?.description || '',
+        note: data?.note || []
+      });
+
       // Create new CheckPOQ
       const newPOQ = new CheckProductOfferingQualification(data);
       const savedPOQ = await newPOQ.save();
-      
-      // Also update user collection with address details
+
+      // Also update user collection with address details (prefer values derived from request body)
       try {
-        await syncAddressToUser(savedPOQ);
-        console.log('✅ User address synced successfully');
+        if (!derivedAddress) {
+          // Fallback to parsing the saved document if needed
+          derivedAddress = extractAddressFromQualification(savedPOQ);
+        }
+        if (!derivedEmail) {
+          derivedEmail = extractUserEmailFromQualification(savedPOQ);
+        }
+
+        if (derivedEmail && derivedAddress) {
+          await User.findOneAndUpdate(
+            { email: derivedEmail },
+            { address: derivedAddress, updatedAt: new Date() },
+            { new: true }
+          );
+          console.log('✅ User address synced successfully (create)');
+        } else {
+          // As a final fallback, attempt generic sync
+          await syncAddressToUser(savedPOQ);
+        }
       } catch (syncError) {
-        console.warn('⚠️ Failed to sync address to user:', syncError.message);
+        console.warn('⚠️ Failed to sync address to user (create):', syncError.message);
         // Don't fail the qualification creation if user sync fails
       }
       
@@ -156,8 +181,27 @@ const checkProductOfferingQualificationMongoController = {
       
       // Also update user collection with address details if qualification was updated
       try {
-        await syncAddressToUser(updatedPOQ);
-        console.log('✅ User address synced successfully after update');
+        // Prefer parsing from the incoming update payload first
+        let derivedAddress = extractAddressFromQualification({ note: updates?.note || [] });
+        let derivedEmail = extractUserEmailFromQualification({
+          relatedParty: updates?.relatedParty || [],
+          description: updates?.description || '',
+          note: updates?.note || []
+        });
+
+        if (!derivedAddress) derivedAddress = extractAddressFromQualification(updatedPOQ);
+        if (!derivedEmail) derivedEmail = extractUserEmailFromQualification(updatedPOQ);
+
+        if (derivedEmail && derivedAddress) {
+          await User.findOneAndUpdate(
+            { email: derivedEmail },
+            { address: derivedAddress, updatedAt: new Date() },
+            { new: true }
+          );
+          console.log('✅ User address synced successfully (update)');
+        } else {
+          await syncAddressToUser(updatedPOQ);
+        }
       } catch (syncError) {
         console.warn('⚠️ Failed to sync address to user after update:', syncError.message);
         // Don't fail the qualification update if user sync fails
