@@ -49,10 +49,11 @@ function extractAddressFromQualification(qualification) {
  */
 function extractUserEmailFromQualification(qualification) {
   try {
-    // Try to find email in relatedParty
+    // Try to find email in relatedParty (primary method)
     if (qualification.relatedParty && qualification.relatedParty.length > 0) {
       const relatedParty = qualification.relatedParty[0];
       if (relatedParty.email) {
+        console.log('✅ Found user email in relatedParty:', relatedParty.email);
         return relatedParty.email;
       }
     }
@@ -61,6 +62,7 @@ function extractUserEmailFromQualification(qualification) {
     if (qualification.description) {
       const emailMatch = qualification.description.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
       if (emailMatch) {
+        console.log('✅ Found user email in description:', emailMatch[1]);
         return emailMatch[1];
       }
     }
@@ -71,12 +73,14 @@ function extractUserEmailFromQualification(qualification) {
         if (note.text) {
           const emailMatch = note.text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
           if (emailMatch) {
+            console.log('✅ Found user email in notes:', emailMatch[1]);
             return emailMatch[1];
           }
         }
       }
     }
 
+    console.log('❌ No user email found in qualification');
     return null;
   } catch (error) {
     console.error('Error extracting user email from qualification:', error);
@@ -91,62 +95,19 @@ function extractUserEmailFromQualification(qualification) {
  */
 async function findUserForAddressUpdate(email) {
   try {
-    // First try to find by email
+    // First try to find by email (most reliable method)
     if (email) {
       const user = await User.findOne({ email });
       if (user) {
-        console.log(`Found user by email: ${user.email}`);
+        console.log(`✅ Found user by email: ${user.email}`);
         return user;
       }
+      console.log(`❌ User not found with email: ${email}`);
     }
 
-    // Fallback: find recent users without address (created in last 24 hours)
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentUsers = await User.find({ 
-      createdAt: { $gte: oneDayAgo },
-      $or: [
-        { 'address.district': { $exists: false } },
-        { 'address.district': null },
-        { 'address.district': '' }
-      ]
-    }).sort({ createdAt: -1 }).limit(5);
-
-    if (recentUsers.length > 0) {
-      console.log(`Found ${recentUsers.length} recent users without address, using: ${recentUsers[0].email}`);
-      return recentUsers[0]; // Take the most recent user
-    }
-
-    // Last fallback: find any user without address (created in last 7 days)
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const anyRecentUsers = await User.find({ 
-      createdAt: { $gte: oneWeekAgo },
-      $or: [
-        { 'address.district': { $exists: false } },
-        { 'address.district': null },
-        { 'address.district': '' }
-      ]
-    }).sort({ createdAt: -1 }).limit(1);
-
-    if (anyRecentUsers.length > 0) {
-      console.log(`Found user from last week without address: ${anyRecentUsers[0].email}`);
-      return anyRecentUsers[0];
-    }
-
-    // Final fallback: find ANY user without address (regardless of creation date)
-    const anyUserWithoutAddress = await User.findOne({
-      $or: [
-        { 'address.district': { $exists: false } },
-        { 'address.district': null },
-        { 'address.district': '' }
-      ]
-    }).sort({ createdAt: -1 });
-
-    if (anyUserWithoutAddress) {
-      console.log(`Found user without address (any date): ${anyUserWithoutAddress.email}`);
-      return anyUserWithoutAddress;
-    }
-
-    console.log('No suitable user found for address update');
+    // If no email provided, try to find by userId from relatedParty
+    // This is a more reliable fallback than time-based search
+    console.log('⚠️ No email provided, skipping user lookup');
     return null;
   } catch (error) {
     console.error('Error finding user for address update:', error);
@@ -204,12 +165,17 @@ async function syncAddressToUser(qualification) {
 
     // Extract user email
     const userEmail = extractUserEmailFromQualification(qualification);
+    if (!userEmail) {
+      console.log('❌ No user email found in qualification - cannot sync address');
+      return false;
+    }
+    
     console.log('📧 Extracted user email:', userEmail);
     
-    // Find user
+    // Find user by email
     const user = await findUserForAddressUpdate(userEmail);
     if (!user) {
-      console.log('❌ No user found to update with address information');
+      console.log('❌ No user found with email:', userEmail);
       return false;
     }
     
@@ -217,7 +183,13 @@ async function syncAddressToUser(qualification) {
 
     // Update user with address
     const updatedUser = await updateUserAddress(user, address);
-    return updatedUser !== null;
+    if (updatedUser) {
+      console.log('✅ Successfully synced address to user collection');
+      return true;
+    } else {
+      console.log('❌ Failed to update user with address');
+      return false;
+    }
 
   } catch (error) {
     console.error('❌ Error syncing address to user:', error);

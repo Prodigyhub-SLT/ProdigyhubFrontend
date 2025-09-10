@@ -119,42 +119,18 @@ const checkProductOfferingQualificationMongoController = {
       const newPOQ = new CheckProductOfferingQualification(data);
       const savedPOQ = await newPOQ.save();
 
-      // Also update user collection with address details (prefer values derived from request body)
+      // Always attempt to sync address to user collection
       try {
-        if (!derivedAddress) {
-          // Fallback to parsing the saved document if needed
-          derivedAddress = extractAddressFromQualification(savedPOQ);
-        }
-        if (!derivedEmail) {
-          derivedEmail = extractUserEmailFromQualification(savedPOQ);
-        }
-
-        if (derivedAddress) {
-          if (derivedEmail) {
-            // Try to find user by email first
-            const user = await User.findOne({ email: derivedEmail });
-            if (user) {
-              await User.findOneAndUpdate(
-                { email: derivedEmail },
-                { address: derivedAddress, updatedAt: new Date() },
-                { new: true }
-              );
-              console.log('✅ User address synced successfully (create) for:', derivedEmail);
-            } else {
-              console.warn('⚠️ User not found for email:', derivedEmail);
-              // Try to find any recent user without address to update
-              await syncAddressToUser(savedPOQ);
-            }
-          } else {
-            console.warn('⚠️ No user email found in qualification, trying fallback sync');
-            // Try to find any recent user without address to update
-            await syncAddressToUser(savedPOQ);
-          }
+        console.log('🔄 Attempting to sync address to user collection...');
+        const syncSuccess = await syncAddressToUser(savedPOQ);
+        
+        if (syncSuccess) {
+          console.log('✅ Address successfully synced to user collection');
         } else {
-          console.warn('⚠️ No address found in qualification');
+          console.warn('⚠️ Address sync to user collection failed, but qualification was saved');
         }
       } catch (syncError) {
-        console.warn('⚠️ Failed to sync address to user (create):', syncError.message);
+        console.error('❌ Error during address sync to user collection:', syncError.message);
         // Don't fail the qualification creation if user sync fails
       }
       
@@ -192,31 +168,18 @@ const checkProductOfferingQualificationMongoController = {
         });
       }
       
-      // Also update user collection with address details if qualification was updated
+      // Always attempt to sync address to user collection after update
       try {
-        // Prefer parsing from the incoming update payload first
-        let derivedAddress = extractAddressFromQualification({ note: updates?.note || [] });
-        let derivedEmail = extractUserEmailFromQualification({
-          relatedParty: updates?.relatedParty || [],
-          description: updates?.description || '',
-          note: updates?.note || []
-        });
-
-        if (!derivedAddress) derivedAddress = extractAddressFromQualification(updatedPOQ);
-        if (!derivedEmail) derivedEmail = extractUserEmailFromQualification(updatedPOQ);
-
-        if (derivedEmail && derivedAddress) {
-          await User.findOneAndUpdate(
-            { email: derivedEmail },
-            { address: derivedAddress, updatedAt: new Date() },
-            { new: true }
-          );
-          console.log('✅ User address synced successfully (update)');
+        console.log('🔄 Attempting to sync address to user collection after update...');
+        const syncSuccess = await syncAddressToUser(updatedPOQ);
+        
+        if (syncSuccess) {
+          console.log('✅ Address successfully synced to user collection after update');
         } else {
-          await syncAddressToUser(updatedPOQ);
+          console.warn('⚠️ Address sync to user collection failed after update, but qualification was updated');
         }
       } catch (syncError) {
-        console.warn('⚠️ Failed to sync address to user after update:', syncError.message);
+        console.error('❌ Error during address sync to user collection after update:', syncError.message);
         // Don't fail the qualification update if user sync fails
       }
       
