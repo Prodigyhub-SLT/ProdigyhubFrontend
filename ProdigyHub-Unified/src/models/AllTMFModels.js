@@ -301,6 +301,7 @@ const CheckProductOfferingQualificationSchema = new mongoose.Schema({
   relatedParty: [{
     id: String,
     name: String,
+    email: String,
     role: String,
     '@type': { type: String, default: 'RelatedPartyRefOrPartyRoleRef' }
   }],
@@ -343,6 +344,7 @@ const QueryProductOfferingQualificationSchema = new mongoose.Schema({
   relatedParty: [{
     id: String,
     name: String,
+    email: String,
     role: String,
     '@type': { type: String, default: 'RelatedPartyRefOrPartyRoleRef' }
   }],
