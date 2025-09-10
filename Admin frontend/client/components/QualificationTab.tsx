@@ -66,8 +66,7 @@ interface QualificationTabProps {
   onQualificationComplete?: () => void;
   user?: {
     email?: string;
-    firstName?: string;
-    lastName?: string;
+    name?: string;
     uid?: string;
   };
 }
@@ -270,7 +269,7 @@ export function QualificationTab({ onQualificationComplete, user }: Qualificatio
       checkProductOfferingQualificationItem: [],
       relatedParty: [{
         id: user?.uid || 'user-qualification',
-        name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Customer' : 'Customer',
+        name: user ? (user.name || 'Customer') : 'Customer',
         email: user?.email || 'customer@example.com',
         role: 'customer',
         '@type': 'RelatedPartyRefOrPartyRoleRef'
@@ -370,7 +369,7 @@ export function QualificationTab({ onQualificationComplete, user }: Qualificatio
         checkProductOfferingQualificationItem: [],
         relatedParty: user ? [{
           id: user.uid || user.id,
-          name: `${user.firstName} ${user.lastName}`,
+          name: user.name || 'Customer',
           email: user.email,
           role: 'customer',
           '@type': 'RelatedPartyRefOrPartyRoleRef'
