@@ -1375,6 +1375,7 @@ class TMF679Controller {
 
   async createCheckQualification(req, res) {
     try {
+      console.log('🚀 CREATE CHECK QUALIFICATION CALLED - Starting qualification creation...');
       const { CheckProductOfferingQualification } = require('./src/models/AllTMFModels');
       const qualificationData = {
         ...req.body,
@@ -1383,6 +1384,28 @@ class TMF679Controller {
       
       const qualification = new CheckProductOfferingQualification(qualificationData);
       await qualification.save();
+      console.log('✅ Qualification saved successfully:', qualification.id);
+      
+      // Always attempt to sync address to user collection
+      try {
+        console.log('🔄 Attempting to sync address to user collection...');
+        console.log('Qualification ID:', qualification.id);
+        console.log('Qualification relatedParty:', qualification.relatedParty);
+        
+        const { syncAddressToUser } = require('./src/api/tmf679/utils/addressSyncUtils');
+        const syncSuccess = await syncAddressToUser(qualification);
+        
+        if (syncSuccess) {
+          console.log('✅ Address successfully synced to user collection');
+        } else {
+          console.warn('⚠️ Address sync to user collection failed, but qualification was saved');
+          console.log('Debug info - Qualification notes:', qualification.note);
+        }
+      } catch (syncError) {
+        console.error('❌ Error during address sync to user collection:', syncError);
+        console.error('Stack trace:', syncError.stack);
+        // Don't fail the qualification creation if user sync fails
+      }
       
       res.status(201).json(qualification);
     } catch (error) {
