@@ -80,6 +80,7 @@ const checkProductOfferingQualificationMongoController = {
   // POST /checkProductOfferingQualification
   createCheckPOQ: async (req, res) => {
     try {
+      console.log('🚀 CREATE CHECK POQ CALLED - Starting qualification creation...');
       const data = req.body;
       
       // Basic validation
@@ -118,6 +119,7 @@ const checkProductOfferingQualificationMongoController = {
       // Create new CheckPOQ
       const newPOQ = new CheckProductOfferingQualification(data);
       const savedPOQ = await newPOQ.save();
+      console.log('✅ Qualification saved successfully:', savedPOQ.id);
 
       // Always attempt to sync address to user collection
       try {
