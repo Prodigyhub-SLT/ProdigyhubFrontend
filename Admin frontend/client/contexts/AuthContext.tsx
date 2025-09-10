@@ -792,22 +792,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Save updates to MongoDB backend
     try {
       const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const updatePayload = {
+        userId: user.uid || user.id,
+        updates: {
+          firstName: updates.name?.split(' ')[0] || user.name?.split(' ')[0],
+          lastName: updates.name?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' '),
+          email: updates.email || user.email,
+          phoneNumber: updates.phoneNumber || updates.profile?.phone || user.phoneNumber || user.profile?.phone,
+          nic: updates.nic || updates.profile?.nic || user.nic || user.profile?.nic,
+          address: updates.address || user.address
+        }
+      };
+      
+      console.log('🔄 Sending update to backend:', updatePayload);
+      console.log('🏠 Address being sent:', updatePayload.updates.address);
+      
       const response = await fetch(`${backendURL}/users/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId: user.uid || user.id,
-          updates: {
-            firstName: updates.name?.split(' ')[0] || user.name?.split(' ')[0],
-            lastName: updates.name?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' '),
-            email: updates.email || user.email,
-            phoneNumber: updates.phoneNumber || updates.profile?.phone || user.phoneNumber || user.profile?.phone,
-            nic: updates.nic || updates.profile?.nic || user.nic || user.profile?.nic,
-            address: updates.address || user.address
-          }
-        }),
+        body: JSON.stringify(updatePayload),
       });
       
       if (response.ok) {

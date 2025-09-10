@@ -264,15 +264,17 @@ export default function EditProfile() {
 
     try {
       // Update user address
+      console.log('🏠 Submitting address data:', addressData);
       if (updateUser) {
         await updateUser({
           address: addressData
         });
+        console.log('✅ Address update completed');
         setMessage('Address updated successfully!');
       }
     } catch (error) {
+      console.error('❌ Address update error:', error);
       setMessage('Failed to update address. Please try again.');
-      console.error('Address update error:', error);
     } finally {
       setIsLoading(false);
     }

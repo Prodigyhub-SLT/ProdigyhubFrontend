@@ -522,6 +522,9 @@ const userController = {
     try {
       const { userId, updates } = req.body;
       
+      console.log('🔄 Received user update request:', { userId, updates });
+      console.log('🏠 Address in update:', updates?.address);
+      
       if (!userId) {
         return res.status(400).json({
           error: 'Validation Error',
@@ -559,6 +562,9 @@ const userController = {
       // Add updated timestamp
       updateData.updatedAt = new Date();
 
+      console.log('🔄 Updating user with data:', updateData);
+      console.log('🏠 Address being saved:', updateData.address);
+
       // Update user
       const updatedUser = await User.findOneAndUpdate(
         { userId },
@@ -573,6 +579,12 @@ const userController = {
         });
       }
 
+      console.log('✅ User updated successfully:', {
+        id: updatedUser._id,
+        email: updatedUser.email,
+        address: updatedUser.address
+      });
+
       // Return updated user data (excluding sensitive information)
       const responseData = {
         firstName: updatedUser.firstName,
@@ -580,6 +592,7 @@ const userController = {
         email: updatedUser.email,
         phoneNumber: updatedUser.phoneNumber,
         nic: updatedUser.nic,
+        address: updatedUser.address,
         status: updatedUser.status,
         updatedAt: updatedUser.updatedAt
       };
