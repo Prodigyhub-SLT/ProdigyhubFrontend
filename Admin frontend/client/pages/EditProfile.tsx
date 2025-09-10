@@ -133,6 +133,7 @@ export default function EditProfile() {
 
   useEffect(() => {
     if (user) {
+      console.log('🔄 Refreshing user profile for user:', user.uid || user.id);
       // Refresh user profile from MongoDB to get latest data
       refreshUserProfile();
     }
@@ -169,7 +170,15 @@ export default function EditProfile() {
       });
 
       // Set address data from user profile
+      console.log('🏠 Setting address data from user profile:', user.address);
       setAddressData({
+        street: user.address?.street || '',
+        city: user.address?.city || '',
+        district: user.address?.district || '',
+        province: user.address?.province || '',
+        postalCode: user.address?.postalCode || ''
+      });
+      console.log('🏠 Address data set to:', {
         street: user.address?.street || '',
         city: user.address?.city || '',
         district: user.address?.district || '',

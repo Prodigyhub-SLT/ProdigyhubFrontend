@@ -501,6 +501,7 @@ const userController = {
         email: user.email,
         phoneNumber: user.phoneNumber,
         nic: user.nic,
+        address: user.address,
         status: user.status,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt

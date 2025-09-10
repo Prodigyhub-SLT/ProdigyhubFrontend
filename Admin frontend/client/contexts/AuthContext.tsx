@@ -646,6 +646,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const mongoUserData = await response.json();
         console.log('✅ MongoDB profile data refreshed:', mongoUserData);
+        console.log('🏠 Address data from API:', mongoUserData.address);
         
         // Update user with MongoDB data
         const updatedUser: User = {
