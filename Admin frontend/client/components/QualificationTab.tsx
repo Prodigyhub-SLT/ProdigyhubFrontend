@@ -234,7 +234,9 @@ export function QualificationTab({ onQualificationComplete, user }: Qualificatio
       note: [
         {
           text: `SLT_LOCATION:${JSON.stringify({
-            address: `${addressDetails.district}, ${addressDetails.province}`,
+            address: `${addressDetails.street}, ${addressDetails.city}, ${addressDetails.district}, ${addressDetails.province}`,
+            street: addressDetails.street,
+            city: addressDetails.city,
             district: addressDetails.district,
             province: addressDetails.province,
             postalCode: addressDetails.postalCode || ''
@@ -334,7 +336,9 @@ export function QualificationTab({ onQualificationComplete, user }: Qualificatio
         note: [
           {
             text: `SLT_LOCATION:${JSON.stringify({
-              address: `${addressDetails.district}, ${addressDetails.province}`,
+              address: `${addressDetails.street}, ${addressDetails.city}, ${addressDetails.district}, ${addressDetails.province}`,
+              street: addressDetails.street,
+              city: addressDetails.city,
               district: addressDetails.district,
               province: addressDetails.province,
               postalCode: addressDetails.postalCode || ''

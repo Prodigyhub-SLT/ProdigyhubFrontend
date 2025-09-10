@@ -255,7 +255,9 @@ export default function NewCustomerOnboarding() {
       note: [
         {
           text: `SLT_LOCATION:${JSON.stringify({
-            address: `${userDetails.address.district}, ${userDetails.address.province}`,
+            address: `${userDetails.address.street}, ${userDetails.address.city}, ${userDetails.address.district}, ${userDetails.address.province}`,
+            street: userDetails.address.street,
+            city: userDetails.address.city,
             district: userDetails.address.district,
             province: userDetails.address.province,
             postalCode: userDetails.address.postalCode || ''

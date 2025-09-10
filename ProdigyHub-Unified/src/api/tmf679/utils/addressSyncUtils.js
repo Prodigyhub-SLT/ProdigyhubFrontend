@@ -24,14 +24,14 @@ function extractAddressFromQualification(qualification) {
     const locationText = locationNote.text.replace('SLT_LOCATION:', '');
     const locationData = JSON.parse(locationText);
 
-    if (!locationData.address || !locationData.district || !locationData.province) {
+    if (!locationData.district || !locationData.province) {
       return null;
     }
 
     // Extract address components
     return {
-      street: locationData.address || '',
-      city: locationData.district || '', // Using district as city
+      street: locationData.street || '',
+      city: locationData.city || '',
       district: locationData.district || '',
       province: locationData.province || '',
       postalCode: locationData.postalCode || ''

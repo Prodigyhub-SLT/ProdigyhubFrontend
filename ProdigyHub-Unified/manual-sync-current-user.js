@@ -1,4 +1,4 @@
-// Direct script to update user address using the API
+// Manual script to sync address for the current user
 const https = require('https');
 
 const API_BASE = 'https://sltprodigyhub.vercel.app/api';
@@ -29,13 +29,13 @@ function makeRequest(url, options = {}) {
   });
 }
 
-async function updateUserAddress() {
+async function syncCurrentUserAddress() {
   try {
-    console.log('🔄 Starting user address update...');
+    console.log('🔄 Syncing address for current user...');
     
     // Step 1: Find the user by email
     console.log('1. Finding user by email...');
-    const userResponse = await makeRequest(`${API_BASE}/users/email/thejanashehan.com@gmail.com`, {
+    const userResponse = await makeRequest(`${API_BASE}/users/email/thejana.20232281@iit.ac.lk`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -51,14 +51,14 @@ async function updateUserAddress() {
     console.log('✅ User found:', user.email);
     console.log('Current address:', user.address);
     
-    // Step 2: Update user with address
-    console.log('\n2. Updating user with address...');
+    // Step 2: Update user with address from qualification
+    console.log('\n2. Updating user with address from qualification...');
     const addressData = {
-      street: 'No-89/1 Mawathagama',
-      city: 'Kurunegala',
-      district: 'Kurunegala',
-      province: 'North Western',
-      postalCode: '60060'
+      street: 'Kandy', // From the qualification data
+      city: 'Kandy',
+      district: 'Kandy',
+      province: 'Central',
+      postalCode: '0090'
     };
     
     const updateResponse = await makeRequest(`${API_BASE}/users/${user.id}`, {
@@ -82,7 +82,7 @@ async function updateUserAddress() {
     
     // Step 3: Verify the update
     console.log('\n3. Verifying update...');
-    const verifyResponse = await makeRequest(`${API_BASE}/users/email/thejanashehan.com@gmail.com`, {
+    const verifyResponse = await makeRequest(`${API_BASE}/users/email/thejana.20232281@iit.ac.lk`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -98,9 +98,9 @@ async function updateUserAddress() {
     }
     
   } catch (error) {
-    console.error('❌ Error updating user address:', error);
+    console.error('❌ Error syncing user address:', error);
   }
 }
 
-// Run the update
-updateUserAddress();
+// Run the sync
+syncCurrentUserAddress();
