@@ -546,7 +546,7 @@ const userController = {
       }
 
       // Update allowed fields
-      const allowedUpdates = ['firstName', 'lastName', 'email', 'phoneNumber', 'nic'];
+      const allowedUpdates = ['firstName', 'lastName', 'email', 'phoneNumber', 'nic', 'address'];
       const updateData = {};
       
       for (const field of allowedUpdates) {

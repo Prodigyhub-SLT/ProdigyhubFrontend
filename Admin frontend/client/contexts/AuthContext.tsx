@@ -23,6 +23,13 @@ export interface User {
   // Direct fields for backward compatibility with MongoDB structure
   phoneNumber?: string;
   nic?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    district?: string;
+    province?: string;
+    postalCode?: string;
+  };
   profile?: {
     phone?: string;
     nic?: string;
@@ -788,7 +795,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             lastName: updates.name?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' '),
             email: updates.email || user.email,
             phoneNumber: updates.phoneNumber || updates.profile?.phone || user.phoneNumber || user.profile?.phone,
-            nic: updates.nic || updates.profile?.nic || user.nic || user.profile?.nic
+            nic: updates.nic || updates.profile?.nic || user.nic || user.profile?.nic,
+            address: updates.address || user.address
           }
         }),
       });
