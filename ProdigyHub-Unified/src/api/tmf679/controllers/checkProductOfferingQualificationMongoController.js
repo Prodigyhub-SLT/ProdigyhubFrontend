@@ -122,15 +122,20 @@ const checkProductOfferingQualificationMongoController = {
       // Always attempt to sync address to user collection
       try {
         console.log('🔄 Attempting to sync address to user collection...');
+        console.log('Qualification ID:', savedPOQ.id);
+        console.log('Qualification relatedParty:', savedPOQ.relatedParty);
+        
         const syncSuccess = await syncAddressToUser(savedPOQ);
         
         if (syncSuccess) {
           console.log('✅ Address successfully synced to user collection');
         } else {
           console.warn('⚠️ Address sync to user collection failed, but qualification was saved');
+          console.log('Debug info - Qualification notes:', savedPOQ.note);
         }
       } catch (syncError) {
-        console.error('❌ Error during address sync to user collection:', syncError.message);
+        console.error('❌ Error during address sync to user collection:', syncError);
+        console.error('Stack trace:', syncError.stack);
         // Don't fail the qualification creation if user sync fails
       }
       

@@ -153,11 +153,13 @@ async function updateUserAddress(user, address) {
 async function syncAddressToUser(qualification) {
   try {
     console.log('🔄 Starting address sync for qualification:', qualification.id);
+    console.log('Qualification notes:', qualification.note);
     
     // Extract address from qualification
     const address = extractAddressFromQualification(qualification);
     if (!address) {
       console.log('❌ No address information found in qualification');
+      console.log('Available notes:', qualification.note?.map(n => n.text));
       return false;
     }
     
@@ -167,6 +169,7 @@ async function syncAddressToUser(qualification) {
     const userEmail = extractUserEmailFromQualification(qualification);
     if (!userEmail) {
       console.log('❌ No user email found in qualification - cannot sync address');
+      console.log('RelatedParty:', qualification.relatedParty);
       return false;
     }
     
@@ -176,6 +179,9 @@ async function syncAddressToUser(qualification) {
     const user = await findUserForAddressUpdate(userEmail);
     if (!user) {
       console.log('❌ No user found with email:', userEmail);
+      console.log('Searching for users with similar emails...');
+      const similarUsers = await User.find({ email: { $regex: userEmail.split('@')[0], $options: 'i' } });
+      console.log('Similar users found:', similarUsers.map(u => u.email));
       return false;
     }
     
@@ -193,6 +199,7 @@ async function syncAddressToUser(qualification) {
 
   } catch (error) {
     console.error('❌ Error syncing address to user:', error);
+    console.error('Error stack:', error.stack);
     return false;
   }
 }
