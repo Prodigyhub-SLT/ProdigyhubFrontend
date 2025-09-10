@@ -653,6 +653,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Direct fields from MongoDB
           phoneNumber: mongoUserData.phoneNumber || user.phoneNumber || '',
           nic: mongoUserData.nic || user.nic || '',
+          // Address data from MongoDB
+          address: mongoUserData.address || user.address || {
+            street: '',
+            city: '',
+            district: '',
+            province: '',
+            postalCode: ''
+          },
           // Profile object with MongoDB data
           profile: {
             phone: mongoUserData.phoneNumber || user.profile?.phone || '',

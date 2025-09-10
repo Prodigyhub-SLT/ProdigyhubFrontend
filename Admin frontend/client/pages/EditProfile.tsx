@@ -135,7 +135,11 @@ export default function EditProfile() {
     if (user) {
       // Refresh user profile from MongoDB to get latest data
       refreshUserProfile();
-      
+    }
+  }, [user?.uid]); // Only refresh when user ID changes
+
+  useEffect(() => {
+    if (user) {
       // Split full name into first and last name
       const nameParts = (user.name || '').split(' ');
       // Parse phone number if it includes country code
@@ -172,7 +176,11 @@ export default function EditProfile() {
         province: user.address?.province || '',
         postalCode: user.address?.postalCode || ''
       });
-      
+    }
+  }, [user]); // This will trigger when user data changes
+
+  useEffect(() => {
+    if (user) {
       // Generate background color from existing avatar if available
       if (user.avatar) {
         console.log('User has avatar, generating background color...');
