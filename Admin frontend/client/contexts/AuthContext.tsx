@@ -806,6 +806,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('🔄 Sending update to backend:', updatePayload);
       console.log('🏠 Address being sent:', updatePayload.updates.address);
+      console.log('👤 User ID being sent:', updatePayload.userId);
+      console.log('👤 Current user object:', user);
       
       const response = await fetch(`${backendURL}/users/update`, {
         method: 'PUT',

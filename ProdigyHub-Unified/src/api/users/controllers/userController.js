@@ -540,14 +540,21 @@ const userController = {
       }
 
       // Find user by Firebase UID
+      console.log('🔍 Looking for user with userId:', userId);
       const user = await User.findOne({ userId });
       
       if (!user) {
+        console.log('❌ User not found with userId:', userId);
+        // Let's also try to find by email or other fields for debugging
+        const userByEmail = await User.findOne({ email: updates.email });
+        console.log('🔍 User found by email:', userByEmail ? userByEmail.userId : 'None');
         return res.status(404).json({
           error: 'Not Found',
           message: 'User not found'
         });
       }
+      
+      console.log('✅ User found:', { id: user._id, userId: user.userId, email: user.email });
 
       // Update allowed fields
       const allowedUpdates = ['firstName', 'lastName', 'email', 'phoneNumber', 'nic', 'address'];
