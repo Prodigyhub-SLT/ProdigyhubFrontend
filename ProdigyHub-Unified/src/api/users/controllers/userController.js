@@ -496,6 +496,7 @@ const userController = {
 
       // Return user profile data (excluding sensitive information)
       const profileData = {
+        userId: user.userId,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,

@@ -6,6 +6,7 @@ import { authOperations, auth, dbOperations } from '@/lib/firebase';
 export interface User {
   id: string;
   uid?: string; // Firebase UID
+  userId?: string; // Custom user ID from MongoDB
   name: string;
   email: string;
   role: 'admin' | 'user' | 'viewer';
@@ -652,6 +653,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const updatedUser: User = {
           ...user,
           // Direct fields from MongoDB
+          userId: mongoUserData.userId || user.userId,
           phoneNumber: mongoUserData.phoneNumber || user.phoneNumber || '',
           nic: mongoUserData.nic || user.nic || '',
           // Address data from MongoDB
@@ -793,7 +795,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       const updatePayload = {
-        userId: user.uid || user.id,
+        userId: user.userId || user.uid || user.id,
         updates: {
           firstName: updates.name?.split(' ')[0] || user.name?.split(' ')[0],
           lastName: updates.name?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' '),
