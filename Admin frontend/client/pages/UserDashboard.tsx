@@ -274,20 +274,7 @@ export default function UserDashboard() {
 
     return () => clearInterval(interval);
   }, [activeTab, qualificationCompleted]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-  return (
+     return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
