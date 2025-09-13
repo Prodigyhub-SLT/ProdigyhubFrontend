@@ -814,6 +814,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🏠 Address being sent:', updatePayload.updates.address);
       console.log('👤 User ID being sent:', updatePayload.userId);
       console.log('👤 Current user object:', user);
+      console.log('📧 Email being sent:', updatePayload.updates.email);
+      console.log('🔍 User ID sources:', {
+        userId: user.userId,
+        uid: user.uid,
+        id: user.id,
+        selected: updatePayload.userId
+      });
       
       const response = await fetch(`${backendURL}/users/update`, {
         method: 'PUT',

@@ -525,6 +525,8 @@ const userController = {
       
       console.log('🔄 Received user update request:', { userId, updates });
       console.log('🏠 Address in update:', updates?.address);
+      console.log('📧 Email in update:', updates?.email);
+      console.log('🔍 Full request body:', req.body);
       
       if (!userId) {
         return res.status(400).json({
@@ -540,30 +542,73 @@ const userController = {
         });
       }
 
-      // Find user by Firebase UID first
+      // Find user by multiple methods
       console.log('🔍 Looking for user with userId:', userId);
       let user = await User.findOne({ userId });
       
       if (!user) {
         console.log('❌ User not found with userId:', userId);
-        // Try to find by email as fallback
-        if (updates.email) {
-          console.log('🔍 Trying to find user by email:', updates.email);
-          user = await User.findOne({ email: updates.email });
-          if (user) {
-            console.log('✅ User found by email, updating userId field');
-            // Update the userId field for future lookups
-            user.userId = userId;
-            await user.save();
+        
+        // Try multiple fallback methods
+        const fallbackMethods = [
+          { method: 'email', value: updates.email, query: { email: updates.email } },
+          { method: 'userEmail', value: updates.email, query: { userEmail: updates.email } },
+          { method: 'id', value: userId, query: { id: userId } }
+        ];
+        
+        for (const fallback of fallbackMethods) {
+          if (fallback.value) {
+            console.log(`🔍 Trying to find user by ${fallback.method}:`, fallback.value);
+            user = await User.findOne(fallback.query);
+            if (user) {
+              console.log(`✅ User found by ${fallback.method}, updating userId field`);
+              // Update the userId field for future lookups
+              user.userId = userId;
+              await user.save();
+              break;
+            }
           }
         }
         
         if (!user) {
-          console.log('❌ User not found by email either');
-          return res.status(404).json({
-            error: 'Not Found',
-            message: 'User not found'
-          });
+          console.log('❌ User not found by any method');
+          console.log('🔍 Available users in database:');
+          const allUsers = await User.find({}).select('email userId id firstName lastName').limit(5);
+          console.log('Sample users:', allUsers);
+          
+          // If we have email and userId, try to create a new user
+          if (updates.email && userId) {
+            console.log('🔄 Attempting to create new user in MongoDB...');
+            try {
+              const newUser = new User({
+                userId: userId,
+                userEmail: updates.email,
+                email: updates.email,
+                firstName: updates.firstName || 'User',
+                lastName: updates.lastName || 'Name',
+                phoneNumber: updates.phoneNumber || '',
+                nic: updates.nic || '',
+                address: updates.address || {},
+                status: 'active',
+                createdAt: new Date(),
+                updatedAt: new Date()
+              });
+              
+              user = await newUser.save();
+              console.log('✅ New user created in MongoDB:', user.email);
+            } catch (createError) {
+              console.error('❌ Failed to create new user:', createError.message);
+              return res.status(500).json({
+                error: 'User Creation Failed',
+                message: 'Failed to create user in database. Please try again.'
+              });
+            }
+          } else {
+            return res.status(404).json({
+              error: 'Not Found',
+              message: 'User not found. Please ensure you are logged in and try again.'
+            });
+          }
         }
       }
       
