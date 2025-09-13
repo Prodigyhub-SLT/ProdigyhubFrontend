@@ -331,8 +331,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.warn('Failed to store user data:', error);
           }
         } else {
-          console.log('⚠️ No MongoDB user found, using Firebase data only');
-          setUser(userData);
+          console.log('⚠️ No MongoDB user found, creating user in MongoDB...');
+          
+          // Create user in MongoDB backend
+          try {
+            const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            const createUserData = {
+              firstName: userData.name?.split(' ')[0] || 'User',
+              lastName: userData.name?.split(' ').slice(1).join(' ') || 'Name',
+              email: userData.email,
+              phoneNumber: userData.phoneNumber || '',
+              nic: userData.nic || '',
+              password: 'tempPassword123', // Temporary password
+              userId: firebaseUser.uid // Use Firebase UID as userId
+            };
+            
+            console.log('🔄 Creating user in MongoDB:', createUserData);
+            
+            const createResponse = await fetch(`${backendURL}/users/signup`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(createUserData)
+            });
+            
+            if (createResponse.ok) {
+              const createdUser = await createResponse.json();
+              console.log('✅ User created in MongoDB:', createdUser);
+              
+              // Update user data with MongoDB info
+              const completeUserData: User = {
+                ...userData,
+                userId: firebaseUser.uid,
+                phoneNumber: createdUser.user?.phoneNumber || '',
+                nic: createdUser.user?.nic || '',
+                address: createdUser.user?.address || {}
+              };
+              
+              setUser(completeUserData);
+              
+              // Store in localStorage
+              try {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                  localStorage.setItem('auth_user', JSON.stringify(completeUserData));
+                }
+              } catch (error) {
+                console.warn('Failed to store user data:', error);
+              }
+            } else {
+              console.log('❌ Failed to create user in MongoDB, using Firebase data only');
+              setUser(userData);
+            }
+          } catch (createError) {
+            console.log('❌ Error creating user in MongoDB:', createError);
+            setUser(userData);
+          }
         }
       } catch (mongoError) {
         console.warn('⚠️ Failed to fetch MongoDB profile, using Firebase data only:', mongoError);
@@ -797,12 +851,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔧 Final backendURL:', backendURL);
       console.log('🔧 All env vars:', import.meta.env);
       
-      // HARDCODE the correct userId for thejana user
-      let userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
+      // Get userId from user object (should be set during login)
+      let userId = user.userId || user.uid || user.id;
       
-      // For other users, try to get their userId
-      if (!user.email || !user.email.includes('thejana.20232281@iit.ac.lk')) {
-        userId = user.userId || user.uid || user.id;
+      // Special case for thejana user - use the correct MongoDB userId
+      if (user.email && user.email.includes('thejana.20232281@iit.ac.lk')) {
+        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
+        console.log('🔧 Using hardcoded userId for thejana user:', userId);
       }
       
       console.log('🔧 Using userId for update:', userId);
