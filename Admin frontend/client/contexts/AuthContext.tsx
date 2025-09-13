@@ -84,6 +84,7 @@ interface AuthProviderProps {
 const MOCK_USERS = {
   'admin@company.com': {
     id: 'user_admin_001',
+    userId: 'user_admin_001', // Set userId for MongoDB backend compatibility
     name: 'System Administrator',
     email: 'admin@company.com',
     role: 'admin' as const,
@@ -115,6 +116,7 @@ const MOCK_USERS = {
   },
   'user@company.com': {
     id: 'user_regular_002',
+    userId: 'user_regular_002', // Set userId for MongoDB backend compatibility
     name: 'Product Manager',
     email: 'user@company.com',
     role: 'user' as const,
@@ -171,6 +173,7 @@ const createUserFromFirebase = (firebaseUser: any): User => {
   return {
     id: `user_${firebaseUser.uid}`,
     uid: firebaseUser.uid,
+    userId: firebaseUser.uid, // Set userId for MongoDB backend compatibility
     name: firebaseUser.displayName || 'Google User',
     email: firebaseUser.email || '',
     role: 'user' as const,
@@ -229,6 +232,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData: User = {
         id: firebaseUser.uid,
         uid: firebaseUser.uid,
+        userId: firebaseUser.uid, // Set userId for MongoDB backend compatibility
         name: firebaseUser.displayName || email.split('@')[0],
         email: firebaseUser.email || email,
         role: userRole,
@@ -821,13 +825,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (response.ok) {
         console.log('✅ User profile updated in MongoDB successfully');
+        const responseData = await response.json();
+        console.log('📝 Updated user data from server:', responseData);
+        
+        // Update the local user state with the server response
+        if (responseData.user) {
+          const updatedUserData = {
+            ...user,
+            ...responseData.user,
+            // Ensure we keep the Firebase UID
+            uid: user.uid,
+            userId: user.userId || user.uid
+          };
+          setUser(updatedUserData);
+          
+          // Update stored data
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('auth_user', JSON.stringify(updatedUserData));
+            }
+          } catch (error) {
+            console.warn('Failed to update stored auth data:', error);
+          }
+        }
       } else {
-        console.warn('⚠️ MongoDB update failed:', await response.text());
+        const errorText = await response.text();
+        console.error('❌ MongoDB update failed:', errorText);
+        throw new Error(`Failed to update user profile: ${errorText}`);
       }
     } catch (mongoError: any) {
-      console.warn('⚠️ Failed to update user data in MongoDB:', mongoError);
-      // Don't fail the update if MongoDB save fails
-      // User is still updated in frontend context
+      console.error('❌ Failed to update user data in MongoDB:', mongoError);
+      // Re-throw the error so the frontend knows the update failed
+      throw mongoError;
     }
   };
 
