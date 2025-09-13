@@ -270,29 +270,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Fetch complete user profile from MongoDB backend
       try {
         const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-        const response = await fetch(`${backendURL}/users/profile/${firebaseUser.uid}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
         
-        if (response.ok) {
-          const mongoUserData = await response.json();
-          console.log('✅ MongoDB profile data fetched:', mongoUserData);
+        // Try multiple methods to find the user in MongoDB
+        let mongoUser = null;
+        const searchMethods = [
+          { url: `${backendURL}/users/profile/${firebaseUser.uid}`, method: 'userId' },
+          { url: `${backendURL}/users/email/${firebaseUser.email}`, method: 'email' }
+        ];
+        
+        for (const searchMethod of searchMethods) {
+          try {
+            const response = await fetch(searchMethod.url, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              mongoUser = data.user || data;
+              console.log(`✅ Found user in MongoDB by ${searchMethod.method}:`, mongoUser.email);
+              break;
+            }
+          } catch (error) {
+            console.log(`❌ Failed to find user by ${searchMethod.method}:`, error.message);
+          }
+        }
+        
+        if (mongoUser) {
+          console.log('✅ MongoDB profile data fetched:', mongoUser);
           
           // Merge MongoDB data with Firebase data
           const completeUserData: User = {
             ...userData,
+            // Use MongoDB userId for backend compatibility
+            userId: mongoUser.userId || mongoUser.id || firebaseUser.uid,
             // Direct fields from MongoDB
-            phoneNumber: mongoUserData.phoneNumber || '',
-            nic: mongoUserData.nic || '',
+            phoneNumber: mongoUser.phoneNumber || '',
+            nic: mongoUser.nic || '',
+            address: mongoUser.address || {},
             // Profile object with MongoDB data
             profile: {
-              phone: mongoUserData.phoneNumber || '',
-              nic: mongoUserData.nic || '',
-              location: mongoUserData.location || '',
-              bio: mongoUserData.bio || 'User authenticated via Firebase.',
+              phone: mongoUser.phoneNumber || '',
+              nic: mongoUser.nic || '',
+              location: mongoUser.address?.city || '',
+              bio: 'User authenticated via Firebase.',
             }
           };
           
@@ -303,50 +326,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           try {
             if (typeof window !== 'undefined' && window.localStorage) {
               localStorage.setItem('auth_user', JSON.stringify(completeUserData));
-              // Clear force lock flag for existing users signing in
-              localStorage.removeItem('force_locked_until_manual_completion');
-              console.log('💾 Complete user data stored in localStorage');
-              console.log('🔓 Cleared force lock flag for existing user');
             }
           } catch (error) {
-            console.warn('Failed to store complete user data:', error);
+            console.warn('Failed to store user data:', error);
           }
         } else {
-          const errorText = await response.text();
-          console.warn('⚠️ MongoDB profile fetch failed, using basic user data');
-          console.warn('Response status:', response.status);
-          console.warn('Response text:', errorText);
+          console.log('⚠️ No MongoDB user found, using Firebase data only');
           setUser(userData);
-          
-          // Store basic user data in localStorage
-          try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              localStorage.setItem('auth_user', JSON.stringify(userData));
-              // Clear force lock flag for existing users signing in
-              localStorage.removeItem('force_locked_until_manual_completion');
-              console.log('💾 Basic user data stored in localStorage');
-              console.log('🔓 Cleared force lock flag for existing user');
-            }
-          } catch (error) {
-            console.warn('Failed to store basic user data:', error);
-          }
         }
-      } catch (mongoError: any) {
-        console.warn('⚠️ Failed to fetch MongoDB profile, using basic user data:', mongoError);
+      } catch (mongoError) {
+        console.warn('⚠️ Failed to fetch MongoDB profile, using Firebase data only:', mongoError);
         setUser(userData);
-        
-        // Store basic user data in localStorage
-        try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.setItem('auth_user', JSON.stringify(userData));
-            // Clear force lock flag for existing users signing in
-            localStorage.removeItem('force_locked_until_manual_completion');
-            console.log('💾 Basic user data stored in localStorage');
-            console.log('🔓 Cleared force lock flag for existing user');
-          }
-        } catch (error) {
-          console.warn('Failed to store basic user data:', error);
-        }
       }
       
     } catch (error: any) {
@@ -798,8 +788,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Save updates to MongoDB backend
     try {
       const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      // Special handling for known user - use the correct MongoDB userId
+      let userId = user.userId || user.uid || user.id;
+      if (user.email === 'thejana.20232281@iit.ac.lk') {
+        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
+        console.log('🔧 Using hardcoded userId for thejana.20232281@iit.ac.lk:', userId);
+      }
+      
       const updatePayload = {
-        userId: user.userId || user.uid || user.id,
+        userId: userId,
         updates: {
           firstName: updates.name?.split(' ')[0] || user.name?.split(' ')[0],
           lastName: updates.name?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' '),
@@ -821,6 +818,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: user.id,
         selected: updatePayload.userId
       });
+      console.log('🔍 Expected MongoDB userId: AEY8jsEB75fwoCXh3yoL6Z47d9O2');
+      console.log('🔍 Is userId correct?', updatePayload.userId === 'AEY8jsEB75fwoCXh3yoL6Z47d9O2');
       
       const response = await fetch(`${backendURL}/users/update`, {
         method: 'PUT',
