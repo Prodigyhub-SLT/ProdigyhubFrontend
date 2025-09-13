@@ -240,13 +240,21 @@ export default function EditProfile() {
 
     try {
       // Update user profile
+      console.log('📝 EditProfile handleSubmit called');
+      console.log('📝 Form data:', formData);
+      console.log('📝 User object:', user);
+      
+      const updateData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phoneNumber: `${formData.countryCode} ${formData.phoneNumber}`,
+        nic: formData.idNumber
+      };
+      
+      console.log('📝 Update data being sent to updateUser:', updateData);
+      
       if (updateUser) {
-        await updateUser({
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
-          email: formData.email,
-          phoneNumber: `${formData.countryCode} ${formData.phoneNumber}`,
-          nic: formData.idNumber
-        });
+        await updateUser(updateData);
         setMessage('Profile updated successfully!');
       }
     } catch (error) {
@@ -264,11 +272,18 @@ export default function EditProfile() {
 
     try {
       // Update user address
-      console.log('🏠 Submitting address data:', addressData);
+      console.log('🏠 EditProfile handleAddressSubmit called');
+      console.log('🏠 Address data:', addressData);
+      console.log('🏠 User object:', user);
+      
+      const updateData = {
+        address: addressData
+      };
+      
+      console.log('🏠 Update data being sent to updateUser:', updateData);
+      
       if (updateUser) {
-        await updateUser({
-          address: addressData
-        });
+        await updateUser(updateData);
         console.log('✅ Address update completed');
         setMessage('Address updated successfully!');
       }

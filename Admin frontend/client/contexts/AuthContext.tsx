@@ -792,6 +792,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       
+      console.log('🔧 Environment variables:');
+      console.log('🔧 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+      console.log('🔧 Final backendURL:', backendURL);
+      
       // HARDCODE the correct userId for thejana user
       let userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
       
@@ -820,6 +824,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('👤 User ID being sent:', updatePayload.userId);
       console.log('📧 Email being sent:', updatePayload.updates.email);
       console.log('🔍 Full updatePayload being sent:', JSON.stringify(updatePayload, null, 2));
+      console.log('🌐 Backend URL:', backendURL);
+      console.log('🔗 Full API URL:', `${backendURL}/users/update`);
+      
+      console.log('🚀 Making API call to:', `${backendURL}/users/update`);
+      console.log('📤 Request method: PUT');
+      console.log('📤 Request headers:', { 'Content-Type': 'application/json' });
+      console.log('📤 Request body:', JSON.stringify(updatePayload));
       
       const response = await fetch(`${backendURL}/users/update`, {
         method: 'PUT',
@@ -828,6 +839,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         body: JSON.stringify(updatePayload),
       });
+      
+      console.log('📥 Response received:');
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response statusText:', response.statusText);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         console.log('✅ User profile updated in MongoDB successfully');
@@ -855,8 +871,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } else {
+        console.error('❌ MongoDB update failed - Response not OK');
+        console.error('❌ Response status:', response.status);
+        console.error('❌ Response statusText:', response.statusText);
+        
         const errorText = await response.text();
-        console.error('❌ MongoDB update failed:', errorText);
+        console.error('❌ Error response body:', errorText);
+        
+        // Try to parse as JSON to see the actual error
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error('❌ Parsed error JSON:', errorJson);
+        } catch (parseError) {
+          console.error('❌ Could not parse error as JSON:', parseError);
+        }
+        
         throw new Error(`Failed to update user profile: ${errorText}`);
       }
     } catch (mongoError: any) {
