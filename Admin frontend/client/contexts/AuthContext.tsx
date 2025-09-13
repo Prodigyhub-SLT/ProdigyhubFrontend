@@ -795,6 +795,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔧 Environment variables:');
       console.log('🔧 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
       console.log('🔧 Final backendURL:', backendURL);
+      console.log('🔧 All env vars:', import.meta.env);
       
       // HARDCODE the correct userId for thejana user
       let userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
@@ -806,6 +807,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('🔧 Using userId for update:', userId);
       console.log('📧 User email:', user.email);
+      console.log('🔍 User object details:', {
+        userId: user.userId,
+        uid: user.uid,
+        id: user.id,
+        email: user.email,
+        name: user.name
+      });
       
       const updatePayload = {
         userId: userId,
