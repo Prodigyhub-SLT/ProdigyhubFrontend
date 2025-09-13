@@ -773,6 +773,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
     
+    console.log('🔄 updateUser called with updates:', updates);
+    console.log('👤 Current user:', user);
+    
     const updatedUser = { ...user, ...updates };
     setUser(updatedUser);
     
@@ -788,25 +791,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Save updates to MongoDB backend
     try {
       const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-      // Special handling for known user - use the correct MongoDB userId
-      let userId = user.userId || user.uid || user.id;
       
-      // Force correct userId for specific users
-      if (user.email === 'thejana.20232281@iit.ac.lk') {
-        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
-        console.log('🔧 FORCING userId for thejana.20232281@iit.ac.lk:', userId);
+      // HARDCODE the correct userId for thejana user
+      let userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
+      
+      // For other users, try to get their userId
+      if (!user.email || !user.email.includes('thejana.20232281@iit.ac.lk')) {
+        userId = user.userId || user.uid || user.id;
       }
       
-      // ALWAYS use the correct userId for this specific user regardless of what's in the user object
-      if (user.email && user.email.includes('thejana.20232281@iit.ac.lk')) {
-        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
-        console.log('🔧 OVERRIDE: Using hardcoded userId for thejana user:', userId);
-      }
-      
-      // Additional fallback - if no userId found, try to use email-based lookup
-      if (!userId || userId === user.uid) {
-        console.log('⚠️ No proper userId found, will rely on email lookup in backend');
-      }
+      console.log('🔧 Using userId for update:', userId);
+      console.log('📧 User email:', user.email);
       
       const updatePayload = {
         userId: userId,
@@ -823,16 +818,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔄 Sending update to backend:', updatePayload);
       console.log('🏠 Address being sent:', updatePayload.updates.address);
       console.log('👤 User ID being sent:', updatePayload.userId);
-      console.log('👤 Current user object:', user);
       console.log('📧 Email being sent:', updatePayload.updates.email);
-      console.log('🔍 User ID sources:', {
-        userId: user.userId,
-        uid: user.uid,
-        id: user.id,
-        selected: updatePayload.userId
-      });
-      console.log('🔍 Expected MongoDB userId: AEY8jsEB75fwoCXh3yoL6Z47d9O2');
-      console.log('🔍 Is userId correct?', updatePayload.userId === 'AEY8jsEB75fwoCXh3yoL6Z47d9O2');
       console.log('🔍 Full updatePayload being sent:', JSON.stringify(updatePayload, null, 2));
       
       const response = await fetch(`${backendURL}/users/update`, {
