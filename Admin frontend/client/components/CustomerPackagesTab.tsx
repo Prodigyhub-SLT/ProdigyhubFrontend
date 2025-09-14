@@ -407,7 +407,8 @@ export default function CustomerPackagesTab() {
             variant="ghost" 
             size="sm" 
             disabled
-            className="flex-1 text-white bg-green-400 border-green-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
+            className="flex-1 text-white bg-green-400 border-green-400 text-white transition-all duration-300 rounded-lg py-1.5 font-medium text-sm opacity-100"
+            style={{ pointerEvents: 'none' }}
           >
             Active
           </Button>
