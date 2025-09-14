@@ -87,18 +87,21 @@ export class OrderIdManager {
 
   /**
    * Extract sequential number from order ID
-   * Supports formats like: ORD-000001, ORDER-000001, 000001
+   * Supports formats like: ORD-001, ORD-000001, ORDER-001, ORDER-000001, 001, 000001
    */
   private extractSequentialNumber(orderId: string): number | null {
     if (!orderId) return null;
     
     // Patterns to match different ID formats
     const patterns = [
-      /^ORD-(\d{6})$/i,        // ORD-000001 (preferred format)
-      /^ORDER-(\d{6})$/i,      // ORDER-000001
+      /^ORD-(\d{3})$/i,        // ORD-001 (preferred format)
+      /^ORD-(\d{6})$/i,        // ORD-000001 (legacy format)
+      /^ORDER-(\d{3})$/i,      // ORDER-001
+      /^ORDER-(\d{6})$/i,      // ORDER-000001 (legacy format)
       /^ORD-(\d+)$/i,          // ORD-123
       /^ORDER-(\d+)$/i,        // ORDER-123  
-      /^(\d{6})$/,             // 000001 (just numbers)
+      /^(\d{3})$/,             // 001 (just numbers)
+      /^(\d{6})$/,             // 000001 (legacy format)
       /^(\d+)$/                // Any number
     ];
     
@@ -124,7 +127,7 @@ export class OrderIdManager {
     }
     
     this.lastUsedNumber += 1;
-    const paddedNumber = this.lastUsedNumber.toString().padStart(6, '0');
+    const paddedNumber = this.lastUsedNumber.toString().padStart(3, '0');
     const orderId = `ORD-${paddedNumber}`;
     
     console.log(`🆔 Generated new order ID: ${orderId}`);

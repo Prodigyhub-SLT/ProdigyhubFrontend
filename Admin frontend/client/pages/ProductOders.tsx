@@ -560,7 +560,7 @@ export default function ProductOrders({
                     <CardTitle className="text-xl text-slate-900">Customer Details</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="space-y-4">
                       <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
                         <Label className="text-purple-700 font-bold text-sm">Customer Name</Label>
                         <p className="text-sm font-semibold bg-white p-3 rounded-lg border border-purple-200/50 mt-2 shadow-sm">
