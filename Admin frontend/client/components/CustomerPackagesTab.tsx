@@ -32,6 +32,11 @@ export default function CustomerPackagesTab() {
   // Success message state
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Debug: Log success message changes
+  useEffect(() => {
+    console.log('📢 Success message changed:', successMessage);
+  }, [successMessage]);
 
   useEffect(() => {
     loadOfferings();
@@ -315,10 +320,13 @@ export default function CustomerPackagesTab() {
       const order = await createOrderWithRetry(orderData);
       
       // Show success message
-      setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
+      const successMsg = `Upgrade order created successfully! Order ID: ${order.id}`;
+      console.log('🎉 Setting success message:', successMsg);
+      setSuccessMessage(successMsg);
       
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
+        console.log('🕐 Auto-hiding success message');
         setSuccessMessage(null);
       }, 5000);
       
@@ -331,6 +339,7 @@ export default function CustomerPackagesTab() {
         setSuccessMessage(null);
       }, 5000);
     } finally {
+      console.log('🏁 Finally block - setting loading to false');
       setIsLoading(false);
     }
   };
@@ -352,12 +361,22 @@ export default function CustomerPackagesTab() {
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">{successMessage}</span>
             <button
-              onClick={() => setSuccessMessage(null)}
+              onClick={() => {
+                console.log('❌ Manually closing success message');
+                setSuccessMessage(null);
+              }}
               className="ml-4 text-gray-400 hover:text-gray-600"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
+        </div>
+      )}
+      
+      {/* Debug: Show success message state */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
+          Debug - Success Message: {successMessage || 'null'} | Loading: {isLoading ? 'true' : 'false'}
         </div>
       )}
       
