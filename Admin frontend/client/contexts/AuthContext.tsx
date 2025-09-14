@@ -874,10 +874,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('🔍 lookupData.id:', lookupData.id);
           console.log('🔍 lookupData._id:', lookupData._id);
           
-          const mongoUserId = lookupData.userId || lookupData.id || lookupData._id;
+          // Use the MongoDB _id as the userId for the update
+          // This is more reliable than using the userId field which might not match
+          const mongoUserId = lookupData._id || lookupData.userId || lookupData.id;
           if (mongoUserId) {
             userId = mongoUserId;
-            console.log('✅ Found correct userId by email lookup:', userId);
+            console.log('✅ Found correct userId by email lookup (using _id):', userId);
           } else {
             console.warn('⚠️ Email lookup succeeded but no userId found, using Firebase UID');
             userId = user.uid;
