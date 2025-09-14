@@ -2526,7 +2526,7 @@ async function startServer() {
     const models = require('./src/models/AllTMFModels');
     console.log('✅ MongoDB Models: All TMF API models loaded');
     
-    // Start the server
+    // Start the server - Updated with MongoDB _id lookup fix
     const server = app.listen(PORT, () => {
       console.log('\n' + '='.repeat(70));
       console.log('🚀 ProdigyHub Unified TMF API Backend Started (MongoDB)');
