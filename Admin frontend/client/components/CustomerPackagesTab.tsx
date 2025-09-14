@@ -387,12 +387,21 @@ export default function CustomerPackagesTab() {
           return dateB.getTime() - dateA.getTime();
         });
         
+        // Group orders by package ID and get the most recent order for each package
+        const packageOrders: Record<string, any> = {};
+        sortedOrders.forEach((order: any) => {
+          const productOfferingId = order.productOrderItem?.[0]?.productOffering?.id;
+          if (productOfferingId && !packageOrders[productOfferingId]) {
+            packageOrders[productOfferingId] = order;
+          }
+        });
+        
         // Track which packages should be active
         const packageStatuses: Record<string, 'none' | 'progress' | 'active' | 'cancelled'> = {};
         let hasActivePackage = false;
         
-        // Process orders in chronological order (most recent first)
-        sortedOrders.forEach((order: any) => {
+        // Process only the most recent order for each package
+        Object.values(packageOrders).forEach((order: any) => {
           const productOfferingId = order.productOrderItem?.[0]?.productOffering?.id;
           if (productOfferingId) {
             let newStatus: 'none' | 'progress' | 'active' | 'cancelled' = 'none';
