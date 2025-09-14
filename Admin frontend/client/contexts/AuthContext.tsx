@@ -855,29 +855,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Get userId from user object (should be set during login)
       let userId = user.userId || user.uid || user.id;
       
-      // If no userId found, try to look up user by email in MongoDB
-      if (!userId || userId === user.uid) {
-        console.log('🔍 No userId found, looking up user by email in MongoDB...');
-        try {
-          const lookupResponse = await fetch(`${backendURL}/users/email/${user.email}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          if (lookupResponse.ok) {
-            const lookupData = await lookupResponse.json();
-            userId = lookupData.userId || lookupData.id;
-            console.log('✅ Found userId by email lookup:', userId);
+      // Always try to look up user by email in MongoDB to get the correct userId
+      // This handles the case where Firebase UID changes but MongoDB userId stays the same
+      console.log('🔍 Looking up user by email in MongoDB to get correct userId...');
+      try {
+        const lookupResponse = await fetch(`${backendURL}/users/email/${user.email}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (lookupResponse.ok) {
+          const lookupData = await lookupResponse.json();
+          const mongoUserId = lookupData.userId || lookupData.id;
+          if (mongoUserId) {
+            userId = mongoUserId;
+            console.log('✅ Found correct userId by email lookup:', userId);
           } else {
-            console.warn('⚠️ Email lookup failed, using Firebase UID as fallback');
+            console.warn('⚠️ Email lookup succeeded but no userId found, using Firebase UID');
             userId = user.uid;
           }
-        } catch (lookupError) {
-          console.warn('⚠️ Email lookup error, using Firebase UID as fallback:', lookupError);
+        } else {
+          console.warn('⚠️ Email lookup failed, using Firebase UID as fallback');
           userId = user.uid;
         }
+      } catch (lookupError) {
+        console.warn('⚠️ Email lookup error, using Firebase UID as fallback:', lookupError);
+        userId = user.uid;
       }
       
       console.log('🔧 Using userId for update:', userId);
