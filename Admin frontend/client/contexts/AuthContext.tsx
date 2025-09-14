@@ -868,7 +868,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (lookupResponse.ok) {
           const lookupData = await lookupResponse.json();
-          const mongoUserId = lookupData.userId || lookupData.id;
+          console.log('🔍 Email lookup response data:', lookupData);
+          console.log('🔍 Available fields:', Object.keys(lookupData));
+          console.log('🔍 lookupData.userId:', lookupData.userId);
+          console.log('🔍 lookupData.id:', lookupData.id);
+          console.log('🔍 lookupData._id:', lookupData._id);
+          
+          const mongoUserId = lookupData.userId || lookupData.id || lookupData._id;
           if (mongoUserId) {
             userId = mongoUserId;
             console.log('✅ Found correct userId by email lookup:', userId);
