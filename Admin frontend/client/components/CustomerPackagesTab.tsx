@@ -447,10 +447,10 @@ export default function CustomerPackagesTab() {
           <Button 
             variant="ghost" 
             size="sm" 
-            disabled
-            className="flex-1 text-white bg-gray-400 border-gray-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
+            onClick={() => handleUpgrade(offering)}
+            className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
           >
-            Cancelled
+            Upgrade
           </Button>
         );
       default:
