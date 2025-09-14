@@ -554,6 +554,7 @@ const userController = {
           { method: 'email', value: updates.email, query: { email: updates.email } },
           { method: 'userEmail', value: updates.email, query: { userEmail: updates.email } },
           { method: 'id', value: userId, query: { id: userId } },
+          { method: 'firebaseUid', value: userId, query: { userId: userId } },
           // Special case for known user
           { method: 'hardcoded', value: 'AEY8jsEB75fwoCXh3yoL6Z47d9O2', query: { userId: 'AEY8jsEB75fwoCXh3yoL6Z47d9O2' } }
         ];
@@ -599,7 +600,13 @@ const userController = {
                 lastName: updates.lastName || 'Name',
                 phoneNumber: updates.phoneNumber || '',
                 nic: updates.nic || '',
-                address: updates.address || {},
+                address: updates.address || {
+                  street: '',
+                  city: '',
+                  district: '',
+                  province: '',
+                  postalCode: ''
+                },
                 status: 'active',
                 createdAt: new Date(),
                 updatedAt: new Date()

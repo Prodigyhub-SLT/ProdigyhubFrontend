@@ -871,6 +871,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name: user.name
       });
       
+      // If no userId found, try to use Firebase UID
+      if (!userId) {
+        console.warn('⚠️ No userId found, using Firebase UID as fallback');
+        userId = user.uid;
+      }
+      
       const updatePayload = {
         userId: userId,
         updates: {

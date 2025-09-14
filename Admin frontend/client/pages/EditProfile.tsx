@@ -36,7 +36,6 @@ export default function EditProfile() {
 
   // Function to generate background color from profile picture
   const generateBackgroundColor = (imageUrl: string) => {
-    console.log('Generating background color for:', imageUrl);
     
     // Create a canvas to analyze the image colors
     const canvas = document.createElement('canvas');
@@ -47,7 +46,6 @@ export default function EditProfile() {
     img.crossOrigin = 'anonymous';
     
     img.onload = () => {
-      console.log('Image loaded, analyzing colors...');
       canvas.width = img.width;
       canvas.height = img.height;
       ctx?.drawImage(img, 0, 0);
@@ -71,30 +69,18 @@ export default function EditProfile() {
           g = Math.round(g / count);
           b = Math.round(b / count);
           
-          console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
-          
           // Apply the color to the page background
           const pageBackground = document.getElementById('page-background');
           if (pageBackground) {
-            // Set CSS custom property for the page background
             pageBackground.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
-            
-            console.log('Page background color applied successfully');
-            console.log('Page background element:', pageBackground);
-            console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
-          } else {
-            console.log('Page background not found');
           }
         }
       } catch (error) {
-        console.log('Could not analyze image colors:', error);
-        // Fallback: generate a color based on the user's name
         generateFallbackColor();
       }
     };
     
     img.onerror = () => {
-      console.log('Failed to load image for color analysis, using fallback');
       generateFallbackColor();
     };
     
@@ -104,8 +90,6 @@ export default function EditProfile() {
   // Fallback function to generate a color based on user's name
   const generateFallbackColor = () => {
     if (!user?.name) return;
-    
-    console.log('Generating fallback color from user name');
     
     // Generate a consistent color based on the user's name
     let hash = 0;
@@ -118,17 +102,10 @@ export default function EditProfile() {
     const g = Math.abs(hash >> 8) % 200 + 55;
     const b = Math.abs(hash >> 16) % 200 + 55;
     
-    console.log('Fallback color generated:', `rgb(${r}, ${g}, ${b})`);
-    
     // Apply the fallback color to the page background
     const pageBackground = document.getElementById('page-background');
     if (pageBackground) {
-      // Set CSS custom property for the page background
       pageBackground.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
-      
-      console.log('Fallback page background color applied successfully');
-      console.log('Page background element:', pageBackground);
-      console.log('Generated fallback color:', `rgb(${r}, ${g}, ${b})`);
     }
   };
 
@@ -203,27 +180,13 @@ export default function EditProfile() {
     if (user) {
       // Generate background color from existing avatar if available
       if (user.avatar) {
-        console.log('User has avatar, generating background color...');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-          console.log('DOM ready, checking page background...');
-          const pageBg = document.getElementById('page-background');
-          console.log('Page background found:', pageBg);
-          if (pageBg) {
-            console.log('Page background styles before:', pageBg.style.cssText);
-          }
           generateBackgroundColor(user.avatar);
         }, 100);
       } else {
-        console.log('No avatar found for user, generating fallback color');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-          console.log('DOM ready, checking page background...');
-          const pageBg = document.getElementById('page-background');
-          console.log('Page background found:', pageBg);
-          if (pageBg) {
-            console.log('Page background styles before:', pageBg.style.cssText);
-          }
           generateFallbackColor();
         }, 100);
       }
@@ -277,6 +240,10 @@ export default function EditProfile() {
       if (updateUser) {
         await updateUser(updateData);
         setMessage('Profile updated successfully!');
+        
+        // Force refresh user profile to get updated data
+        console.log('🔄 Refreshing user profile after profile update...');
+        await refreshUserProfile();
       }
     } catch (error) {
       setMessage('Failed to update profile. Please try again.');
@@ -307,6 +274,10 @@ export default function EditProfile() {
         await updateUser(updateData);
         console.log('✅ Address update completed');
         setMessage('Address updated successfully!');
+        
+        // Force refresh user profile to get updated data
+        console.log('🔄 Refreshing user profile after address update...');
+        await refreshUserProfile();
       }
     } catch (error) {
       console.error('❌ Address update error:', error);
