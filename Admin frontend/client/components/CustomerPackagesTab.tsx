@@ -325,10 +325,7 @@ export default function CustomerPackagesTab() {
       // Create the order
       const order = await createOrderWithRetry(orderData);
       
-      // Show success message
-      setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
-      
-      // Set package status to progress and cancel any existing active packages
+      // Set package status to progress and cancel any existing active packages IMMEDIATELY
       setPackageOrderStatus(prev => {
         const newStatus = { ...prev };
         
@@ -344,6 +341,14 @@ export default function CustomerPackagesTab() {
         
         return newStatus;
       });
+      
+      // Show success message
+      setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
+      
+      // Immediately check for status updates to ensure consistency
+      setTimeout(() => {
+        checkOrderStatusUpdates();
+      }, 1000);
       
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
