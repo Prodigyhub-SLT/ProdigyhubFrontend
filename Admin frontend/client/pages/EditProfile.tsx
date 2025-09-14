@@ -109,19 +109,8 @@ export default function EditProfile() {
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      console.log('🔄 Refreshing user profile for user:', user.uid || user.id);
-      console.log('🔍 User details:', {
-        uid: user.uid,
-        userId: user.userId,
-        email: user.email,
-        address: user.address
-      });
-      // Refresh user profile from MongoDB to get latest data
-      refreshUserProfile();
-    }
-  }, [user?.uid, refreshUserProfile]); // Added refreshUserProfile as dependency
+  // Removed automatic refresh on user sign-in
+  // Only refresh when actual changes happen
 
   useEffect(() => {
     if (user) {
@@ -153,7 +142,6 @@ export default function EditProfile() {
         idNumber: user.profile?.nic || user.nic || ''
       };
       
-      console.log('📝 Setting form data:', newFormData);
       setFormData(newFormData);
 
       // Set address data from user profile
@@ -165,14 +153,10 @@ export default function EditProfile() {
         postalCode: user.address?.postalCode || ''
       };
       
-      console.log('🏠 Setting address data from user profile:', user.address);
-      console.log('🏠 New address data being set:', newAddressData);
       setAddressData(newAddressData);
       
       // Mark data as loaded
       setDataLoaded(true);
-      console.log('✅ Data loaded flag set to true');
-      console.log('🔄 Forms will re-render with new data');
     }
   }, [user]); // This will trigger when user data changes
 
@@ -194,27 +178,17 @@ export default function EditProfile() {
   }, [user]);
 
   const handleInputChange = (field: string, value: string) => {
-    console.log(`📝 Profile field changed: ${field} = ${value}`);
-    setFormData(prev => {
-      const newData = {
-        ...prev,
-        [field]: value
-      };
-      console.log('📝 New form data:', newData);
-      return newData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleAddressChange = (field: string, value: string) => {
-    console.log(`🏠 Address field changed: ${field} = ${value}`);
-    setAddressData(prev => {
-      const newData = {
-        ...prev,
-        [field]: value
-      };
-      console.log('🏠 New address data:', newData);
-      return newData;
-    });
+    setAddressData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -224,10 +198,6 @@ export default function EditProfile() {
 
     try {
       // Update user profile
-      console.log('📝 EditProfile handleSubmit called');
-      console.log('📝 Form data:', formData);
-      console.log('📝 User object:', user);
-      
       const updateData = {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
@@ -235,15 +205,9 @@ export default function EditProfile() {
         nic: formData.idNumber
       };
       
-      console.log('📝 Update data being sent to updateUser:', updateData);
-      
       if (updateUser) {
         await updateUser(updateData);
         setMessage('Profile updated successfully!');
-        
-        // Force refresh user profile to get updated data
-        console.log('🔄 Refreshing user profile after profile update...');
-        await refreshUserProfile();
       }
     } catch (error) {
       setMessage('Failed to update profile. Please try again.');
@@ -260,24 +224,13 @@ export default function EditProfile() {
 
     try {
       // Update user address
-      console.log('🏠 EditProfile handleAddressSubmit called');
-      console.log('🏠 Address data:', addressData);
-      console.log('🏠 User object:', user);
-      
       const updateData = {
         address: addressData
       };
       
-      console.log('🏠 Update data being sent to updateUser:', updateData);
-      
       if (updateUser) {
         await updateUser(updateData);
-        console.log('✅ Address update completed');
         setMessage('Address updated successfully!');
-        
-        // Force refresh user profile to get updated data
-        console.log('🔄 Refreshing user profile after address update...');
-        await refreshUserProfile();
       }
     } catch (error) {
       console.error('❌ Address update error:', error);
