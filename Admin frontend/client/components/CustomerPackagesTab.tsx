@@ -33,7 +33,7 @@ export default function CustomerPackagesTab() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // Track order status for each package
-  const [packageOrderStatus, setPackageOrderStatus] = useState<Record<string, 'none' | 'progress' | 'active'>>({});
+  const [packageOrderStatus, setPackageOrderStatus] = useState<Record<string, 'none' | 'progress' | 'active' | 'cancelled'>>({});
 
   useEffect(() => {
     loadOfferings();
@@ -325,11 +325,22 @@ export default function CustomerPackagesTab() {
       // Show success message
       setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
       
-      // Set package status to progress
-      setPackageOrderStatus(prev => ({
-        ...prev,
-        [offering.id]: 'progress'
-      }));
+      // Set package status to progress and cancel any existing active packages
+      setPackageOrderStatus(prev => {
+        const newStatus = { ...prev };
+        
+        // Cancel all existing active packages (set them to 'cancelled')
+        Object.keys(newStatus).forEach(packageId => {
+          if (newStatus[packageId] === 'active') {
+            newStatus[packageId] = 'cancelled';
+          }
+        });
+        
+        // Set the new package to progress
+        newStatus[offering.id] = 'progress';
+        
+        return newStatus;
+      });
       
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
@@ -362,24 +373,42 @@ export default function CustomerPackagesTab() {
           order.customerDetails?.email === user?.email
         );
         
-        // Update package status based on order status
-        userOrders.forEach((order: any) => {
+        // Sort orders by completion date (most recent first)
+        const sortedOrders = userOrders.sort((a: any, b: any) => {
+          const dateA = new Date(a.completionDate || a.orderDate || 0);
+          const dateB = new Date(b.completionDate || b.orderDate || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        // Track which packages should be active
+        const packageStatuses: Record<string, 'none' | 'progress' | 'active' | 'cancelled'> = {};
+        let hasActivePackage = false;
+        
+        // Process orders in chronological order (most recent first)
+        sortedOrders.forEach((order: any) => {
           const productOfferingId = order.productOrderItem?.[0]?.productOffering?.id;
           if (productOfferingId) {
-            let newStatus: 'none' | 'progress' | 'active' = 'none';
+            let newStatus: 'none' | 'progress' | 'active' | 'cancelled' = 'none';
             
             if (order.state === 'acknowledged' || order.state === 'inProgress') {
               newStatus = 'progress';
             } else if (order.state === 'completed') {
-              newStatus = 'active';
+              // Only allow one active package at a time
+              if (!hasActivePackage) {
+                newStatus = 'active';
+                hasActivePackage = true;
+              } else {
+                // If there's already an active package, this one should be cancelled
+                newStatus = 'cancelled';
+              }
             }
             
-            setPackageOrderStatus(prev => ({
-              ...prev,
-              [productOfferingId]: newStatus
-            }));
+            packageStatuses[productOfferingId] = newStatus;
           }
         });
+        
+        // Update all package statuses at once
+        setPackageOrderStatus(packageStatuses);
       }
     } catch (error) {
       console.error('Error checking order status updates:', error);
@@ -411,6 +440,17 @@ export default function CustomerPackagesTab() {
             onClick={(e) => e.preventDefault()}
           >
             Active
+          </Button>
+        );
+      case 'cancelled':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            disabled
+            className="flex-1 text-white bg-gray-400 border-gray-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
+          >
+            Cancelled
           </Button>
         );
       default:
