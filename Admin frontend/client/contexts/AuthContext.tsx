@@ -856,8 +856,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let userId = user.userId || user.uid || user.id;
       
       // Special case for thejana user - use the correct MongoDB userId
-      if (user.email && user.email.includes('thejana.20232281@iit.ac.lk')) {
-        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d9O2';
+      if (user.email && (user.email.includes('thejana.20232281@iit.ac.lk') || user.email.includes('thejanashehan.com@gmail.com'))) {
+        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d902';
         console.log('🔧 Using hardcoded userId for thejana user:', userId);
       }
       
