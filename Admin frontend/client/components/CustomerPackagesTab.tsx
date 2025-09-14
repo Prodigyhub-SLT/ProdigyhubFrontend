@@ -31,9 +31,19 @@ export default function CustomerPackagesTab() {
   
   // Success message state
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Track order status for each package
+  const [packageOrderStatus, setPackageOrderStatus] = useState<Record<string, 'none' | 'progress' | 'active'>>({});
 
   useEffect(() => {
     loadOfferings();
+    checkOrderStatusUpdates();
+  }, []);
+
+  // Check for order status updates every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(checkOrderStatusUpdates, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -315,6 +325,12 @@ export default function CustomerPackagesTab() {
       // Show success message
       setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
       
+      // Set package status to progress
+      setPackageOrderStatus(prev => ({
+        ...prev,
+        [offering.id]: 'progress'
+      }));
+      
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setSuccessMessage(null);
@@ -334,6 +350,80 @@ export default function CustomerPackagesTab() {
   const closeSpecView = () => {
     setIsSpecViewOpen(false);
     setSelectedOffering(null);
+  };
+
+  const checkOrderStatusUpdates = async () => {
+    try {
+      // Get orders for this user
+      const response = await fetch('/api/productOrderingManagement/v4/productOrder');
+      if (response.ok) {
+        const orders = await response.json();
+        const userOrders = orders.filter((order: any) => 
+          order.customerDetails?.email === user?.email
+        );
+        
+        // Update package status based on order status
+        userOrders.forEach((order: any) => {
+          const productOfferingId = order.productOrderItem?.[0]?.productOffering?.id;
+          if (productOfferingId) {
+            let newStatus: 'none' | 'progress' | 'active' = 'none';
+            
+            if (order.state === 'acknowledged' || order.state === 'inProgress') {
+              newStatus = 'progress';
+            } else if (order.state === 'completed') {
+              newStatus = 'active';
+            }
+            
+            setPackageOrderStatus(prev => ({
+              ...prev,
+              [productOfferingId]: newStatus
+            }));
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking order status updates:', error);
+    }
+  };
+
+  const renderUpgradeButton = (offering: ProductOffering) => {
+    const status = packageOrderStatus[offering.id] || 'none';
+    
+    switch (status) {
+      case 'progress':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            disabled
+            className="flex-1 text-white bg-green-100 border-green-200 text-green-700 cursor-not-allowed transition-all duration-200 rounded-lg py-1.5 font-medium text-sm"
+          >
+            Progress
+          </Button>
+        );
+      case 'active':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            disabled
+            className="flex-1 text-white bg-blue-100 border-blue-200 text-blue-700 cursor-not-allowed transition-all duration-200 rounded-lg py-1.5 font-medium text-sm"
+          >
+            Active
+          </Button>
+        );
+      default:
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => handleUpgrade(offering)}
+            className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+          >
+            Upgrade
+          </Button>
+        );
+    }
   };
 
   return (
@@ -564,14 +654,7 @@ export default function CustomerPackagesTab() {
                             >
                               View
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleUpgrade(offering)}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                            >
-                              Upgrade
-                            </Button>
+                            {renderUpgradeButton(offering)}
                           </div>
                         </div>
                       </Card>
@@ -661,14 +744,7 @@ export default function CustomerPackagesTab() {
                             >
                               View
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleUpgrade(offering)}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                            >
-                              Upgrade
-                            </Button>
+                            {renderUpgradeButton(offering)}
                           </div>
                         </div>
                       </Card>
@@ -758,14 +834,7 @@ export default function CustomerPackagesTab() {
                             >
                               View
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleUpgrade(offering)}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                            >
-                              Upgrade
-                            </Button>
+                            {renderUpgradeButton(offering)}
                           </div>
                         </div>
                       </Card>

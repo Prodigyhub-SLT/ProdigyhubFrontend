@@ -9,6 +9,7 @@ import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
+import MessagesTab from '../components/MessagesTab';
 import { 
   Wifi, 
   Tv, 
@@ -665,14 +666,7 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'messages' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Messages</CardTitle>
-                <CardDescription className="text-gray-600">Messaging features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <MessagesTab user={user} />
         )}
       </div>
     </div>
