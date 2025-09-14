@@ -2272,7 +2272,7 @@ app.use('/users', userRoutes);
 
 // Address Sync API
 const addressSyncRoutes = require('./src/api/tmf679/routes/addressSyncRoutes');
-app.use('/api', addressSyncRoutes);
+app.use('/api/sync', addressSyncRoutes);
 
 // TMF622 - Product Ordering Management
 // Product Orders
