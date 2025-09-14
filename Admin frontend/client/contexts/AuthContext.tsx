@@ -684,6 +684,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     try {
       console.log('🔄 Refreshing user profile from MongoDB...');
+      console.log('🔍 Using user ID for API call:', user.uid);
       const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
         method: 'GET',

@@ -32,6 +32,7 @@ export default function EditProfile() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Function to generate background color from profile picture
   const generateBackgroundColor = (imageUrl: string) => {
@@ -134,10 +135,16 @@ export default function EditProfile() {
   useEffect(() => {
     if (user) {
       console.log('🔄 Refreshing user profile for user:', user.uid || user.id);
+      console.log('🔍 User details:', {
+        uid: user.uid,
+        userId: user.userId,
+        email: user.email,
+        address: user.address
+      });
       // Refresh user profile from MongoDB to get latest data
       refreshUserProfile();
     }
-  }, [user?.uid]); // Only refresh when user ID changes
+  }, [user?.uid, refreshUserProfile]); // Added refreshUserProfile as dependency
 
   useEffect(() => {
     if (user) {
@@ -160,31 +167,35 @@ export default function EditProfile() {
         }
       }
       
-      setFormData({
+      const newFormData = {
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
         email: user.email || '',
         phoneNumber: phoneNumber,
         countryCode: countryCode,
         idNumber: user.profile?.nic || user.nic || ''
-      });
+      };
+      
+      console.log('📝 Setting form data:', newFormData);
+      setFormData(newFormData);
 
       // Set address data from user profile
+      const newAddressData = {
+        street: user.address?.street || '',
+        city: user.address?.city || '',
+        district: user.address?.district || '',
+        province: user.address?.province || '',
+        postalCode: user.address?.postalCode || ''
+      };
+      
       console.log('🏠 Setting address data from user profile:', user.address);
-      setAddressData({
-        street: user.address?.street || '',
-        city: user.address?.city || '',
-        district: user.address?.district || '',
-        province: user.address?.province || '',
-        postalCode: user.address?.postalCode || ''
-      });
-      console.log('🏠 Address data set to:', {
-        street: user.address?.street || '',
-        city: user.address?.city || '',
-        district: user.address?.district || '',
-        province: user.address?.province || '',
-        postalCode: user.address?.postalCode || ''
-      });
+      console.log('🏠 New address data being set:', newAddressData);
+      setAddressData(newAddressData);
+      
+      // Mark data as loaded
+      setDataLoaded(true);
+      console.log('✅ Data loaded flag set to true');
+      console.log('🔄 Forms will re-render with new data');
     }
   }, [user]); // This will trigger when user data changes
 
@@ -220,17 +231,27 @@ export default function EditProfile() {
   }, [user]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log(`📝 Profile field changed: ${field} = ${value}`);
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      console.log('📝 New form data:', newData);
+      return newData;
+    });
   };
 
   const handleAddressChange = (field: string, value: string) => {
-    setAddressData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log(`🏠 Address field changed: ${field} = ${value}`);
+    setAddressData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      console.log('🏠 New address data:', newData);
+      return newData;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -400,7 +421,7 @@ export default function EditProfile() {
 
               {/* Profile Details Tab */}
               <TabsContent value="profile">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form key={`profile-form-${dataLoaded}`} onSubmit={handleSubmit} className="space-y-6">
                   {/* Two Column Layout for Main Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* First Name */}
@@ -539,7 +560,7 @@ export default function EditProfile() {
 
               {/* Address Details Tab */}
               <TabsContent value="address">
-                <form onSubmit={handleAddressSubmit} className="space-y-6">
+                <form key={`address-form-${dataLoaded}`} onSubmit={handleAddressSubmit} className="space-y-6">
                   {/* Address Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Street Address */}
