@@ -406,9 +406,9 @@ export default function CustomerPackagesTab() {
           <Button 
             variant="ghost" 
             size="sm" 
-            disabled
-            className="flex-1 text-white bg-green-400 border-green-400 text-white transition-all duration-300 rounded-lg py-1.5 font-medium text-sm opacity-100"
+            className="flex-1 text-white bg-green-400 border-green-400 text-white transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
             style={{ pointerEvents: 'none' }}
+            onClick={(e) => e.preventDefault()}
           >
             Active
           </Button>
