@@ -30,13 +30,15 @@ router.post('/hash-existing-passwords', userController.hashExistingPasswords); /
 router.post('/', userController.createUser);
 router.get('/', userController.getAllUsers);
 router.get('/stats', userController.getUserStats);
+
+// User profile routes (specific routes first)
+router.get('/profile/:userId', userController.getUserProfile);
+router.put('/update', userController.updateUserProfile);
+
+// Generic CRUD operations (parameterized routes last)
 router.get('/:id', userController.getUserById);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
-
-// User profile routes
-router.get('/profile/:userId', userController.getUserProfile);
-router.put('/update', userController.updateUserProfile);
 
 // User search operations
 router.get('/email/:email', userController.getUserByEmail);
