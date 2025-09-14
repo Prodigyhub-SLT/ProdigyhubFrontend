@@ -36,9 +36,12 @@ export default function CustomerPackagesTab() {
   const [packageOrderStatus, setPackageOrderStatus] = useState<Record<string, 'none' | 'progress' | 'active' | 'cancelled'>>({});
 
   useEffect(() => {
-    loadOfferings();
-    checkOrderStatusUpdates();
-  }, []);
+    const initializeData = async () => {
+      await loadOfferings();
+      await checkOrderStatusUpdates();
+    };
+    initializeData();
+  }, [user]);
 
   // Check for order status updates every 30 seconds
   useEffect(() => {
@@ -365,6 +368,8 @@ export default function CustomerPackagesTab() {
 
   const checkOrderStatusUpdates = async () => {
     try {
+      console.log('🔍 Checking order status updates for user:', user?.email);
+      
       // Get orders for this user
       const response = await fetch('/api/productOrderingManagement/v4/productOrder');
       if (response.ok) {
@@ -372,6 +377,8 @@ export default function CustomerPackagesTab() {
         const userOrders = orders.filter((order: any) => 
           order.customerDetails?.email === user?.email
         );
+        
+        console.log('📋 Found user orders:', userOrders.length, userOrders);
         
         // Sort orders by completion date (most recent first)
         const sortedOrders = userOrders.sort((a: any, b: any) => {
@@ -404,11 +411,16 @@ export default function CustomerPackagesTab() {
             }
             
             packageStatuses[productOfferingId] = newStatus;
+            console.log(`📦 Package ${productOfferingId} (${order.productOrderItem?.[0]?.productOffering?.name}) - Status: ${newStatus} (Order state: ${order.state})`);
           }
         });
         
+        console.log('🎯 Final package statuses:', packageStatuses);
+        
         // Update all package statuses at once
         setPackageOrderStatus(packageStatuses);
+      } else {
+        console.error('❌ Failed to fetch orders:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error checking order status updates:', error);
