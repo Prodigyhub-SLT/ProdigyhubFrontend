@@ -328,14 +328,6 @@ export default function CustomerPackagesTab() {
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
-    } catch (error) {
-      console.error('Error creating upgrade order:', error);
-      setSuccessMessage('Failed to create upgrade order. Please try again.');
-      
-      // Auto-hide error message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 5000);
     }
   };
 
