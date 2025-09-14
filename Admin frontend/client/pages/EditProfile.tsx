@@ -114,8 +114,21 @@ export default function EditProfile() {
 
   useEffect(() => {
     if (user) {
-      // Split full name into first and last name
-      const nameParts = (user.name || '').split(' ');
+      // Handle both combined name and separate firstName/lastName fields
+      let firstName = '';
+      let lastName = '';
+      
+      if (user.firstName && user.lastName) {
+        // Use separate firstName and lastName fields (from backend response)
+        firstName = user.firstName;
+        lastName = user.lastName;
+      } else if (user.name) {
+        // Split full name into first and last name (legacy format)
+        const nameParts = user.name.split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ') || '';
+      }
+      
       // Parse phone number if it includes country code
       // Check both profile.phone and direct phoneNumber (for backward compatibility)
       let phoneNumber = user.profile?.phone || user.phoneNumber || '';
@@ -134,8 +147,8 @@ export default function EditProfile() {
       }
       
       const newFormData = {
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
+        firstName: firstName,
+        lastName: lastName,
         email: user.email || '',
         phoneNumber: phoneNumber,
         countryCode: countryCode,

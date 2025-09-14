@@ -959,7 +959,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             ...responseData.user,
             // Ensure we keep the Firebase UID
             uid: user.uid,
-            userId: user.userId || user.uid
+            userId: user.userId || user.uid,
+            // Create a combined name field for backward compatibility
+            name: responseData.user.firstName && responseData.user.lastName 
+              ? `${responseData.user.firstName} ${responseData.user.lastName}`.trim()
+              : user.name
           };
           setUser(updatedUserData);
           
