@@ -44,4 +44,7 @@ router.put('/email/:email', userController.updateUserByEmail);
 router.get('/district/:district', userController.getUsersByDistrict);
 router.get('/province/:province', userController.getUsersByProvince);
 
+// Test endpoint to check MongoDB _id lookup
+router.get('/test/:id', userController.testUserLookup);
+
 module.exports = router;

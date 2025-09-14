@@ -518,6 +518,79 @@ const userController = {
     }
   },
 
+  // GET /api/users/test/:id - Test user lookup by MongoDB _id
+  testUserLookup: async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log('🧪 TEST ENDPOINT - Looking for user with id:', id);
+      console.log('🧪 id type:', typeof id);
+      console.log('🧪 id length:', id?.length);
+      console.log('🧪 Is MongoDB ObjectId format?', id && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id));
+      
+      let user = null;
+      
+      // Try to find by _id if it looks like MongoDB ObjectId
+      if (id && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id)) {
+        console.log('🧪 Searching by _id');
+        user = await User.findById(id);
+        if (user) {
+          console.log('✅ Found user by _id:', user.email);
+        } else {
+          console.log('❌ No user found with _id:', id);
+        }
+      }
+      
+      // Try by userId field
+      if (!user) {
+        console.log('🧪 Searching by userId field');
+        user = await User.findOne({ userId: id });
+        if (user) {
+          console.log('✅ Found user by userId field:', user.email);
+        } else {
+          console.log('❌ No user found with userId field:', id);
+        }
+      }
+      
+      // Try by email
+      if (!user) {
+        console.log('🧪 Searching by email');
+        user = await User.findOne({ email: id });
+        if (user) {
+          console.log('✅ Found user by email:', user.email);
+        } else {
+          console.log('❌ No user found with email:', id);
+        }
+      }
+      
+      if (user) {
+        res.status(200).json({
+          success: true,
+          message: 'User found',
+          user: {
+            _id: user._id,
+            userId: user.userId,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+          }
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+          searchedId: id
+        });
+      }
+    } catch (error) {
+      console.error('Error in testUserLookup:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
   // PUT /api/users/update - Update user profile
   updateUserProfile: async (req, res) => {
     try {
