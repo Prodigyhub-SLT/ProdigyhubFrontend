@@ -855,10 +855,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Get userId from user object (should be set during login)
       let userId = user.userId || user.uid || user.id;
       
-      // Special case for thejana user - use the correct MongoDB userId
-      if (user.email && (user.email.includes('thejana.20232281@iit.ac.lk') || user.email.includes('thejanashehan.com@gmail.com'))) {
-        userId = 'AEY8jsEB75fwoCXh3yoL6Z47d902';
-        console.log('🔧 Using hardcoded userId for thejana user:', userId);
+      // If no userId found, try to look up user by email in MongoDB
+      if (!userId || userId === user.uid) {
+        console.log('🔍 No userId found, looking up user by email in MongoDB...');
+        try {
+          const lookupResponse = await fetch(`${backendURL}/users/email/${user.email}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (lookupResponse.ok) {
+            const lookupData = await lookupResponse.json();
+            userId = lookupData.userId || lookupData.id;
+            console.log('✅ Found userId by email lookup:', userId);
+          } else {
+            console.warn('⚠️ Email lookup failed, using Firebase UID as fallback');
+            userId = user.uid;
+          }
+        } catch (lookupError) {
+          console.warn('⚠️ Email lookup error, using Firebase UID as fallback:', lookupError);
+          userId = user.uid;
+        }
       }
       
       console.log('🔧 Using userId for update:', userId);
