@@ -31,12 +31,6 @@ export default function CustomerPackagesTab() {
   
   // Success message state
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Debug: Log success message changes
-  useEffect(() => {
-    console.log('📢 Success message changed:', successMessage);
-  }, [successMessage]);
 
   useEffect(() => {
     loadOfferings();
@@ -215,7 +209,6 @@ export default function CustomerPackagesTab() {
 
   const handleUpgrade = async (offering: ProductOffering) => {
     try {
-      setIsLoading(true);
       setSuccessMessage(null);
       
       // Debug: Log user data
@@ -320,13 +313,10 @@ export default function CustomerPackagesTab() {
       const order = await createOrderWithRetry(orderData);
       
       // Show success message
-      const successMsg = `Upgrade order created successfully! Order ID: ${order.id}`;
-      console.log('🎉 Setting success message:', successMsg);
-      setSuccessMessage(successMsg);
+      setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
       
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
-        console.log('🕐 Auto-hiding success message');
         setSuccessMessage(null);
       }, 5000);
       
@@ -338,9 +328,14 @@ export default function CustomerPackagesTab() {
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
-    } finally {
-      console.log('🏁 Finally block - setting loading to false');
-      setIsLoading(false);
+    } catch (error) {
+      console.error('Error creating upgrade order:', error);
+      setSuccessMessage('Failed to create upgrade order. Please try again.');
+      
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
     }
   };
 
@@ -351,32 +346,29 @@ export default function CustomerPackagesTab() {
 
   return (
     <div className="space-y-8">
-      {/* Success Message */}
+      {/* Popup Notification - Bottom Right */}
       {successMessage && (
-        <div className={`p-4 rounded-lg border ${
-          successMessage.includes('successfully') 
-            ? 'bg-green-50 border-green-200 text-green-800' 
-            : 'bg-red-50 border-red-200 text-red-800'
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">{successMessage}</span>
-            <button
-              onClick={() => {
-                console.log('❌ Manually closing success message');
-                setSuccessMessage(null);
-              }}
-              className="ml-4 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-2 duration-300">
+          <div className={`p-4 rounded-lg shadow-lg border max-w-sm ${
+            successMessage.includes('successfully') 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  successMessage.includes('successfully') ? 'bg-green-500' : 'bg-red-500'
+                }`}></div>
+                <span className="text-sm font-medium">{successMessage}</span>
+              </div>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="ml-3 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-      
-      {/* Debug: Show success message state */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
-          Debug - Success Message: {successMessage || 'null'} | Loading: {isLoading ? 'true' : 'false'}
         </div>
       )}
       
@@ -584,10 +576,9 @@ export default function CustomerPackagesTab() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleUpgrade(offering)}
-                              disabled={isLoading}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                             >
-                              {isLoading ? 'Processing...' : 'Upgrade'}
+                              Upgrade
                             </Button>
                           </div>
                         </div>
@@ -682,10 +673,9 @@ export default function CustomerPackagesTab() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleUpgrade(offering)}
-                              disabled={isLoading}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                             >
-                              {isLoading ? 'Processing...' : 'Upgrade'}
+                              Upgrade
                             </Button>
                           </div>
                         </div>
@@ -780,10 +770,9 @@ export default function CustomerPackagesTab() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleUpgrade(offering)}
-                              disabled={isLoading}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                             >
-                              {isLoading ? 'Processing...' : 'Upgrade'}
+                              Upgrade
                             </Button>
                           </div>
                         </div>
