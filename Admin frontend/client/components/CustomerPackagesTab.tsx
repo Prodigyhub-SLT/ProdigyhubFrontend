@@ -595,7 +595,6 @@ export default function CustomerPackagesTab() {
                         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
                           <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
@@ -685,7 +684,6 @@ export default function CustomerPackagesTab() {
                         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
                           <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
@@ -775,7 +773,6 @@ export default function CustomerPackagesTab() {
                         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
                           <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
