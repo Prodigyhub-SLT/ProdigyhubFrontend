@@ -28,6 +28,10 @@ export default function CustomerPackagesTab() {
   // Spec view modal state
   const [isSpecViewOpen, setIsSpecViewOpen] = useState(false);
   const [selectedOffering, setSelectedOffering] = useState<ProductOffering | null>(null);
+  
+  // Success message state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadOfferings();
@@ -206,6 +210,9 @@ export default function CustomerPackagesTab() {
 
   const handleUpgrade = async (offering: ProductOffering) => {
     try {
+      setIsLoading(true);
+      setSuccessMessage(null);
+      
       // Debug: Log user data
       console.log('🔍 User data in handleUpgrade:', {
         user: user,
@@ -308,11 +315,23 @@ export default function CustomerPackagesTab() {
       const order = await createOrderWithRetry(orderData);
       
       // Show success message
-      alert(`Upgrade order created successfully! Order ID: ${order.id}`);
+      setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
       
     } catch (error) {
       console.error('Error creating upgrade order:', error);
-      alert('Failed to create upgrade order. Please try again.');
+      setSuccessMessage('Failed to create upgrade order. Please try again.');
+      
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -323,6 +342,25 @@ export default function CustomerPackagesTab() {
 
   return (
     <div className="space-y-8">
+      {/* Success Message */}
+      {successMessage && (
+        <div className={`p-4 rounded-lg border ${
+          successMessage.includes('successfully') 
+            ? 'bg-green-50 border-green-200 text-green-800' 
+            : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{successMessage}</span>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="ml-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Broadband Packages</h2>
         
@@ -527,9 +565,10 @@ export default function CustomerPackagesTab() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleUpgrade(offering)}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                              disabled={isLoading}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Upgrade
+                              {isLoading ? 'Processing...' : 'Upgrade'}
                             </Button>
                           </div>
                         </div>
@@ -624,9 +663,10 @@ export default function CustomerPackagesTab() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleUpgrade(offering)}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                              disabled={isLoading}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Upgrade
+                              {isLoading ? 'Processing...' : 'Upgrade'}
                             </Button>
                           </div>
                         </div>
@@ -721,9 +761,10 @@ export default function CustomerPackagesTab() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleUpgrade(offering)}
-                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                              disabled={isLoading}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Upgrade
+                              {isLoading ? 'Processing...' : 'Upgrade'}
                             </Button>
                           </div>
                         </div>

@@ -560,42 +560,30 @@ export default function ProductOrders({
                     <CardTitle className="text-xl text-slate-900">Customer Details</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
-                        <Label className="text-purple-700 font-bold text-sm">Customer Name</Label>
-                        <p className="text-sm font-semibold bg-white p-3 rounded-lg border border-purple-200/50 mt-2 shadow-sm">
-                          {selectedOrderForView.customerDetails.name || 'N/A'}
-                        </p>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Customer Name:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.name || 'N/A'}</span>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
-                        <Label className="text-blue-700 font-bold text-sm">Email</Label>
-                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-blue-200/50 mt-2 shadow-sm">
-                          {selectedOrderForView.customerDetails.email || 'N/A'}
-                        </p>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Email:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.email || 'N/A'}</span>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50">
-                        <Label className="text-green-700 font-bold text-sm">Phone</Label>
-                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-green-200/50 mt-2 shadow-sm">
-                          {selectedOrderForView.customerDetails.phone || 'N/A'}
-                        </p>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Phone:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.phone || 'N/A'}</span>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/50">
-                        <Label className="text-amber-700 font-bold text-sm">NIC</Label>
-                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-amber-200/50 mt-2 shadow-sm">
-                          {selectedOrderForView.customerDetails.nic || 'N/A'}
-                        </p>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">NIC:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.nic || 'N/A'}</span>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200/50">
-                        <Label className="text-cyan-700 font-bold text-sm">Customer ID</Label>
-                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-cyan-200/50 mt-2 shadow-sm">
-                          {selectedOrderForView.customerDetails.id || 'N/A'}
-                        </p>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Customer ID:</span>
+                        <span className="text-sm text-gray-900 font-mono">{selectedOrderForView.customerDetails.id || 'N/A'}</span>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/50 border border-rose-200/50">
-                        <Label className="text-rose-700 font-bold text-sm">Order Type</Label>
-                        <p className="text-sm font-semibold bg-white p-3 rounded-lg border border-rose-200/50 mt-2 shadow-sm">
-                          {selectedOrderForView.category || 'N/A'}
-                        </p>
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-sm font-medium text-gray-600">Order Type:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.category || 'N/A'}</span>
                       </div>
                     </div>
                     
