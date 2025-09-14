@@ -396,7 +396,7 @@ export default function CustomerPackagesTab() {
             variant="ghost" 
             size="sm" 
             disabled
-            className="flex-1 text-white bg-green-500 border-green-500 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm shadow-lg shadow-green-500/30 hover:shadow-green-500/40 animate-pulse"
+            className="flex-1 text-white bg-green-400 border-green-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
           >
             Progress
           </Button>
@@ -407,7 +407,7 @@ export default function CustomerPackagesTab() {
             variant="ghost" 
             size="sm" 
             disabled
-            className="flex-1 text-white bg-green-500 border-green-500 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm shadow-lg shadow-green-500/30 hover:shadow-green-500/40 animate-pulse"
+            className="flex-1 text-white bg-green-400 border-green-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
           >
             Active
           </Button>
