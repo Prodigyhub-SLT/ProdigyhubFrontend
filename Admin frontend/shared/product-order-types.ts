@@ -187,6 +187,23 @@ export interface ProductOrder {
       dutyFreeAmount?: Money;
     };
   }>;
+  // Custom field for storing customer details
+  customerDetails?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    nic?: string;
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      district?: string;
+      province?: string;
+      postalCode?: string;
+    };
+  };
   '@type'?: string;
 }
 

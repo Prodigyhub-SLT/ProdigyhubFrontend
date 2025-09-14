@@ -204,6 +204,8 @@ export default function ProductOrders({
   };
 
   const handleViewOrder = (order: ProductOrder) => {
+    console.log('🔍 Selected order for view:', order);
+    console.log('🔍 Order customerDetails:', order.customerDetails);
     setSelectedOrderForView(order);
     setIsViewDialogOpen(true);
   };
@@ -274,6 +276,7 @@ export default function ProductOrders({
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-slate-100/80 via-white to-slate-100/80 border-b border-slate-200/50 hover:bg-slate-100/80">
                   <TableHead className="font-bold text-slate-700 py-4 px-6">Product Name(s)</TableHead>
+                  <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6">Customer</TableHead>
                   <TableHead className="font-bold text-slate-700 py-4 px-6">State</TableHead>
                   <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6 text-center">Priority</TableHead>
                   <TableHead className="hidden lg:table-cell font-bold text-slate-700 py-4 px-6">Order Date</TableHead>
@@ -305,6 +308,25 @@ export default function ProductOrders({
                             </div>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell py-4 px-6">
+                        {order.customerDetails ? (
+                          <div className="space-y-1">
+                            <div className="font-semibold text-slate-900 text-sm">
+                              {order.customerDetails.name || 'Unknown Customer'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {order.customerDetails.email || 'No email'}
+                            </div>
+                            {order.customerDetails.phone && (
+                              <div className="text-xs text-slate-500">
+                                {order.customerDetails.phone}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-slate-400 text-sm">No customer data</div>
+                        )}
                       </TableCell>
                       <TableCell className="py-4 px-6">
                         <Badge className={`${getStateColor(order.state || '')} border px-3 py-1.5 rounded-lg font-medium`}>
@@ -530,6 +552,90 @@ export default function ProductOrders({
                   )}
                 </CardContent>
               </Card>
+
+              {/* Customer Details Section */}
+              {selectedOrderForView.customerDetails && (
+                <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-slate-900">Customer Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
+                        <Label className="text-purple-700 font-bold text-sm">Customer Name</Label>
+                        <p className="text-sm font-semibold bg-white p-3 rounded-lg border border-purple-200/50 mt-2 shadow-sm">
+                          {selectedOrderForView.customerDetails.name || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
+                        <Label className="text-blue-700 font-bold text-sm">Email</Label>
+                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-blue-200/50 mt-2 shadow-sm">
+                          {selectedOrderForView.customerDetails.email || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50">
+                        <Label className="text-green-700 font-bold text-sm">Phone</Label>
+                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-green-200/50 mt-2 shadow-sm">
+                          {selectedOrderForView.customerDetails.phone || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/50">
+                        <Label className="text-amber-700 font-bold text-sm">NIC</Label>
+                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-amber-200/50 mt-2 shadow-sm">
+                          {selectedOrderForView.customerDetails.nic || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200/50">
+                        <Label className="text-cyan-700 font-bold text-sm">Customer ID</Label>
+                        <p className="text-sm font-mono bg-white p-3 rounded-lg border border-cyan-200/50 mt-2 shadow-sm">
+                          {selectedOrderForView.customerDetails.id || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/50 border border-rose-200/50">
+                        <Label className="text-rose-700 font-bold text-sm">Order Type</Label>
+                        <p className="text-sm font-semibold bg-white p-3 rounded-lg border border-rose-200/50 mt-2 shadow-sm">
+                          {selectedOrderForView.category || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Address Details if available */}
+                    {selectedOrderForView.customerDetails.address && (
+                      <div className="mt-6 p-4 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50">
+                        <Label className="text-slate-700 font-bold text-sm">Address</Label>
+                        <div className="mt-2 p-4 bg-white rounded-lg border border-slate-200/50 shadow-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {selectedOrderForView.customerDetails.address.street && (
+                              <div>
+                                <span className="text-slate-600 font-medium">Street: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.street}</span>
+                              </div>
+                            )}
+                            {selectedOrderForView.customerDetails.address.city && (
+                              <div>
+                                <span className="text-slate-600 font-medium">City: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.city}</span>
+                              </div>
+                            )}
+                            {selectedOrderForView.customerDetails.address.district && (
+                              <div>
+                                <span className="text-slate-600 font-medium">District: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.district}</span>
+                              </div>
+                            )}
+                            {selectedOrderForView.customerDetails.address.province && (
+                              <div>
+                                <span className="text-slate-600 font-medium">Province: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.province}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
                 <CardHeader>

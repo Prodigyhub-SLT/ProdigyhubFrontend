@@ -216,12 +216,14 @@ export default function CustomerPackagesTab() {
         profile: user?.profile
       });
       
-      // If user data is incomplete, try to fetch from MongoDB manually
+      // Always fetch complete user data from MongoDB using email lookup
       let userData = user;
-      if (user && (!user.phoneNumber && !user.nic)) {
+      if (user && user.email) {
         try {
           const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-          const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
+          console.log('🔍 Looking up user by email:', user.email);
+          
+          const response = await fetch(`${backendURL}/users/email/${encodeURIComponent(user.email)}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -230,30 +232,41 @@ export default function CustomerPackagesTab() {
           
           if (response.ok) {
             const mongoUserData = await response.json();
-            console.log('✅ Manually fetched MongoDB profile data:', mongoUserData);
+            console.log('✅ Fetched complete MongoDB user data:', mongoUserData);
+            
+            // Use the complete user data from MongoDB
             userData = {
               ...user,
+              // Use MongoDB data for all fields
+              name: mongoUserData.firstName && mongoUserData.lastName 
+                ? `${mongoUserData.firstName} ${mongoUserData.lastName}`.trim()
+                : user.name,
+              firstName: mongoUserData.firstName,
+              lastName: mongoUserData.lastName,
               phoneNumber: mongoUserData.phoneNumber || '',
               nic: mongoUserData.nic || '',
+              address: mongoUserData.address,
               profile: {
                 ...user.profile,
                 phone: mongoUserData.phoneNumber || '',
                 nic: mongoUserData.nic || '',
               }
             };
+          } else {
+            console.warn('Failed to fetch user data from MongoDB, using existing data');
           }
         } catch (error) {
-          console.warn('Failed to manually fetch user profile:', error);
+          console.warn('Failed to fetch user profile from MongoDB:', error);
         }
       }
       
       // Import the order creation API
       const { createOrderWithRetry } = await import('@/lib/api');
       
-      // Create order data with user information
+      // Create order data with complete user information
       const orderData = {
         category: 'B2C product order',
-        description: `Upgrade request for ${offering.name}`,
+        description: `Package upgrade request for ${offering.name} by ${userData?.name || 'Customer'}`,
         priority: '2', // High priority for upgrades
         productOrderItem: [{
           action: 'add' as const,
@@ -270,15 +283,20 @@ export default function CustomerPackagesTab() {
           role: 'customer',
           '@type': 'RelatedParty'
         }] : [],
+        // Store complete customer details in the custom field
         customerDetails: userData ? {
           name: userData.name || 'Unknown',
           email: userData.email || '',
           phone: userData.phoneNumber || userData.profile?.phone || '',
           nic: userData.nic || userData.profile?.nic || '',
-          id: userData.id || userData.uid || 'unknown'
+          id: userData.id || userData.uid || 'unknown',
+          // Add additional details
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          address: userData.address || null
         } : undefined,
         note: [{
-          text: `Customer upgrade request for ${offering.name}`,
+          text: `Customer upgrade request for ${offering.name}. Customer: ${userData?.name || 'Unknown'} (${userData?.email || 'No email'})`,
           author: 'Customer',
           date: new Date().toISOString(),
           '@type': 'Note'
