@@ -548,6 +548,21 @@ const userController = {
       
       if (!user) {
         console.log('❌ User not found with userId:', userId);
+        console.log('🔍 Checking if user exists with different userId field...');
+        
+        // Check if user exists with the same email but different userId
+        const userByEmail = await User.findOne({ email: updates.email });
+        if (userByEmail) {
+          console.log('✅ Found user by email, current userId:', userByEmail.userId);
+          console.log('🔄 Updating userId field to match Firebase UID');
+          userByEmail.userId = userId;
+          await userByEmail.save();
+          user = userByEmail;
+        }
+      }
+      
+      if (!user) {
+        console.log('❌ User still not found after email check');
         
         // Try multiple fallback methods
         const fallbackMethods = [
@@ -648,9 +663,9 @@ const userController = {
       console.log('🔄 Updating user with data:', updateData);
       console.log('🏠 Address being saved:', updateData.address);
 
-      // Update user
+      // Update user using the found user's _id instead of userId
       const updatedUser = await User.findOneAndUpdate(
-        { userId },
+        { _id: user._id },
         updateData,
         { new: true, runValidators: true }
       );
