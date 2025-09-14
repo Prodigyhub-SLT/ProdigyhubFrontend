@@ -8,6 +8,8 @@ export interface User {
   uid?: string; // Firebase UID
   userId?: string; // Custom user ID from MongoDB
   name: string;
+  firstName?: string; // Add firstName field
+  lastName?: string; // Add lastName field
   email: string;
   role: 'admin' | 'user' | 'viewer';
   department: string;
