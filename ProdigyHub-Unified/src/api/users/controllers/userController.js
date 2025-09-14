@@ -542,9 +542,24 @@ const userController = {
         });
       }
 
-      // Find user by multiple methods
+      // Find user by multiple methods - check if userId is MongoDB _id first
       console.log('🔍 Looking for user with userId:', userId);
-      let user = await User.findOne({ userId });
+      let user = null;
+      
+      // First try to find by _id if userId looks like MongoDB ObjectId
+      if (userId && userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId)) {
+        console.log('🔍 userId looks like MongoDB ObjectId, searching by _id');
+        user = await User.findById(userId);
+        if (user) {
+          console.log('✅ Found user by _id:', user.email);
+        }
+      }
+      
+      // If not found by _id, try by userId field
+      if (!user) {
+        console.log('🔍 Searching by userId field');
+        user = await User.findOne({ userId });
+      }
       
       if (!user) {
         console.log('❌ User not found with userId:', userId);
