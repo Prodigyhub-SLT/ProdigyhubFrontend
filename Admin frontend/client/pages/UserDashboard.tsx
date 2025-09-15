@@ -654,7 +654,7 @@ export default function UserDashboard() {
 
          {/* Other tabs content can be added here */}
         {activeTab === 'inventory' && (
-          <QualificationTab />
+          <CustomerInventoryTab />
         )}
 
         {activeTab === 'qualification' && (
