@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { productOrderingApi } from '@/lib/api';
 import { 
   MessageCircle, 
   CheckCircle, 
@@ -238,31 +239,10 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     try {
       console.log('🚫 Attempting to cancel order:', notificationId);
       
-      // Step 1: Update the order state to cancelled first (same as admin dashboard)
-      console.log('📝 Step 1: Updating order state to cancelled...');
-      
-      // Use exact same approach as admin dashboard - just update the state
-      const updateBody = { state: 'cancelled' };
-      
-      console.log('📤 Update request body (matching admin dashboard):', updateBody);
-      
-      const updateResponse = await fetch(`/api/productOrderingManagement/v4/productOrder/${notificationId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        body: JSON.stringify(updateBody)
-      });
-      
-      if (!updateResponse.ok) {
-        const updateError = await updateResponse.json().catch(() => ({}));
-        console.error('❌ Failed to update order state:', updateError);
-        alert(`Failed to cancel order: ${updateError.message || updateError.error || 'Please try again or contact support.'}`);
-        return;
-      }
-      
-      const updateData = await updateResponse.json();
-      console.log('✅ Order state updated to cancelled:', updateData);
+      // Use EXACT same approach as admin dashboard - use the same API client
+      console.log('📝 Step 1: Updating order state to cancelled (using admin dashboard API client)...');
+      await productOrderingApi.updateOrder(notificationId, { state: 'cancelled' });
+      console.log('✅ Order state updated successfully');
       
       // Step 2: Create cancellation request (same as admin dashboard)
       console.log('📝 Step 2: Creating cancellation request...');
@@ -278,25 +258,8 @@ export default function MessagesTab({ user }: MessagesTabProps) {
       };
       
       console.log('📤 Cancel request body:', cancelRequest);
-      
-      const cancelResponse = await fetch(`/api/productOrderingManagement/v4/cancelProductOrder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cancelRequest)
-      });
-
-      console.log('📥 Cancel response status:', cancelResponse.status);
-
-      if (cancelResponse.ok) {
-        const cancelData = await cancelResponse.json();
-        console.log('✅ Cancellation request created:', cancelData);
-      } else {
-        const cancelError = await cancelResponse.json().catch(() => ({}));
-        console.warn('⚠️ Failed to create cancellation request:', cancelError);
-        // Don't fail the whole process if cancellation request creation fails
-      }
+      await productOrderingApi.cancelOrder(cancelRequest);
+      console.log('✅ Cancellation request created successfully');
       
       // Update the notification status to cancelled
       setNotifications(prev => 
