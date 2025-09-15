@@ -243,27 +243,27 @@ export default function InventoryTab() {
           </div>
           {activePackage && (
             <div className="flex flex-col gap-3">
-              {/* Active status button - rectangular with glowing effect */}
+              {/* Active status button - more prominent and different */}
               <div className="relative">
-                <div className="absolute inset-0 bg-emerald-400 rounded-lg blur-sm opacity-75"></div>
-                <div className="relative bg-gradient-to-r from-emerald-400 to-emerald-500 text-emerald-900 font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm flex items-center justify-center shadow-xl">
+                <div className="absolute inset-0 bg-emerald-400 rounded-xl blur-md opacity-60"></div>
+                <div className="relative bg-gradient-to-br from-emerald-300 via-emerald-400 to-emerald-500 text-white font-bold rounded-xl px-8 py-4 w-36 h-14 text-base flex items-center justify-center shadow-2xl border-2 border-emerald-200">
                   Activate
                 </div>
               </div>
-              {/* Action buttons */}
+              {/* Action buttons - smaller and more compact */}
               <Button
                 variant="outline"
                 onClick={() => setIsCancelDialogOpen(true)}
-                className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-4 py-3 w-32 h-12 text-sm font-semibold shadow-lg flex items-center gap-2"
+                className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-3 py-2 w-28 h-10 text-xs font-medium shadow-md flex items-center gap-1.5"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3 h-3" />
                 Cancel
               </Button>
               <Button
                 onClick={() => navigate({ search: '?tab=packages' })}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-3 w-32 h-12 text-sm font-semibold shadow-lg flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 w-28 h-10 text-xs font-medium shadow-md flex items-center gap-1.5"
               >
-                <ArrowUpRight className="w-4 h-4" />
+                <ArrowUpRight className="w-3 h-3" />
                 Upgrade
               </Button>
             </div>
