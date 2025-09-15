@@ -16,7 +16,9 @@ import {
   PauseCircle,
   Square,
   Info,
-  XCircle
+  XCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface User {
@@ -45,6 +47,7 @@ export default function MessagesTab({ user }: MessagesTabProps) {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
+  const [expandedMessage, setExpandedMessage] = useState<string | null>(null);
 
   // Helper functions for localStorage management
   const getReadNotifications = (): Set<string> => {
@@ -277,6 +280,14 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     }
   };
 
+  const toggleMessageExpansion = (notificationId: string) => {
+    setExpandedMessage(expandedMessage === notificationId ? null : notificationId);
+    // Mark as read when user clicks to expand
+    if (expandedMessage !== notificationId) {
+      markAsRead(notificationId);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   if (loading) {
@@ -336,129 +347,148 @@ export default function MessagesTab({ user }: MessagesTabProps) {
               <p className="text-gray-400">You'll receive notifications about your package upgrades here.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 rounded-lg border transition-all duration-200 ${
+                  className={`rounded-lg border transition-all duration-200 cursor-pointer ${
                     notification.read 
                       ? 'bg-gray-50 border-gray-200' 
                       : 'bg-blue-50 border-blue-200 shadow-sm'
                   }`}
+                  onClick={() => toggleMessageExpansion(notification.id)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="mt-1">
-                        {getStatusIcon(notification.status)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Package className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium text-gray-900">
-                            {notification.packageName}
-                          </span>
-                          {getStatusBadge(notification.status)}
-                          {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          )}
+                  {/* Compact Message Header */}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div>
+                          {getStatusIcon(notification.status)}
                         </div>
-                        
-                        {/* Progress Bar for Active Orders */}
-                        {notification.status !== 'completed' && notification.status !== 'cancelled' && notification.status !== 'failed' && (
-                          <div className="mb-3">
-                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                              <span>Progress</span>
-                              <span>{notification.progress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-500 ${
-                                  notification.status === 'acknowledged' ? 'bg-blue-500' :
-                                  notification.status === 'inProgress' ? 'bg-yellow-500' : 'bg-gray-400'
-                                }`}
-                                style={{ width: `${notification.progress}%` }}
-                              ></div>
-                            </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Package className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium text-gray-900">
+                              {notification.packageName}
+                            </span>
+                            {getStatusBadge(notification.status)}
+                            {!notification.read && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
                           </div>
-                        )}
-                        
-                        <p className="text-gray-700 mb-2">{notification.message}</p>
-                        
-                        {/* Status Details */}
-                        <div className="mb-3 p-3 bg-white rounded-lg border">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Info className="h-4 w-4 text-blue-500" />
-                            <span className="text-sm font-medium text-gray-700">Order Status</span>
+                          <p className="text-gray-700 text-sm">{notification.message}</p>
+                          <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                            <span>{new Date(notification.timestamp).toLocaleString()}</span>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                              <span className="text-gray-500">Order ID:</span>
-                              <span className="ml-1 font-mono">{notification.orderId.slice(0, 8)}...</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Status:</span>
-                              <span className="ml-1">{notification.status}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Progress:</span>
-                              <span className="ml-1">{notification.progress}%</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Created:</span>
-                              <span className="ml-1">{new Date(notification.timestamp).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>
-                            {new Date(notification.timestamp).toLocaleString()}
-                          </span>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {notification.canCancel && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => cancelOrder(notification.id)}
-                          disabled={cancellingOrder === notification.id}
-                          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                          title="Cancel this upgrade request"
-                        >
-                          {cancellingOrder === notification.id ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Square className="h-3 w-3" />
-                          )}
-                          <span className="ml-1">Cancel</span>
-                        </Button>
-                      )}
-                      <div className="flex gap-1">
-                        {!notification.read && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => markAsRead(notification.id)}
-                            className="text-gray-400 hover:text-gray-600"
-                            title="Mark as read"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteNotification(notification.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
                           className="text-gray-400 hover:text-red-600"
                           title="Delete message"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                        {expandedMessage === notification.id ? (
+                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        )}
                       </div>
                     </div>
                   </div>
+
+                  {/* Expanded Details */}
+                  {expandedMessage === notification.id && (
+                    <div className="px-4 pb-4 border-t border-gray-200 bg-white rounded-b-lg">
+                      {/* Progress Bar for Active Orders */}
+                      {notification.status !== 'completed' && notification.status !== 'cancelled' && notification.status !== 'failed' && (
+                        <div className="mb-4 pt-4">
+                          <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                            <span>Progress</span>
+                            <span>{notification.progress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-500 ${
+                                notification.status === 'acknowledged' ? 'bg-blue-500' :
+                                notification.status === 'inProgress' ? 'bg-yellow-500' : 'bg-gray-400'
+                              }`}
+                              style={{ width: `${notification.progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Status Details */}
+                      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Info className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm font-medium text-gray-700">Order Status</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-gray-500">Order ID:</span>
+                            <span className="ml-1 font-mono">{notification.orderId.slice(0, 8)}...</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Status:</span>
+                            <span className="ml-1">{notification.status}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Progress:</span>
+                            <span className="ml-1">{notification.progress}%</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Created:</span>
+                            <span className="ml-1">{new Date(notification.timestamp).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        {notification.canCancel && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cancelOrder(notification.id);
+                            }}
+                            disabled={cancellingOrder === notification.id}
+                            className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          >
+                            {cancellingOrder === notification.id ? (
+                              <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                            ) : (
+                              <Square className="h-3 w-3 mr-1" />
+                            )}
+                            Cancel Request
+                          </Button>
+                        )}
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notification.id);
+                            }}
+                            className="text-gray-600 hover:text-gray-800"
+                          >
+                            Mark as Read
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
