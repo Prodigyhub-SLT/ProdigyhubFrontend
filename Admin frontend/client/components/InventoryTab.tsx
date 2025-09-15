@@ -574,9 +574,6 @@ export default function InventoryTab() {
                       Status
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
-                      Source
-                    </th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
                       Order Info
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wider">
@@ -612,24 +609,36 @@ export default function InventoryTab() {
                           </div>
                         </td>
                         <td className="py-5 px-6">
-                          <Badge className={`font-medium px-3 py-1 rounded-full text-xs ${
-                            order.state === 'completed' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                            order.state === 'inProgress' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                            order.state === 'acknowledged' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                            order.state === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' :
-                            'bg-gray-100 text-gray-700 border border-gray-200'
-                          }`}>
-                            {order.state === 'inProgress' ? 'In Progress' : order.state}
-                          </Badge>
-                        </td>
-                        <td className="py-5 px-6">
-                          <div className="flex flex-wrap gap-2">
-                            <Badge className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 text-xs px-2 py-1 rounded-full border border-purple-200">
-                              From Order
-                            </Badge>
-                            <Badge className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full border border-gray-200">
-                              Visible
-                            </Badge>
+                          <div className="flex items-center space-x-3">
+                            {/* Status Icon */}
+                            <div className={`w-3 h-3 rounded-full ${
+                              order.state === 'completed' ? 'bg-emerald-500' :
+                              order.state === 'inProgress' ? 'bg-amber-500' :
+                              order.state === 'acknowledged' ? 'bg-blue-500' :
+                              order.state === 'cancelled' ? 'bg-red-500' :
+                              'bg-gray-400'
+                            }`}></div>
+                            
+                            {/* Enhanced Status Badge */}
+                            <div className={`relative overflow-hidden rounded-xl px-4 py-2 shadow-lg ${
+                              order.state === 'completed' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
+                              order.state === 'inProgress' ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
+                              order.state === 'acknowledged' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                              order.state === 'cancelled' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                              'bg-gradient-to-r from-gray-400 to-gray-500'
+                            }`}>
+                              {/* Shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse"></div>
+                              
+                              <div className="relative flex items-center space-x-2">
+                                <span className="text-white font-bold text-sm">
+                                  {order.state === 'inProgress' ? 'In Progress' : order.state}
+                                </span>
+                                {order.state === 'inProgress' && (
+                                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </td>
                         <td className="py-5 px-6">
