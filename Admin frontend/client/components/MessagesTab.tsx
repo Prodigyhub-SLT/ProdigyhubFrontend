@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { productOrderingApi } from '@/lib/api';
 import { 
   MessageCircle, 
@@ -49,6 +53,9 @@ export default function MessagesTab({ user }: MessagesTabProps) {
   const [loading, setLoading] = useState(true);
   const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
   const [expandedMessage, setExpandedMessage] = useState<string | null>(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState("");
+  const [cancellationReason, setCancellationReason] = useState("");
 
   // Helper functions for localStorage management
   const getReadNotifications = (): Set<string> => {
@@ -234,10 +241,22 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     saveDeletedNotifications(deletedNotifications);
   };
 
-  const cancelOrder = async (notificationId: string) => {
+  const openCancelDialog = (notificationId: string) => {
+    setSelectedOrderId(notificationId);
+    setCancellationReason("");
+    setIsCancelDialogOpen(true);
+  };
+
+  const closeCancelDialog = () => {
+    setIsCancelDialogOpen(false);
+    setSelectedOrderId("");
+    setCancellationReason("");
+  };
+
+  const cancelOrder = async (notificationId: string, reason: string) => {
     setCancellingOrder(notificationId);
     try {
-      console.log('🚫 Attempting to cancel order:', notificationId);
+      console.log('🚫 Attempting to cancel order:', notificationId, 'with reason:', reason);
       
       // Use EXACT same approach as admin dashboard - use the same API client
       console.log('📝 Step 1: Updating order state to cancelled (using admin dashboard API client)...');
@@ -252,7 +271,7 @@ export default function MessagesTab({ user }: MessagesTabProps) {
           href: `/productOrderingManagement/v4/productOrder/${notificationId}`,
           '@type': 'ProductOrderRef'
         },
-        cancellationReason: 'User requested cancellation',
+        cancellationReason: reason || 'User requested cancellation',
         requestedCancellationDate: new Date().toISOString(),
         '@type': 'CancelProductOrder'
       };
@@ -283,12 +302,23 @@ export default function MessagesTab({ user }: MessagesTabProps) {
       
       console.log('✅ Order cancellation completed successfully');
       
+      // Close the dialog
+      closeCancelDialog();
+      
     } catch (error) {
       console.error('❌ Error cancelling order:', error);
       alert(`Error cancelling order: ${error.message}. Please try again or contact support.`);
     } finally {
       setCancellingOrder(null);
     }
+  };
+
+  const handleSubmitCancellation = () => {
+    if (!cancellationReason.trim()) {
+      alert('Please provide a reason for cancellation.');
+      return;
+    }
+    cancelOrder(selectedOrderId, cancellationReason);
   };
 
   const toggleMessageExpansion = (notificationId: string) => {
@@ -471,16 +501,12 @@ export default function MessagesTab({ user }: MessagesTabProps) {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              cancelOrder(notification.id);
+                              openCancelDialog(notification.id);
                             }}
                             disabled={cancellingOrder === notification.id}
                             className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                           >
-                            {cancellingOrder === notification.id ? (
-                              <RefreshCw className="h-3 w-3 animate-spin mr-1" />
-                            ) : (
-                              <Square className="h-3 w-3 mr-1" />
-                            )}
+                            <Square className="h-3 w-3 mr-1" />
                             Cancel Request
                           </Button>
                         )}
@@ -506,6 +532,60 @@ export default function MessagesTab({ user }: MessagesTabProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Cancel Order Dialog */}
+      <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-500" />
+              Cancel Order
+            </DialogTitle>
+            <DialogDescription>
+              Provide a reason for cancelling order {selectedOrderId}...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="cancellation-reason" className="text-right">
+                Cancellation Reason *
+              </Label>
+              <div className="col-span-3">
+                <Textarea
+                  id="cancellation-reason"
+                  placeholder="Enter cancellation reason..."
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeCancelDialog}
+              disabled={cancellingOrder === selectedOrderId}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleSubmitCancellation}
+              disabled={cancellingOrder === selectedOrderId || !cancellationReason.trim()}
+            >
+              {cancellingOrder === selectedOrderId ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Cancelling...
+                </>
+              ) : (
+                'Submit Cancellation'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
