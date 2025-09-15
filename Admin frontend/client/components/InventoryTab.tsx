@@ -235,26 +235,26 @@ export default function InventoryTab() {
             <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
-            <div className="flex items-center gap-2">
-              <Badge className="bg-emerald-400 text-emerald-900 font-semibold">Active</Badge>
-              {/* Action buttons in hero */}
-              {pendingUpgrade && (
+            <div className="flex flex-col gap-2">
+              <Badge className="bg-emerald-400 text-emerald-900 font-semibold w-fit">Active</Badge>
+              {/* Action buttons in hero - stacked vertically like in image */}
+              <div className="flex flex-col gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsCancelDialogOpen(true)}
-                  className="bg-red-500/90 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-full px-4"
+                  className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-4 py-2 w-32"
                 >
-                  Cancel
+                  Cancel Package
                 </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={() => navigate({ search: '?tab=packages' })}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4"
-              >
-                Upgrade
-              </Button>
+                <Button
+                  size="sm"
+                  onClick={() => navigate({ search: '?tab=packages' })}
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 w-32"
+                >
+                  Upgrade Package
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -391,9 +391,9 @@ export default function InventoryTab() {
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Cancel Request</DialogTitle>
+            <DialogTitle>Cancel Active Package</DialogTitle>
             <DialogDescription>
-              Provide a reason to cancel the latest in-progress upgrade order.
+              Provide a reason to cancel your currently active package: {activePackage?.offering?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
@@ -411,20 +411,20 @@ export default function InventoryTab() {
             <Button
               variant="destructive"
               onClick={async () => {
-                if (!pendingUpgrade?.order?.id) return;
+                if (!activePackage?.order?.id) return;
                 if (!cancellationReason.trim()) {
                   alert('Please provide a reason for cancellation.');
                   return;
                 }
                 try {
-                  setCancellingOrderId(pendingUpgrade.order.id);
+                  setCancellingOrderId(activePackage.order.id);
                   // Step 1: set order state to cancelled
-                  await productOrderingApi.updateOrder(pendingUpgrade.order.id, { state: 'cancelled' } as any);
+                  await productOrderingApi.updateOrder(activePackage.order.id, { state: 'cancelled' } as any);
                   // Step 2: create cancellation request
                   await productOrderingApi.cancelOrder({
                     productOrder: {
-                      id: pendingUpgrade.order.id,
-                      href: `/productOrderingManagement/v4/productOrder/${pendingUpgrade.order.id}`,
+                      id: activePackage.order.id,
+                      href: `/productOrderingManagement/v4/productOrder/${activePackage.order.id}`,
                       '@type': 'ProductOrderRef'
                     },
                     cancellationReason,
@@ -433,9 +433,11 @@ export default function InventoryTab() {
                   } as any);
                   setIsCancelDialogOpen(false);
                   setCancellationReason('');
+                  // Refresh the data to reflect the cancellation
+                  window.location.reload();
                 } catch (err) {
                   console.error('Error cancelling order', err);
-                  alert('Failed to cancel request.');
+                  alert('Failed to cancel package.');
                 } finally {
                   setCancellingOrderId(null);
                 }
