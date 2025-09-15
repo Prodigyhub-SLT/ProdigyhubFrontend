@@ -249,14 +249,14 @@ export default function InventoryTab() {
           </div>
           {activePackage && (
             <div className="flex flex-col gap-3 ml-8">
-              {/* Active status button - bright green */}
+              {/* Activate button - blue-grey like in image */}
               <Button
                 disabled
-                className="bg-emerald-500 text-white font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm shadow-lg"
+                className="bg-slate-500 text-white font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm shadow-lg"
               >
                 Activate
               </Button>
-              {/* Action buttons */}
+              {/* Cancel button - red with X icon */}
               <Button
                 variant="outline"
                 onClick={() => setIsCancelDialogOpen(true)}
@@ -265,6 +265,7 @@ export default function InventoryTab() {
                 <X className="w-4 h-4" />
                 Cancel
               </Button>
+              {/* Upgrade button - blue with arrow icon */}
               <Button
                 onClick={() => navigate({ search: '?tab=packages' })}
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 w-32 h-10 text-sm font-medium shadow-md flex items-center gap-2"
