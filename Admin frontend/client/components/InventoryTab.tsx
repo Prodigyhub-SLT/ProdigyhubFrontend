@@ -364,20 +364,46 @@ export default function InventoryTab() {
                 <Badge className="bg-amber-100 text-amber-800 capitalize">{pendingUpgrade.order.state}</Badge>
               </div>
 
-              {/* Vertical Stepper */}
-              <div className="space-y-4">
-                {['Acknowledged', 'In Progress', 'Completed'].map((label, idx) => {
-                  const current = getOrderStepIndex(pendingUpgrade.order.state);
-                  const isDone = idx <= current;
-                  return (
-                    <div key={label} className="flex items-center space-x-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shadow ${isDone ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                        {idx + 1}
+              {/* Vertical Stepper with connecting lines */}
+              <div className="relative">
+                {/* Connecting line */}
+                <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200"></div>
+                
+                <div className="space-y-6">
+                  {['Acknowledged', 'In Progress', 'Completed'].map((label, idx) => {
+                    const current = getOrderStepIndex(pendingUpgrade.order.state);
+                    const isActive = idx === current;
+                    const isCompleted = idx < current;
+                    const isPending = idx > current;
+                    
+                    return (
+                      <div key={label} className="relative flex items-center space-x-4">
+                        {/* Step circle */}
+                        <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-lg ${
+                          isActive ? 'bg-orange-500 text-white ring-4 ring-orange-200' :
+                          isCompleted ? 'bg-green-500 text-white' :
+                          'bg-gray-300 text-gray-600'
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        
+                        {/* Step label */}
+                        <div className={`text-sm font-semibold ${
+                          isActive ? 'text-orange-600' :
+                          isCompleted ? 'text-green-600' :
+                          'text-gray-500'
+                        }`}>
+                          {label}
+                        </div>
+                        
+                        {/* Active indicator dot */}
+                        {isActive && (
+                          <div className="absolute -right-2 top-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                        )}
                       </div>
-                      <div className={`text-sm font-medium ${isDone ? 'text-amber-700' : 'text-gray-500'}`}>{label}</div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="text-xs text-gray-600">
