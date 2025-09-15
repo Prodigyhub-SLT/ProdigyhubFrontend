@@ -354,22 +354,22 @@ export default function InventoryTab() {
           {/* Right half - Upgrade in progress */}
           <Card className="bg-white shadow-xl border border-gray-100 rounded-2xl">
             <CardContent className="p-6 md:p-8 space-y-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <div className="text-sm text-amber-700">Upgrade in progress</div>
-                  <div className="text-lg md:text-xl font-semibold text-gray-900">
+                  <div className="text-sm text-amber-700 font-medium">Upgrade in progress</div>
+                  <div className="text-xl font-bold text-gray-900">
                     {pendingUpgrade.offering?.name || pendingUpgrade.offeringId}
                   </div>
                 </div>
-                <Badge className="bg-amber-100 text-amber-800 capitalize">{pendingUpgrade.order.state}</Badge>
+                <Badge className="bg-amber-100 text-amber-800 capitalize font-medium">{pendingUpgrade.order.state}</Badge>
               </div>
 
-              {/* Vertical Stepper with connecting lines */}
-              <div className="relative">
+              {/* Vertical Stepper with connecting lines - more compact */}
+              <div className="relative mb-6">
                 {/* Connecting line */}
-                <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200"></div>
+                <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-gray-200"></div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {['Acknowledged', 'In Progress', 'Completed'].map((label, idx) => {
                     const current = getOrderStepIndex(pendingUpgrade.order.state);
                     const isActive = idx === current;
@@ -406,17 +406,55 @@ export default function InventoryTab() {
                 </div>
               </div>
 
-              <div className="text-xs text-gray-600">
-                Last updated: {new Date(pendingUpgrade.order.orderDate || '').toLocaleString()}
+              {/* Additional info section to fill space */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="text-sm text-gray-600 mb-2">Order Details</div>
+                <div className="space-y-1 text-xs text-gray-500">
+                  <div>Order ID: {pendingUpgrade.order.id}</div>
+                  <div>Requested: {new Date(pendingUpgrade.order.orderDate || '').toLocaleDateString()}</div>
+                  <div>Last updated: {new Date(pendingUpgrade.order.orderDate || '').toLocaleString()}</div>
+                </div>
               </div>
 
               {/* Cancel Request Button */}
               <Button
                 variant="outline"
-                onClick={() => setIsCancelDialogOpen(true)}
+                onClick={async () => {
+                  if (!pendingUpgrade?.order?.id) return;
+                  if (!confirm('Are you sure you want to cancel this upgrade request?')) return;
+                  try {
+                    setCancellingOrderId(pendingUpgrade.order.id);
+                    // Step 1: set order state to cancelled
+                    await productOrderingApi.updateOrder(pendingUpgrade.order.id, { state: 'cancelled' } as any);
+                    // Step 2: create cancellation request
+                    await productOrderingApi.cancelOrder({
+                      productOrder: {
+                        id: pendingUpgrade.order.id,
+                        href: `/productOrderingManagement/v4/productOrder/${pendingUpgrade.order.id}`,
+                        '@type': 'ProductOrderRef'
+                      },
+                      cancellationReason: 'User requested cancellation',
+                      requestedCancellationDate: new Date().toISOString(),
+                      '@type': 'CancelProductOrder'
+                    } as any);
+                    // Refresh the data to reflect the cancellation
+                    const updatedOrders = orders.map(order => 
+                      order.id === pendingUpgrade.order.id 
+                        ? { ...order, state: 'cancelled' as OrderState }
+                        : order
+                    );
+                    setOrders(updatedOrders);
+                  } catch (err) {
+                    console.error('Error cancelling upgrade order', err);
+                    alert('Failed to cancel upgrade request.');
+                  } finally {
+                    setCancellingOrderId(null);
+                  }
+                }}
+                disabled={!!cancellingOrderId}
                 className="w-full bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg py-3 font-medium shadow-md"
               >
-                Cancel Request
+                {cancellingOrderId ? 'Cancelling...' : 'Cancel Request'}
               </Button>
             </CardContent>
           </Card>
