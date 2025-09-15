@@ -108,11 +108,13 @@ export default function InventoryTab() {
   const priceInfo = useMemo(() => {
     const off: any = activePackage?.offering as any;
     if (!off) return null;
-    const pop = Array.isArray(off.productOfferingPrice) ? off.productOfferingPrice[0] : null;
-    const priceValue = pop?.price?.value ?? pop?.price?.taxIncludedAmount?.value ?? pop?.price?.dutyFreeAmount?.value;
-    const currency = pop?.price?.unit ?? pop?.price?.taxIncludedAmount?.unit ?? pop?.price?.dutyFreeAmount?.unit ?? 'LKR';
-    if (priceValue == null) return null;
-    return { amount: priceValue, currency };
+    if (off.productOfferingPrice && off.productOfferingPrice.length > 0) {
+      const price = off.productOfferingPrice[0];
+      const amount = price.price?.taxIncludedAmount?.value ?? price.price?.value ?? 0;
+      const currency = price.price?.taxIncludedAmount?.unit ?? price.price?.unit ?? 'LKR';
+      return { amount, currency };
+    }
+    return null;
   }, [activePackage]);
 
   const features = useMemo(() => {
@@ -130,30 +132,31 @@ export default function InventoryTab() {
 
   const specDetails = useMemo(() => {
     const off: any = activePackage?.offering as any;
-    const spec = off?.productSpecification || {};
-    const list: any[] = spec?.characteristic || spec?.productSpecCharacteristic || [];
-    const getValue = (entry: any): any => {
-      if (!entry) return undefined;
-      if (entry.value !== undefined) return entry.value?.value ?? entry.value; // common shape
-      if (Array.isArray(entry.productSpecCharacteristicValue) && entry.productSpecCharacteristicValue.length > 0) {
-        return entry.productSpecCharacteristicValue[0]?.value;
-      }
-      if (Array.isArray(entry.value) && entry.value.length > 0) return entry.value[0]?.value ?? entry.value[0];
-      return undefined;
-    };
-    const byName: Record<string, any> = {};
-    if (Array.isArray(list)) {
-      list.forEach((c: any) => {
-        const key = (c?.name || c?.id || '').toString().toLowerCase();
-        const val = getValue(c);
-        if (key) byName[key] = val;
-      });
+    if (!off) return { connectionType: '', packageType: '', dataBundle: '' };
+    const categoryDescription = (off as any).categoryDescription || '';
+    const connectionType = categoryDescription.includes('Fiber') || categoryDescription.includes('Fibre')
+      ? 'Fiber'
+      : categoryDescription.includes('4G')
+      ? '4G'
+      : categoryDescription.includes('ADSL')
+      ? 'ADSL'
+      : '';
+    const packageType = categoryDescription.includes('Any Time')
+      ? 'Any Time'
+      : categoryDescription.includes('Time Based')
+      ? 'Time Based'
+      : categoryDescription.includes('Unlimited')
+      ? 'Unlimited'
+      : '';
+
+    let dataBundle = '';
+    const attrs = (off as any).customAttributes || [];
+    if (Array.isArray(attrs)) {
+      const dataAttr = attrs.find((a: any) => (a?.name || '').toLowerCase().includes('data allowance') || (a?.name || '').toLowerCase().includes('data bundle'));
+      if (dataAttr?.value) dataBundle = dataAttr.value;
     }
-    return {
-      connectionType: byName['connection type'] || byName['connection'] || byName['technology'] || '',
-      packageType: byName['package type'] || byName['usage type'] || byName['type'] || '',
-      dataBundle: byName['data bundle'] || byName['data'] || byName['quota'] || '',
-    } as { connectionType?: string; packageType?: string; dataBundle?: string };
+
+    return { connectionType, packageType, dataBundle } as { connectionType?: string; packageType?: string; dataBundle?: string };
   }, [activePackage]);
 
   if (loading) {
