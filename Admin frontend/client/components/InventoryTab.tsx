@@ -51,7 +51,24 @@ export default function InventoryTab() {
 
         const userOrders = (allOrders || []).filter((o: any) => o?.customerDetails?.email === user.email);
         setOrders(userOrders as ProductOrder[]);
-        setOfferings((allOfferings || []) as ProductOffering[]);
+        let offeringList = (allOfferings || []) as ProductOffering[];
+
+        // Ensure the active offering exists by fetching it by ID if missing
+        const sorted = [...(userOrders as ProductOrder[])].sort((a, b) => {
+          const da = new Date(a.completionDate || a.orderDate || 0).getTime();
+          const db = new Date(b.completionDate || b.orderDate || 0).getTime();
+          return db - da;
+        });
+        const recentCompleted = sorted.find((o) => o.state === 'completed');
+        const activeOfferingId = recentCompleted?.productOrderItem?.[0]?.productOffering?.id;
+        if (activeOfferingId && !offeringList.find(o => o.id === activeOfferingId)) {
+          try {
+            const exact = await productCatalogApi.getOfferingById(activeOfferingId);
+            if (exact) offeringList = [exact, ...offeringList];
+          } catch (_) {}
+        }
+
+        setOfferings(offeringList);
       } catch (e) {
         setError('Failed to load inventory');
       } finally {
