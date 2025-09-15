@@ -229,52 +229,52 @@ export default function InventoryTab() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Hero header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 md:p-10 text-white shadow-lg">
+      {/* Hero header - single card like second image */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 p-8 md:p-10 text-white shadow-lg">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div className="rounded-xl bg-white/10 p-2 backdrop-blur">
                 <Package className="w-6 h-6" />
               </div>
               <h2 className="text-2xl font-bold">Inventory</h2>
             </div>
-            <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
+            <p className="text-white/90 text-sm md:text-base mb-4">Your currently active package</p>
+            {activePackage?.offering?.name && (
+              <div>
+                <div className="text-sm text-white/80 mb-1">Current Package</div>
+                <div className="text-3xl md:text-4xl font-semibold leading-tight">{activePackage.offering.name}</div>
+              </div>
+            )}
           </div>
           {activePackage && (
-            <div className="flex flex-col gap-3">
-              {/* Active status button - more prominent and different */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-emerald-400 rounded-xl blur-md opacity-60"></div>
-                <div className="relative bg-gradient-to-br from-emerald-300 via-emerald-400 to-emerald-500 text-white font-bold rounded-xl px-8 py-4 w-36 h-14 text-base flex items-center justify-center shadow-2xl border-2 border-emerald-200">
-                  Activate
-                </div>
-              </div>
-              {/* Action buttons - smaller and more compact */}
+            <div className="flex flex-col gap-3 ml-8">
+              {/* Active status button - bright green */}
+              <Button
+                disabled
+                className="bg-emerald-500 text-white font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm shadow-lg"
+              >
+                Activate
+              </Button>
+              {/* Action buttons */}
               <Button
                 variant="outline"
                 onClick={() => setIsCancelDialogOpen(true)}
-                className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-3 py-2 w-28 h-10 text-xs font-medium shadow-md flex items-center gap-1.5"
+                className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-4 py-2 w-32 h-10 text-sm font-medium shadow-md flex items-center gap-2"
               >
-                <X className="w-3 h-3" />
+                <X className="w-4 h-4" />
                 Cancel
               </Button>
               <Button
                 onClick={() => navigate({ search: '?tab=packages' })}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 w-28 h-10 text-xs font-medium shadow-md flex items-center gap-1.5"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 w-32 h-10 text-sm font-medium shadow-md flex items-center gap-2"
               >
-                <ArrowUpRight className="w-3 h-3" />
+                <ArrowUpRight className="w-4 h-4" />
                 Upgrade
               </Button>
             </div>
           )}
         </div>
-        {activePackage?.offering?.name && (
-          <div className="mt-6">
-            <div className="text-sm text-white/80">Current Package</div>
-            <div className="text-3xl md:text-4xl font-semibold leading-tight">{activePackage.offering.name}</div>
-          </div>
-        )}
       </div>
 
       {/* Package details */}
