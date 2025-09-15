@@ -364,12 +364,12 @@ export default function InventoryTab() {
                 <Badge className="bg-amber-100 text-amber-800 capitalize font-medium">{pendingUpgrade.order.state}</Badge>
               </div>
 
-              {/* Vertical Stepper with connecting lines - more compact */}
+              {/* Vertical Stepper with connecting lines - larger and more prominent */}
               <div className="relative mb-6">
                 {/* Connecting line */}
-                <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-gray-200"></div>
+                <div className="absolute left-6 top-8 bottom-8 w-1 bg-gray-200"></div>
                 
-                <div className="space-y-4">
+                <div className="space-y-8">
                   {['Acknowledged', 'In Progress', 'Completed'].map((label, idx) => {
                     const current = getOrderStepIndex(pendingUpgrade.order.state);
                     const isActive = idx === current;
@@ -377,18 +377,18 @@ export default function InventoryTab() {
                     const isPending = idx > current;
                     
                     return (
-                      <div key={label} className="relative flex items-center space-x-4">
-                        {/* Step circle */}
-                        <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-lg ${
-                          isActive ? 'bg-orange-500 text-white ring-4 ring-orange-200' :
+                      <div key={label} className="relative flex items-center space-x-6">
+                        {/* Step circle - larger */}
+                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shadow-xl ${
+                          isActive ? 'bg-orange-500 text-white ring-6 ring-orange-200' :
                           isCompleted ? 'bg-green-500 text-white' :
                           'bg-gray-300 text-gray-600'
                         }`}>
                           {idx + 1}
                         </div>
                         
-                        {/* Step label */}
-                        <div className={`text-sm font-semibold ${
+                        {/* Step label - larger text */}
+                        <div className={`text-lg font-bold ${
                           isActive ? 'text-orange-600' :
                           isCompleted ? 'text-green-600' :
                           'text-gray-500'
@@ -396,9 +396,9 @@ export default function InventoryTab() {
                           {label}
                         </div>
                         
-                        {/* Active indicator dot */}
+                        {/* Active indicator dot - larger */}
                         {isActive && (
-                          <div className="absolute -right-2 top-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                          <div className="absolute -right-3 top-2 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                         )}
                       </div>
                     );
