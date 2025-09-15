@@ -59,17 +59,8 @@ export default function InventoryTab() {
       }
     };
     load();
-    // Periodic refresh to reflect upgrades without manual reload
-    const interval = setInterval(load, 5000);
-    // Refresh on window focus/visibility change
-    const onFocus = () => load();
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
-    };
+    // No auto-refresh (as requested)
+    return () => {};
   }, [user?.email]);
 
   const activePackage = useMemo(() => {
@@ -135,6 +126,34 @@ export default function InventoryTab() {
           .slice(0, 6)
       : [];
     return parsed as string[];
+  }, [activePackage]);
+
+  const specDetails = useMemo(() => {
+    const off: any = activePackage?.offering as any;
+    const spec = off?.productSpecification || {};
+    const list: any[] = spec?.characteristic || spec?.productSpecCharacteristic || [];
+    const getValue = (entry: any): any => {
+      if (!entry) return undefined;
+      if (entry.value !== undefined) return entry.value?.value ?? entry.value; // common shape
+      if (Array.isArray(entry.productSpecCharacteristicValue) && entry.productSpecCharacteristicValue.length > 0) {
+        return entry.productSpecCharacteristicValue[0]?.value;
+      }
+      if (Array.isArray(entry.value) && entry.value.length > 0) return entry.value[0]?.value ?? entry.value[0];
+      return undefined;
+    };
+    const byName: Record<string, any> = {};
+    if (Array.isArray(list)) {
+      list.forEach((c: any) => {
+        const key = (c?.name || c?.id || '').toString().toLowerCase();
+        const val = getValue(c);
+        if (key) byName[key] = val;
+      });
+    }
+    return {
+      connectionType: byName['connection type'] || byName['connection'] || byName['technology'] || '',
+      packageType: byName['package type'] || byName['usage type'] || byName['type'] || '',
+      dataBundle: byName['data bundle'] || byName['data'] || byName['quota'] || '',
+    } as { connectionType?: string; packageType?: string; dataBundle?: string };
   }, [activePackage]);
 
   if (loading) {
@@ -230,23 +249,19 @@ export default function InventoryTab() {
                 </div>
               )}
 
-              {/* Meta info grid */}
+              {/* Offer details grid (not order details) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <div className="text-sm text-gray-500 mb-1">Order ID</div>
-                  <div className="font-medium text-gray-900">{activePackage.order.id}</div>
+                <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                  <div className="text-sm text-gray-500 mb-1">Connection Type</div>
+                  <div className="font-medium text-gray-900">{specDetails.connectionType || '—'}</div>
                 </div>
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <div className="text-sm text-gray-500 mb-1">Since</div>
-                  <div className="font-medium text-gray-900">
-                    {new Date(activePackage.order.completionDate || activePackage.order.orderDate || '').toLocaleString()}
-                  </div>
+                <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                  <div className="text-sm text-gray-500 mb-1">Package Type</div>
+                  <div className="font-medium text-gray-900">{specDetails.packageType || '—'}</div>
                 </div>
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <div className="text-sm text-gray-500 mb-1">Status</div>
-                  <div>
-                    <Badge className="bg-green-100 text-green-800">Active</Badge>
-                  </div>
+                <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                  <div className="text-sm text-gray-500 mb-1">Data Bundle</div>
+                  <div className="font-medium text-gray-900">{specDetails.dataBundle || '—'}</div>
                 </div>
               </div>
 
