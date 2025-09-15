@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { productCatalogApi, productOrderingApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { Package, Zap, X, ArrowUpRight } from 'lucide-react';
+import { Package, Zap, X, ArrowUpRight, Eye, Trash2 } from 'lucide-react';
 
 type OrderState = 'acknowledged' | 'inProgress' | 'completed' | 'failed' | 'cancelled';
 
@@ -540,6 +540,115 @@ export default function InventoryTab() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Order History Table */}
+      {orders.length > 0 && (
+        <Card className="bg-white shadow-xl border border-gray-100 rounded-2xl">
+          <CardContent className="p-6 md:p-8">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Product Details</h3>
+              <p className="text-sm text-gray-600">Your order history and package details</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Product Details</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Source</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Order Info</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Serial Number</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order, index) => {
+                    const offering = offerings.find(o => o.id === order.productOrderItem?.[0]?.productOffering?.id);
+                    const packageName = offering?.name || order.productOrderItem?.[0]?.productOffering?.name || 'Unknown Package';
+                    const orderDate = new Date(order.orderDate || order.completionDate || '').toLocaleDateString();
+                    
+                    return (
+                      <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 px-4">
+                          <div>
+                            <div className="font-medium text-gray-900">{packageName}</div>
+                            <div className="text-sm text-gray-500">ID: {order.id.slice(0, 8)}...</div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Badge className={
+                            order.state === 'completed' ? 'bg-green-100 text-green-800' :
+                            order.state === 'inProgress' ? 'bg-yellow-100 text-yellow-800' :
+                            order.state === 'acknowledged' ? 'bg-blue-100 text-blue-800' :
+                            order.state === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {order.state === 'inProgress' ? 'In Progress' : order.state}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            <Badge className="bg-purple-100 text-purple-800 text-xs">From Order</Badge>
+                            <Badge className="bg-gray-100 text-gray-800 text-xs">Visible</Badge>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div>
+                            <a 
+                              href="#" 
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                // Handle order details view
+                                console.log('View order:', order.id);
+                              }}
+                            >
+                              {order.id}...
+                            </a>
+                            <div className="text-xs text-gray-500">{orderDate}</div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="text-sm text-gray-600">AUTO-{order.id}-{index + 1}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                // Handle view action
+                                console.log('View details:', order.id);
+                              }}
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                // Handle delete action
+                                if (confirm('Are you sure you want to delete this order record?')) {
+                                  console.log('Delete order:', order.id);
+                                }
+                              }}
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}
