@@ -265,6 +265,32 @@ export default function MessagesTab({ user }: MessagesTabProps) {
         const responseData = await response.json();
         console.log('✅ Cancel order successful:', responseData);
         
+        // Also update the original product order to cancelled state
+        try {
+          const updateResponse = await fetch(`/api/productOrderingManagement/v4/productOrder/${notificationId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/merge-patch+json',
+            },
+            body: JSON.stringify({
+              state: 'cancelled',
+              cancellationDate: new Date().toISOString(),
+              cancellationReason: 'User requested cancellation',
+              '@type': 'ProductOrder'
+            })
+          });
+          
+          if (updateResponse.ok) {
+            const updateData = await updateResponse.json();
+            console.log('✅ Original product order updated to cancelled:', updateData);
+          } else {
+            const updateError = await updateResponse.json().catch(() => ({}));
+            console.warn('⚠️ Failed to update original product order state:', updateError);
+          }
+        } catch (updateError) {
+          console.warn('⚠️ Error updating original product order:', updateError);
+        }
+        
         // Update the notification status to cancelled
         setNotifications(prev => 
           prev.map(notif => 
