@@ -242,22 +242,26 @@ export default function InventoryTab() {
             <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
-            <div className="flex flex-col gap-2">
-              <Badge className="bg-emerald-400 text-emerald-900 font-semibold w-fit">Active</Badge>
+            <div className="flex flex-col gap-3">
+              {/* Active status button - same size as other buttons */}
+              <Button
+                disabled
+                className="bg-emerald-500 text-white font-semibold rounded-full px-6 py-3 w-40 h-12 text-base shadow-lg"
+              >
+                Active
+              </Button>
               {/* Action buttons in hero - stacked vertically like in image */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => setIsCancelDialogOpen(true)}
-                  className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-4 py-2 w-32"
+                  className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-full px-6 py-3 w-40 h-12 text-base font-semibold shadow-lg"
                 >
                   Cancel Package
                 </Button>
                 <Button
-                  size="sm"
                   onClick={() => navigate({ search: '?tab=packages' })}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 w-32"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 w-40 h-12 text-base font-semibold shadow-lg"
                 >
                   Upgrade Package
                 </Button>
