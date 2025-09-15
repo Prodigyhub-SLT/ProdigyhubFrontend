@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { productCatalogApi, productOrderingApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Package, Zap } from 'lucide-react';
@@ -37,6 +39,9 @@ export default function InventoryTab() {
   const [orders, setOrders] = useState<ProductOrder[]>([]);
   const [offerings, setOfferings] = useState<ProductOffering[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -230,7 +235,27 @@ export default function InventoryTab() {
             <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
-            <Badge className="bg-emerald-400 text-emerald-900 font-semibold">Active</Badge>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-emerald-400 text-emerald-900 font-semibold">Active</Badge>
+              {/* Action buttons in hero */}
+              {pendingUpgrade && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCancelDialogOpen(true)}
+                  className="bg-red-500/90 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-full px-4"
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={() => navigate({ search: '?tab=packages' })}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4"
+              >
+                Upgrade
+              </Button>
+            </div>
           )}
         </div>
         {activePackage?.offering?.name && (
@@ -361,6 +386,67 @@ export default function InventoryTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Cancel Order Dialog */}
+      <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Cancel Request</DialogTitle>
+            <DialogDescription>
+              Provide a reason to cancel the latest in-progress upgrade order.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <Textarea
+              placeholder="Enter cancellation reason..."
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)} disabled={!!cancellingOrderId}>
+              Close
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!pendingUpgrade?.order?.id) return;
+                if (!cancellationReason.trim()) {
+                  alert('Please provide a reason for cancellation.');
+                  return;
+                }
+                try {
+                  setCancellingOrderId(pendingUpgrade.order.id);
+                  // Step 1: set order state to cancelled
+                  await productOrderingApi.updateOrder(pendingUpgrade.order.id, { state: 'cancelled' } as any);
+                  // Step 2: create cancellation request
+                  await productOrderingApi.cancelOrder({
+                    productOrder: {
+                      id: pendingUpgrade.order.id,
+                      href: `/productOrderingManagement/v4/productOrder/${pendingUpgrade.order.id}`,
+                      '@type': 'ProductOrderRef'
+                    },
+                    cancellationReason,
+                    requestedCancellationDate: new Date().toISOString(),
+                    '@type': 'CancelProductOrder'
+                  } as any);
+                  setIsCancelDialogOpen(false);
+                  setCancellationReason('');
+                } catch (err) {
+                  console.error('Error cancelling order', err);
+                  alert('Failed to cancel request.');
+                } finally {
+                  setCancellingOrderId(null);
+                }
+              }}
+              disabled={!!cancellingOrderId}
+            >
+              {cancellingOrderId ? 'Cancelling...' : 'Submit Cancellation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
