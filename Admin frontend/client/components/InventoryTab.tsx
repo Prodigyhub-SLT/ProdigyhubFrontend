@@ -59,6 +59,17 @@ export default function InventoryTab() {
       }
     };
     load();
+    // Periodic refresh to reflect upgrades without manual reload
+    const interval = setInterval(load, 5000);
+    // Refresh on window focus/visibility change
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
   }, [user?.email]);
 
   const activePackage = useMemo(() => {
@@ -78,12 +89,29 @@ export default function InventoryTab() {
     const poId = recentCompleted.productOrderItem?.[0]?.productOffering?.id;
     if (!poId) return null;
 
-    const offering = offerings.find((of) => of.id === poId);
+    const offeringFromOrder = recentCompleted.productOrderItem?.[0]?.productOffering as ProductOffering | undefined;
+    const offering = offerings.find((of) => of.id === poId) || offeringFromOrder;
     return {
       order: recentCompleted,
       offering,
       offeringId: poId,
     };
+  }, [orders, offerings]);
+
+  const pendingUpgrade = useMemo(() => {
+    if (!orders?.length) return null;
+    const sorted = [...orders].sort((a, b) => {
+      const da = new Date(a.completionDate || a.orderDate || 0).getTime();
+      const db = new Date(b.completionDate || b.orderDate || 0).getTime();
+      return db - da;
+    });
+    const latest = sorted[0];
+    if (!latest) return null;
+    if (latest.state === 'completed' || latest.state === 'cancelled') return null;
+    const poId = latest.productOrderItem?.[0]?.productOffering?.id;
+    const offeringFromOrder = latest.productOrderItem?.[0]?.productOffering as ProductOffering | undefined;
+    const offering = (poId && offerings.find((of) => of.id === poId)) || offeringFromOrder;
+    return { order: latest, offering, offeringId: poId };
   }, [orders, offerings]);
 
   const priceInfo = useMemo(() => {
@@ -240,6 +268,16 @@ export default function InventoryTab() {
                 >
                   Upgrade Package
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Pending upgrade banner */}
+          {pendingUpgrade && (
+            <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="text-amber-800 font-medium mb-1">Upgrade in progress</div>
+              <div className="text-amber-700 text-sm">
+                Switching to {pendingUpgrade.offering?.name || pendingUpgrade.offeringId} · Status: {pendingUpgrade.order.state}
               </div>
             </div>
           )}
