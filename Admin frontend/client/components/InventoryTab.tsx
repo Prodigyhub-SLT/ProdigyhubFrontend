@@ -95,7 +95,7 @@ export default function InventoryTab() {
       return db - da;
     });
 
-    // Determine the single active package: pick the most recent non-cancelled completed order across all packages
+    // Determine the single active package: pick the most recent completed order (cancelled orders are excluded by state !== 'cancelled')
     const recentCompleted = sorted.find((o) => o.state === 'completed');
     if (!recentCompleted) return null;
 
@@ -434,7 +434,12 @@ export default function InventoryTab() {
                   setIsCancelDialogOpen(false);
                   setCancellationReason('');
                   // Refresh the data to reflect the cancellation
-                  window.location.reload();
+                  const updatedOrders = orders.map(order => 
+                    order.id === activePackage.order.id 
+                      ? { ...order, state: 'cancelled' as OrderState }
+                      : order
+                  );
+                  setOrders(updatedOrders);
                 } catch (err) {
                   console.error('Error cancelling order', err);
                   alert('Failed to cancel package.');
