@@ -231,24 +231,18 @@ export default function InventoryTab() {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Hero header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 md:p-10 text-white shadow-lg">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="rounded-xl bg-white/10 p-2 backdrop-blur">
                 <Package className="w-6 h-6" />
               </div>
               <h2 className="text-2xl font-bold">Inventory</h2>
             </div>
-            <p className="text-white/90 text-sm md:text-base mb-4">Your currently active package</p>
-            {activePackage?.offering?.name && (
-              <div>
-                <div className="text-sm text-white/80 mb-1">Current Package</div>
-                <div className="text-3xl md:text-4xl font-semibold leading-tight">{activePackage.offering.name}</div>
-              </div>
-            )}
+            <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
-            <div className="flex flex-col gap-3 ml-6">
+            <div className="flex flex-col gap-3">
               {/* Active status button - more prominent and different */}
               <div className="relative">
                 <div className="absolute inset-0 bg-emerald-400 rounded-xl blur-md opacity-60"></div>
@@ -275,6 +269,12 @@ export default function InventoryTab() {
             </div>
           )}
         </div>
+        {activePackage?.offering?.name && (
+          <div className="mt-6">
+            <div className="text-sm text-white/80">Current Package</div>
+            <div className="text-3xl md:text-4xl font-semibold leading-tight">{activePackage.offering.name}</div>
+          </div>
+        )}
       </div>
 
       {/* Package details */}
