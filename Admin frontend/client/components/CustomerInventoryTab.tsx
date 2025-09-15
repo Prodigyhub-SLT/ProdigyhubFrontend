@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
   Package,
@@ -21,12 +20,10 @@ import {
   Smartphone,
   Tv,
   Phone,
-  Clock,
   Calendar,
   DollarSign,
-  Settings,
-  MoreVertical,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 
 type StatusFilter = 'all' | 'active' | 'created' | 'suspended' | 'terminated';
@@ -50,7 +47,7 @@ interface Product {
   location?: string;
 }
 
-export function CustomerInventoryTab() {
+export default function CustomerInventoryTab() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -204,28 +201,28 @@ export function CustomerInventoryTab() {
 
   const getStatusBadge = (status?: string) => {
     const s = (status || '').toLowerCase();
-    const base = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold';
-    if (s === 'active') return <Badge className="bg-emerald-500 text-white">Active</Badge>;
-    if (s === 'created') return <Badge className="bg-blue-500 text-white">Created</Badge>;
-    if (s === 'suspended') return <Badge className="bg-amber-500 text-white">Suspended</Badge>;
-    if (s === 'terminated') return <Badge className="bg-red-500 text-white">Terminated</Badge>;
-    return <Badge variant="outline">Unknown</Badge>;
+    if (s === 'active') return <Badge className="bg-green-600 hover:bg-green-700 text-white">Active</Badge>;
+    if (s === 'created') return <Badge className="bg-blue-600 hover:bg-blue-700 text-white">Created</Badge>;
+    if (s === 'suspended') return <Badge className="bg-yellow-600 hover:bg-yellow-700 text-white">Suspended</Badge>;
+    if (s === 'terminated') return <Badge className="bg-red-600 hover:bg-red-700 text-white">Terminated</Badge>;
+    return <Badge variant="outline" className="text-gray-600">Unknown</Badge>;
   };
 
   const getServiceIcon = (serviceType: string) => {
+    const iconClass = "w-5 h-5";
     switch (serviceType.toLowerCase()) {
       case 'broadband':
-        return <Wifi className="w-4 h-4" />;
+        return <Wifi className={iconClass} />;
       case 'mobile':
-        return <Smartphone className="w-4 h-4" />;
+        return <Smartphone className={iconClass} />;
       case 'tv':
-        return <Tv className="w-4 h-4" />;
+        return <Tv className={iconClass} />;
       case 'voice':
-        return <Phone className="w-4 h-4" />;
+        return <Phone className={iconClass} />;
       case 'bundle':
-        return <Package className="w-4 h-4" />;
+        return <Package className={iconClass} />;
       default:
-        return <Globe className="w-4 h-4" />;
+        return <Globe className={iconClass} />;
     }
   };
 
@@ -243,238 +240,330 @@ export function CustomerInventoryTab() {
     });
   };
 
+  const activeProducts = products.filter(p => p.status?.toLowerCase() === 'active');
+  const totalMonthlyCost = activeProducts.reduce((sum, p) => sum + (p.monthlyFee || 0), 0);
+  const bundleCount = products.filter(p => p.isBundle).length;
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
       {/* Info Banner */}
       <Alert className="border-blue-200 bg-blue-50 text-blue-800">
         <Package className="w-4 h-4" />
-        <AlertDescription>
+        <AlertDescription className="text-sm">
           <strong>Customer Inventory:</strong> View and manage all your active services, 
           subscriptions, and products. Track usage, billing, and service status from one place.
         </AlertDescription>
       </Alert>
 
       {/* Main Inventory Card */}
-      <Card className="bg-white shadow-xl border-0">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-t-lg">
-          <CardTitle className="text-2xl font-bold flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
-              <Package className="w-6 h-6" />
-            </div>
+      <Card className="bg-white shadow-lg border-0">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-gray-800">
             Customer Inventory Dashboard
           </CardTitle>
-          <CardDescription className="text-blue-100">
+          <CardDescription className="text-gray-600">
             Comprehensive view of your services, subscriptions, and product inventory
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="space-y-6">
           {/* Enhanced Controls */}
-          <div className="grid lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search products, IDs, services..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <Filter className="w-5 h-5 mr-2" />
+              Filter & Search Options
+            </h3>
+            <div className="grid lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-700">Search Products</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search products, IDs, services..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Status</Label>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-                <SelectTrigger className="bg-white border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="created">Created</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                  <SelectItem value="terminated">Terminated</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Service Type</Label>
-              <Select value={serviceTypeFilter} onValueChange={(v) => setServiceTypeFilter(v as ServiceTypeFilter)}>
-                <SelectTrigger className="bg-white border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="All services" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Services</SelectItem>
-                  <SelectItem value="broadband">Broadband</SelectItem>
-                  <SelectItem value="mobile">Mobile</SelectItem>
-                  <SelectItem value="tv">Television</SelectItem>
-                  <SelectItem value="voice">Voice</SelectItem>
-                  <SelectItem value="bundle">Bundles</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Visibility</Label>
-              <Select value={visibilityFilter} onValueChange={(v) => setVisibilityFilter(v as VisibilityFilter)}>
-                <SelectTrigger className="bg-white border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="All visibility" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Items</SelectItem>
-                  <SelectItem value="visible">Customer Visible</SelectItem>
-                  <SelectItem value="hidden">Hidden</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label className="text-gray-700">Status Filter</Label>
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:border-blue-500">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="created">Created</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                    <SelectItem value="terminated">Terminated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-700">Service Type</Label>
+                <Select value={serviceTypeFilter} onValueChange={(v) => setServiceTypeFilter(v as ServiceTypeFilter)}>
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:border-blue-500">
+                    <SelectValue placeholder="All services" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Services</SelectItem>
+                    <SelectItem value="broadband">Broadband</SelectItem>
+                    <SelectItem value="mobile">Mobile</SelectItem>
+                    <SelectItem value="tv">Television</SelectItem>
+                    <SelectItem value="voice">Voice</SelectItem>
+                    <SelectItem value="bundle">Bundles</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-700">Visibility</Label>
+                <Select value={visibilityFilter} onValueChange={(v) => setVisibilityFilter(v as VisibilityFilter)}>
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:border-blue-500">
+                    <SelectValue placeholder="All visibility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Items</SelectItem>
+                    <SelectItem value="visible">Customer Visible</SelectItem>
+                    <SelectItem value="hidden">Hidden</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
           {/* Enhanced Summary Statistics */}
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-xl text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm">Total Products</p>
-                  <p className="text-2xl font-bold">{products.length}</p>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <Layers className="w-5 h-5 mr-2" />
+              Inventory Overview
+            </h3>
+            <div className="grid md:grid-cols-4 gap-6">
+              {/* Total Products Card */}
+              <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 rounded-full bg-blue-100">
+                      <Layers className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">Total Products</h4>
+                      <p className="text-sm text-gray-600">All inventory items</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="text-xs bg-blue-600 hover:bg-blue-700">
+                    {products.length} items
+                  </Badge>
                 </div>
-                <Layers className="w-8 h-8 text-blue-200" />
+                <div className="text-2xl font-bold text-blue-700">{products.length}</div>
               </div>
-            </div>
-            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-4 rounded-xl text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-emerald-100 text-sm">Active Services</p>
-                  <p className="text-2xl font-bold">
-                    {products.filter(p => p.status?.toLowerCase() === 'active').length}
-                  </p>
+
+              {/* Active Services Card */}
+              <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 rounded-full bg-green-100">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">Active Services</h4>
+                      <p className="text-sm text-gray-600">Currently running</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                    Live
+                  </Badge>
                 </div>
-                <CheckCircle className="w-8 h-8 text-emerald-200" />
+                <div className="text-2xl font-bold text-green-700">{activeProducts.length}</div>
               </div>
-            </div>
-            <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4 rounded-xl text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-amber-100 text-sm">Monthly Cost</p>
-                  <p className="text-2xl font-bold">
-                    Rs {products
-                      .filter(p => p.status?.toLowerCase() === 'active')
-                      .reduce((sum, p) => sum + (p.monthlyFee || 0), 0)
-                      .toLocaleString()}
-                  </p>
+
+              {/* Monthly Cost Card */}
+              <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 rounded-full bg-yellow-100">
+                      <DollarSign className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">Monthly Cost</h4>
+                      <p className="text-sm text-gray-600">Active services only</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="text-xs bg-yellow-600 hover:bg-yellow-700">
+                    LKR
+                  </Badge>
                 </div>
-                <DollarSign className="w-8 h-8 text-amber-200" />
+                <div className="text-2xl font-bold text-yellow-700">
+                  Rs {totalMonthlyCost.toLocaleString()}
+                </div>
               </div>
-            </div>
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-xl text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm">Bundle Deals</p>
-                  <p className="text-2xl font-bold">
-                    {products.filter(p => p.isBundle).length}
-                  </p>
+
+              {/* Bundle Deals Card */}
+              <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 rounded-full bg-purple-100">
+                      <Package className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">Bundle Deals</h4>
+                      <p className="text-sm text-gray-600">Combined services</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="text-xs bg-purple-600 hover:bg-purple-700">
+                    Bundles
+                  </Badge>
                 </div>
-                <Package className="w-8 h-8 text-purple-200" />
+                <div className="text-2xl font-bold text-purple-700">{bundleCount}</div>
               </div>
             </div>
           </div>
 
-          {/* Enhanced Product Table */}
-          <div className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-lg">
-            <div className="flex items-center justify-between p-4 bg-gray-50 border-b">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">
+          {/* Enhanced Product List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <Package className="w-5 h-5 mr-2" />
+                Product Details
+              </h3>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600">
                   {filteredProducts.length} result(s) found
                 </span>
+                <Button variant="outline" size="sm" onClick={fetchProducts} disabled={loading}>
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                  )}
+                  Refresh
+                </Button>
               </div>
-              <Button variant="outline" size="sm" onClick={fetchProducts} disabled={loading}>
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
             </div>
             
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold text-gray-700">Service</TableHead>
-                    <TableHead className="font-semibold text-gray-700 hidden md:table-cell">Product ID</TableHead>
-                    <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-700 hidden lg:table-cell">Monthly Fee</TableHead>
-                    <TableHead className="font-semibold text-gray-700 hidden lg:table-cell">Activation</TableHead>
-                    <TableHead className="font-semibold text-gray-700">Visibility</TableHead>
-                    <TableHead className="font-semibold text-gray-700 hidden md:table-cell">Type</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
-                        <div className="flex flex-col items-center gap-2 text-gray-500">
-                          <Package className="w-12 h-12 text-gray-300" />
-                          <p className="text-lg font-medium">
-                            {loading ? 'Loading inventory...' : 'No products match your filters'}
-                          </p>
-                          <p className="text-sm">
-                            {loading ? 'Please wait...' : 'Try adjusting your search or filters'}
-                          </p>
+            <div className="space-y-4">
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-gray-200">
+                  <div className="flex flex-col items-center gap-4 text-gray-500">
+                    <Package className="w-12 h-12 text-gray-300" />
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium">
+                        {loading ? 'Loading inventory...' : 'No products match your filters'}
+                      </p>
+                      <p className="text-sm">
+                        {loading ? 'Please wait...' : 'Try adjusting your search or filters'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {filteredProducts.map((product) => (
+                <Card key={product.id} className="bg-white shadow-md border border-gray-200 hover:shadow-lg transition-all duration-300">
+                  <CardContent className="p-6">
+                    <div className="grid lg:grid-cols-12 gap-4 items-center">
+                      {/* Service Icon and Info */}
+                      <div className="lg:col-span-4 flex items-center gap-4">
+                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex-shrink-0">
+                          {getServiceIcon(product.serviceType)}
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600">
-                            {getServiceIcon(product.serviceType)}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">{product.name}</div>
-                            <div className="text-xs text-gray-500 md:hidden">{product.id}</div>
-                            {product.description && (
-                              <div className="text-xs text-gray-500 max-w-xs truncate">
-                                {product.description}
-                              </div>
-                            )}
-                          </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
+                          <p className="text-sm text-gray-600 truncate">{product.description}</p>
+                          <p className="text-xs text-gray-500 font-mono">{product.id}</p>
                         </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-sm text-gray-600 font-mono">
-                        {product.id}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(product.status)}</TableCell>
-                      <TableCell className="hidden lg:table-cell text-sm text-gray-600">
-                        {formatCurrency(product.monthlyFee)}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                      </div>
+
+                      {/* Status and Type */}
+                      <div className="lg:col-span-2 space-y-2">
+                        {getStatusBadge(product.status)}
+                        {product.isBundle ? (
+                          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 block w-fit">
+                            Bundle
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-gray-600 border-gray-300 block w-fit">
+                            Single
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Monthly Fee */}
+                      <div className="lg:col-span-2 text-center">
+                        <div className="text-lg font-bold text-gray-900">
+                          {formatCurrency(product.monthlyFee)}
+                        </div>
+                        <p className="text-xs text-gray-500">per month</p>
+                      </div>
+
+                      {/* Activation Date */}
+                      <div className="lg:col-span-2 text-center">
+                        <div className="flex items-center justify-center gap-1 text-sm text-gray-600">
+                          <Calendar className="w-4 h-4" />
                           {formatDate(product.activationDate)}
                         </div>
-                      </TableCell>
-                      <TableCell>
+                        <p className="text-xs text-gray-500">activated</p>
+                      </div>
+
+                      {/* Visibility */}
+                      <div className="lg:col-span-2 text-center">
                         {product.isCustomerVisible ? (
-                          <div className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-cyan-100 text-cyan-800">
+                          <div className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold bg-cyan-100 text-cyan-800">
                             <Eye className="w-3 h-3" /> Visible
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-600">
+                          <div className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-600">
                             <EyeOff className="w-3 h-3" /> Hidden
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {product.isBundle ? (
-                          <Badge className="bg-purple-100 text-purple-800">Bundle</Badge>
-                        ) : (
-                          <Badge variant="outline">Single</Badge>
+                      </div>
+                    </div>
+
+                    {/* Additional Details for larger screens */}
+                    {(product.features || product.bandwidth || product.dataAllowance) && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 hidden md:block">
+                        <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          {product.bandwidth && (
+                            <div>
+                              <strong>Bandwidth:</strong> {product.bandwidth}
+                            </div>
+                          )}
+                          {product.dataAllowance && (
+                            <div>
+                              <strong>Data:</strong> {product.dataAllowance}
+                            </div>
+                          )}
+                          {product.location && (
+                            <div>
+                              <strong>Location:</strong> {product.location}
+                            </div>
+                          )}
+                        </div>
+                        {product.features && product.features.length > 0 && (
+                          <div className="mt-3">
+                            <strong className="text-sm text-gray-700">Features:</strong>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {product.features.map((feature, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {feature}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
                         )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              For any questions about your services, call 1212 SLT hotline
+            </p>
           </div>
         </CardContent>
       </Card>
