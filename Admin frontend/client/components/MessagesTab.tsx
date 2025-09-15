@@ -236,19 +236,35 @@ export default function MessagesTab({ user }: MessagesTabProps) {
   const cancelOrder = async (notificationId: string) => {
     setCancellingOrder(notificationId);
     try {
+      console.log('🚫 Attempting to cancel order:', notificationId);
+      
+      const requestBody = {
+        productOrder: {
+          id: notificationId,
+          '@type': 'ProductOrderRef'
+        },
+        cancellationReason: 'User requested cancellation',
+        requestedCancellationDate: new Date(Date.now() + 60000).toISOString(), // 1 minute in future
+        '@type': 'CancelProductOrder'
+      };
+      
+      console.log('📤 Request body:', requestBody);
+      
       const response = await fetch(`/api/productOrderingManagement/v4/cancelProductOrder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          id: notificationId,
-          cancellationReason: 'User requested cancellation',
-          requestedCancellationDate: new Date().toISOString()
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Cancel order successful:', responseData);
+        
         // Update the notification status to cancelled
         setNotifications(prev => 
           prev.map(notif => 
@@ -269,12 +285,17 @@ export default function MessagesTab({ user }: MessagesTabProps) {
         readNotifications.add(notificationId);
         saveReadNotifications(readNotifications);
       } else {
-        console.error('Failed to cancel order');
-        alert('Failed to cancel order. Please try again or contact support.');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Failed to cancel order:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        alert(`Failed to cancel order: ${errorData.message || errorData.error || 'Please try again or contact support.'}`);
       }
     } catch (error) {
-      console.error('Error cancelling order:', error);
-      alert('Error cancelling order. Please try again or contact support.');
+      console.error('❌ Error cancelling order:', error);
+      alert(`Error cancelling order: ${error.message}. Please try again or contact support.`);
     } finally {
       setCancellingOrder(null);
     }
