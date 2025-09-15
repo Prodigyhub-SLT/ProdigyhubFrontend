@@ -240,17 +240,18 @@ export default function MessagesTab({ user }: MessagesTabProps) {
       
       // Step 1: Update the order state to cancelled first (same as admin dashboard)
       console.log('📝 Step 1: Updating order state to cancelled...');
+      
+      // Use exact same approach as admin dashboard - just update the state
+      const updateBody = { state: 'cancelled' };
+      
+      console.log('📤 Update request body (matching admin dashboard):', updateBody);
+      
       const updateResponse = await fetch(`/api/productOrderingManagement/v4/productOrder/${notificationId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/merge-patch+json',
         },
-        body: JSON.stringify({
-          state: 'cancelled',
-          cancellationDate: new Date().toISOString(),
-          cancellationReason: 'User requested cancellation',
-          '@type': 'ProductOrder'
-        })
+        body: JSON.stringify(updateBody)
       });
       
       if (!updateResponse.ok) {
