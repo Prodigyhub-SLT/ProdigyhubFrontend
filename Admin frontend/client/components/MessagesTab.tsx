@@ -36,6 +36,26 @@ export default function MessagesTab({ user }: MessagesTabProps) {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper functions for localStorage management
+  const getReadNotifications = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const stored = localStorage.getItem('readNotifications');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  };
+
+  const saveReadNotifications = (readIds: Set<string>) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('readNotifications', JSON.stringify([...readIds]));
+    } catch (error) {
+      console.error('Error saving read notifications:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadNotifications();
@@ -55,6 +75,9 @@ export default function MessagesTab({ user }: MessagesTabProps) {
           order.customerDetails?.email === user?.email
         );
         
+        // Get previously read notification IDs
+        const readNotifications = getReadNotifications();
+        
         // Convert orders to notifications
         const newNotifications: OrderNotification[] = userOrders.map((order: any) => ({
           id: order.id,
@@ -63,7 +86,7 @@ export default function MessagesTab({ user }: MessagesTabProps) {
           status: order.state,
           message: getStatusMessage(order.state, order.productOrderItem?.[0]?.productOffering?.name),
           timestamp: order.creationDate || order.createdAt,
-          read: false
+          read: readNotifications.has(order.id)
         }));
         
         setNotifications(newNotifications);
@@ -120,12 +143,22 @@ export default function MessagesTab({ user }: MessagesTabProps) {
         notif.id === notificationId ? { ...notif, read: true } : notif
       )
     );
+    
+    // Save to localStorage
+    const readNotifications = getReadNotifications();
+    readNotifications.add(notificationId);
+    saveReadNotifications(readNotifications);
   };
 
   const markAllAsRead = () => {
     setNotifications(prev => 
       prev.map(notif => ({ ...notif, read: true }))
     );
+    
+    // Save all notification IDs to localStorage
+    const readNotifications = getReadNotifications();
+    notifications.forEach(notif => readNotifications.add(notif.id));
+    saveReadNotifications(readNotifications);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -166,15 +199,6 @@ export default function MessagesTab({ user }: MessagesTabProps) {
               )}
             </CardTitle>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadNotifications}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
-              </Button>
               {unreadCount > 0 && (
                 <Button
                   variant="outline"
