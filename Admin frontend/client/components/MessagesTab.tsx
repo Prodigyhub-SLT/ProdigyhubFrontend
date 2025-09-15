@@ -10,7 +10,13 @@ import {
   Bell,
   X,
   RefreshCw,
-  Trash2
+  Trash2,
+  AlertTriangle,
+  PlayCircle,
+  PauseCircle,
+  Square,
+  Info,
+  XCircle
 } from 'lucide-react';
 
 interface User {
@@ -23,10 +29,12 @@ interface OrderNotification {
   id: string;
   orderId: string;
   packageName: string;
-  status: 'acknowledged' | 'inProgress' | 'completed';
+  status: 'acknowledged' | 'inProgress' | 'completed' | 'cancelled' | 'failed';
   message: string;
   timestamp: string;
   read: boolean;
+  canCancel?: boolean;
+  progress?: number;
 }
 
 interface MessagesTabProps {
@@ -36,6 +44,7 @@ interface MessagesTabProps {
 export default function MessagesTab({ user }: MessagesTabProps) {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
 
   // Helper functions for localStorage management
   const getReadNotifications = (): Set<string> => {
@@ -109,7 +118,9 @@ export default function MessagesTab({ user }: MessagesTabProps) {
             status: order.state,
             message: getStatusMessage(order.state, order.productOrderItem?.[0]?.productOffering?.name),
             timestamp: order.creationDate || order.createdAt,
-            read: readNotifications.has(order.id)
+            read: readNotifications.has(order.id),
+            canCancel: ['acknowledged', 'inProgress'].includes(order.state),
+            progress: getOrderProgress(order.state)
           }));
         
         setNotifications(newNotifications);
@@ -129,8 +140,23 @@ export default function MessagesTab({ user }: MessagesTabProps) {
         return `Your upgrade request for ${packageName} is now in progress.`;
       case 'completed':
         return `Your upgrade request for ${packageName} has been completed successfully!`;
+      case 'cancelled':
+        return `Your upgrade request for ${packageName} has been cancelled.`;
+      case 'failed':
+        return `Your upgrade request for ${packageName} has failed. Please contact support.`;
       default:
         return `Update for your ${packageName} upgrade request.`;
+    }
+  };
+
+  const getOrderProgress = (status: string): number => {
+    switch (status) {
+      case 'acknowledged': return 25;
+      case 'inProgress': return 75;
+      case 'completed': return 100;
+      case 'cancelled': return 0;
+      case 'failed': return 0;
+      default: return 0;
     }
   };
 
@@ -139,9 +165,13 @@ export default function MessagesTab({ user }: MessagesTabProps) {
       case 'acknowledged':
         return <Clock className="h-4 w-4 text-blue-500" />;
       case 'inProgress':
-        return <RefreshCw className="h-4 w-4 text-yellow-500" />;
+        return <PlayCircle className="h-4 w-4 text-yellow-500" />;
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'cancelled':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'failed':
+        return <AlertTriangle className="h-4 w-4 text-red-600" />;
       default:
         return <Bell className="h-4 w-4 text-gray-500" />;
     }
@@ -155,6 +185,10 @@ export default function MessagesTab({ user }: MessagesTabProps) {
         return <Badge className="bg-yellow-100 text-yellow-800">In Progress</Badge>;
       case 'completed':
         return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
+      case 'failed':
+        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
       default:
         return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
     }
@@ -194,6 +228,53 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     const deletedNotifications = getDeletedNotifications();
     deletedNotifications.add(notificationId);
     saveDeletedNotifications(deletedNotifications);
+  };
+
+  const cancelOrder = async (notificationId: string) => {
+    setCancellingOrder(notificationId);
+    try {
+      const response = await fetch(`/api/productOrderingManagement/v4/cancelProductOrder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: notificationId,
+          cancellationReason: 'User requested cancellation',
+          requestedCancellationDate: new Date().toISOString()
+        })
+      });
+
+      if (response.ok) {
+        // Update the notification status to cancelled
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notificationId 
+              ? { 
+                  ...notif, 
+                  status: 'cancelled' as const,
+                  message: getStatusMessage('cancelled', notif.packageName),
+                  canCancel: false,
+                  progress: 0
+                } 
+              : notif
+          )
+        );
+        
+        // Mark as read since user interacted with it
+        const readNotifications = getReadNotifications();
+        readNotifications.add(notificationId);
+        saveReadNotifications(readNotifications);
+      } else {
+        console.error('Failed to cancel order');
+        alert('Failed to cancel order. Please try again or contact support.');
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      alert('Error cancelling order. Please try again or contact support.');
+    } finally {
+      setCancellingOrder(null);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -281,36 +362,101 @@ export default function MessagesTab({ user }: MessagesTabProps) {
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           )}
                         </div>
+                        
+                        {/* Progress Bar for Active Orders */}
+                        {notification.status !== 'completed' && notification.status !== 'cancelled' && notification.status !== 'failed' && (
+                          <div className="mb-3">
+                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                              <span>Progress</span>
+                              <span>{notification.progress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-500 ${
+                                  notification.status === 'acknowledged' ? 'bg-blue-500' :
+                                  notification.status === 'inProgress' ? 'bg-yellow-500' : 'bg-gray-400'
+                                }`}
+                                style={{ width: `${notification.progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                        
                         <p className="text-gray-700 mb-2">{notification.message}</p>
+                        
+                        {/* Status Details */}
+                        <div className="mb-3 p-3 bg-white rounded-lg border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Info className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm font-medium text-gray-700">Order Status</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-gray-500">Order ID:</span>
+                              <span className="ml-1 font-mono">{notification.orderId.slice(0, 8)}...</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Status:</span>
+                              <span className="ml-1">{notification.status}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Progress:</span>
+                              <span className="ml-1">{notification.progress}%</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Created:</span>
+                              <span className="ml-1">{new Date(notification.timestamp).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
                         <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Order ID: {notification.orderId}</span>
                           <span>
                             {new Date(notification.timestamp).toLocaleString()}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      {!notification.read && (
+                    <div className="flex flex-col gap-1">
+                      {notification.canCancel && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => cancelOrder(notification.id)}
+                          disabled={cancellingOrder === notification.id}
+                          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          title="Cancel this upgrade request"
+                        >
+                          {cancellingOrder === notification.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Square className="h-3 w-3" />
+                          )}
+                          <span className="ml-1">Cancel</span>
+                        </Button>
+                      )}
+                      <div className="flex gap-1">
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => markAsRead(notification.id)}
+                            className="text-gray-400 hover:text-gray-600"
+                            title="Mark as read"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => markAsRead(notification.id)}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Mark as read"
+                          onClick={() => deleteNotification(notification.id)}
+                          className="text-gray-400 hover:text-red-600"
+                          title="Delete message"
                         >
-                          <X className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteNotification(notification.id)}
-                        className="text-gray-400 hover:text-red-600"
-                        title="Delete message"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
