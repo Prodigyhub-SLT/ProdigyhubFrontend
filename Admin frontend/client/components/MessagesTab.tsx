@@ -238,87 +238,87 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     try {
       console.log('🚫 Attempting to cancel order:', notificationId);
       
-      const requestBody = {
+      // Step 1: Update the order state to cancelled first (same as admin dashboard)
+      console.log('📝 Step 1: Updating order state to cancelled...');
+      const updateResponse = await fetch(`/api/productOrderingManagement/v4/productOrder/${notificationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+        body: JSON.stringify({
+          state: 'cancelled',
+          cancellationDate: new Date().toISOString(),
+          cancellationReason: 'User requested cancellation',
+          '@type': 'ProductOrder'
+        })
+      });
+      
+      if (!updateResponse.ok) {
+        const updateError = await updateResponse.json().catch(() => ({}));
+        console.error('❌ Failed to update order state:', updateError);
+        alert(`Failed to cancel order: ${updateError.message || updateError.error || 'Please try again or contact support.'}`);
+        return;
+      }
+      
+      const updateData = await updateResponse.json();
+      console.log('✅ Order state updated to cancelled:', updateData);
+      
+      // Step 2: Create cancellation request (same as admin dashboard)
+      console.log('📝 Step 2: Creating cancellation request...');
+      const cancelRequest = {
         productOrder: {
           id: notificationId,
+          href: `/productOrderingManagement/v4/productOrder/${notificationId}`,
           '@type': 'ProductOrderRef'
         },
         cancellationReason: 'User requested cancellation',
-        requestedCancellationDate: new Date(Date.now() + 60000).toISOString(), // 1 minute in future
+        requestedCancellationDate: new Date().toISOString(),
         '@type': 'CancelProductOrder'
       };
       
-      console.log('📤 Request body:', requestBody);
+      console.log('📤 Cancel request body:', cancelRequest);
       
-      const response = await fetch(`/api/productOrderingManagement/v4/cancelProductOrder`, {
+      const cancelResponse = await fetch(`/api/productOrderingManagement/v4/cancelProductOrder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(cancelRequest)
       });
 
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📥 Cancel response status:', cancelResponse.status);
 
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log('✅ Cancel order successful:', responseData);
-        
-        // Also update the original product order to cancelled state
-        try {
-          const updateResponse = await fetch(`/api/productOrderingManagement/v4/productOrder/${notificationId}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/merge-patch+json',
-            },
-            body: JSON.stringify({
-              state: 'cancelled',
-              cancellationDate: new Date().toISOString(),
-              cancellationReason: 'User requested cancellation',
-              '@type': 'ProductOrder'
-            })
-          });
-          
-          if (updateResponse.ok) {
-            const updateData = await updateResponse.json();
-            console.log('✅ Original product order updated to cancelled:', updateData);
-          } else {
-            const updateError = await updateResponse.json().catch(() => ({}));
-            console.warn('⚠️ Failed to update original product order state:', updateError);
-          }
-        } catch (updateError) {
-          console.warn('⚠️ Error updating original product order:', updateError);
-        }
-        
-        // Update the notification status to cancelled
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === notificationId 
-              ? { 
-                  ...notif, 
-                  status: 'cancelled' as const,
-                  message: getStatusMessage('cancelled', notif.packageName),
-                  canCancel: false,
-                  progress: 0
-                } 
-              : notif
-          )
-        );
-        
-        // Mark as read since user interacted with it
-        const readNotifications = getReadNotifications();
-        readNotifications.add(notificationId);
-        saveReadNotifications(readNotifications);
+      if (cancelResponse.ok) {
+        const cancelData = await cancelResponse.json();
+        console.log('✅ Cancellation request created:', cancelData);
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Failed to cancel order:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        });
-        alert(`Failed to cancel order: ${errorData.message || errorData.error || 'Please try again or contact support.'}`);
+        const cancelError = await cancelResponse.json().catch(() => ({}));
+        console.warn('⚠️ Failed to create cancellation request:', cancelError);
+        // Don't fail the whole process if cancellation request creation fails
       }
+      
+      // Update the notification status to cancelled
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { 
+                ...notif, 
+                status: 'cancelled' as const,
+                message: getStatusMessage('cancelled', notif.packageName),
+                canCancel: false,
+                progress: 0
+              } 
+            : notif
+        )
+      );
+      
+      // Mark as read since user interacted with it
+      const readNotifications = getReadNotifications();
+      readNotifications.add(notificationId);
+      saveReadNotifications(readNotifications);
+      
+      console.log('✅ Order cancellation completed successfully');
+      
     } catch (error) {
       console.error('❌ Error cancelling order:', error);
       alert(`Error cancelling order: ${error.message}. Please try again or contact support.`);
