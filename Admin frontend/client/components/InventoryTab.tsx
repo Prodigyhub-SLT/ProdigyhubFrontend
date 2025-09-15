@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { productCatalogApi, productOrderingApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { Package, Zap, Gauge, DollarSign, CalendarClock } from 'lucide-react';
+import { Package, Zap } from 'lucide-react';
 
 type OrderState = 'acknowledged' | 'inProgress' | 'completed' | 'failed' | 'cancelled';
 
@@ -243,8 +243,7 @@ export default function InventoryTab() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-blue-50 text-blue-700 px-3 py-2 flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
+                  <div className="rounded-xl bg-blue-50 text-blue-700 px-3 py-2 flex items-center">
                     <span className="font-semibold text-lg">
                       {priceInfo ? `${priceInfo.currency} ${priceInfo.amount}` : 'Price N/A'}
                     </span>
