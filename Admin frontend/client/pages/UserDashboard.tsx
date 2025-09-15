@@ -80,13 +80,16 @@ export default function UserDashboard() {
     activeTab,
     urlSearch: location.search
   });
-  
-
-
-
 
   const handleTabClick = (tabId: string) => {
     console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
+    
+    // Check if localStorage is available
+    if (typeof Storage === "undefined") {
+      console.warn('localStorage not available, proceeding without qualification check');
+      setActiveTab(tabId);
+      return;
+    }
     
     // Double-check qualification state from localStorage
     const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
@@ -97,9 +100,9 @@ export default function UserDashboard() {
     if (isForceLocked && tabId !== 'qualification') {
       // Show message that qualification must be completed first
       setShowQualificationAlert(true);
-      setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
+      const timer = setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
       console.log('🚫 Tab access blocked - user is force-locked (new user)');
-      return;
+      return () => clearTimeout(timer);
     }
     
     console.log('✅ Tab access granted');
@@ -107,6 +110,14 @@ export default function UserDashboard() {
   };
 
   const handleQualificationComplete = () => {
+    // Check if localStorage is available
+    if (typeof Storage === "undefined") {
+      console.warn('localStorage not available, setting state only');
+      setQualificationCompleted(true);
+      setActiveTab('summary');
+      return;
+    }
+
     // Check if user is force-locked
     const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
     
@@ -186,6 +197,16 @@ export default function UserDashboard() {
     const tabParam = urlParams.get('tab');
     const fromSignup = urlParams.get('from') === 'signup';
     
+    // Check if localStorage is available
+    if (typeof Storage === "undefined") {
+      console.warn('localStorage not available, setting default state');
+      setQualificationCompleted(true);
+      if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+      return;
+    }
+    
     // Check qualification status from localStorage
     const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
     const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
@@ -247,14 +268,18 @@ export default function UserDashboard() {
     console.log('🔄 Qualification state changed:', { 
       qualificationCompleted, 
       activeTab,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
+      timestamp: new Date().toISOString()
     });
   }, [qualificationCompleted, activeTab]);
 
   // Periodic check to ensure qualification state is correct for new users
   useEffect(() => {
     const interval = setInterval(() => {
+      // Check if localStorage is available
+      if (typeof Storage === "undefined") {
+        return;
+      }
+
       const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
       const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
       
@@ -275,7 +300,8 @@ export default function UserDashboard() {
 
     return () => clearInterval(interval);
   }, [activeTab, qualificationCompleted]);
-     return (
+
+  return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
@@ -365,7 +391,11 @@ export default function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1 py-3">
             {secondNavTabs.map((tab) => {
-              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+              // Safe localStorage check
+              let isForceLocked = false;
+              if (typeof Storage !== "undefined") {
+                isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+              }
               const isLocked = isForceLocked && tab.id !== 'qualification';
               return (
                 <Button
@@ -656,4 +686,3 @@ export default function UserDashboard() {
     </div>
   );
 }
-
