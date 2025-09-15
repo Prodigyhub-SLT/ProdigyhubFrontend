@@ -216,9 +216,9 @@ export default function InventoryTab() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Hero header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 text-white shadow-lg mb-6">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 md:p-10 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -227,7 +227,7 @@ export default function InventoryTab() {
               </div>
               <h2 className="text-2xl font-bold">Inventory</h2>
             </div>
-            <p className="text-white/90">Your currently active package</p>
+            <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
             <Badge className="bg-emerald-400 text-emerald-900 font-semibold">Active</Badge>
@@ -236,13 +236,14 @@ export default function InventoryTab() {
         {activePackage?.offering?.name && (
           <div className="mt-6">
             <div className="text-sm text-white/80">Current Package</div>
-            <div className="text-2xl font-semibold">{activePackage.offering.name}</div>
+            <div className="text-3xl md:text-4xl font-semibold leading-tight">{activePackage.offering.name}</div>
           </div>
         )}
       </div>
 
-      <Card className="bg-white shadow-xl border-0 rounded-2xl">
-        <CardContent className="p-6 md:p-8">
+      {/* Package details */}
+      <Card className="bg-white shadow-xl border border-gray-100 rounded-2xl">
+        <CardContent className="p-6 md:p-8 space-y-6">
           {!activePackage && (
             <div className="text-gray-700">No active package found.</div>
           )}
@@ -253,14 +254,14 @@ export default function InventoryTab() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                   <div className="text-sm text-gray-500">Package</div>
-                  <div className="text-xl md:text-2xl font-semibold text-gray-900">
+                  <div className="text-2xl md:text-3xl font-semibold text-gray-900">
                     {activePackage.offering?.name || activePackage.offeringId}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-blue-50 text-blue-700 px-3 py-2 flex items-center">
-                    <span className="font-semibold text-lg">
-                      {priceInfo ? `${priceInfo.currency} ${priceInfo.amount}` : 'Price N/A'}
+                  <div className="rounded-xl bg-blue-50 text-blue-700 px-3 py-2 flex items-center shadow-sm">
+                    <span className="font-semibold text-lg tracking-wide">
+                      {priceInfo ? `${priceInfo.currency} ${priceInfo.amount.toLocaleString?.() || priceInfo.amount}` : 'Price N/A'}
                     </span>
                   </div>
                 </div>
@@ -268,13 +269,13 @@ export default function InventoryTab() {
 
               {/* Feature chips */}
               {features.length > 0 && (
-                <div>
-                  <div className="text-sm text-gray-500 mb-2">Key Features</div>
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-500">Key Features</div>
                   <div className="flex flex-wrap gap-2">
                     {features.map((f, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-2 rounded-full bg-gray-100 text-gray-800 px-3 py-1 text-sm"
+                        className="inline-flex items-center gap-2 rounded-full bg-gray-100 text-gray-800 px-3 py-1.5 text-sm border border-gray-200"
                       >
                         <Zap className="w-3.5 h-3.5 text-blue-600" /> {f}
                       </span>
@@ -285,15 +286,15 @@ export default function InventoryTab() {
 
               {/* Offer details grid (not order details) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
                   <div className="text-sm text-gray-500 mb-1">Connection Type</div>
                   <div className="font-medium text-gray-900">{specDetails.connectionType || '—'}</div>
                 </div>
-                <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
                   <div className="text-sm text-gray-500 mb-1">Package Type</div>
                   <div className="font-medium text-gray-900">{specDetails.packageType || '—'}</div>
                 </div>
-                <div className="rounded-xl border border-gray-200 p-4 bg-white">
+                <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
                   <div className="text-sm text-gray-500 mb-1">Data Bundle</div>
                   <div className="font-medium text-gray-900">{specDetails.dataBundle || '—'}</div>
                 </div>
@@ -301,16 +302,16 @@ export default function InventoryTab() {
 
               {/* Description */}
               {activePackage.offering?.description && (
-                <div className="rounded-xl border border-gray-200 p-4 bg-gray-50">
-                  <div className="text-sm text-gray-500 mb-1">Description</div>
-                  <div className="text-gray-700">{activePackage.offering.description}</div>
+                <div className="rounded-xl border border-gray-200 p-5 bg-gray-50">
+                  <div className="text-sm text-gray-500 mb-2">Description</div>
+                  <div className="text-gray-800 leading-relaxed">{activePackage.offering.description}</div>
                 </div>
               )}
 
               {/* Actions */}
               <div className="pt-2">
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base rounded-xl shadow-sm"
                   onClick={() => {
                     navigate({ search: '?tab=packages' });
                   }}
@@ -323,11 +324,11 @@ export default function InventoryTab() {
 
           {/* Pending upgrade banner */}
           {pendingUpgrade && (
-            <div className="mt-8 rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+            <div className="mt-2 rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="text-sm text-amber-700">Upgrade in progress</div>
-                  <div className="text-lg font-semibold text-gray-900">
+                  <div className="text-lg md:text-xl font-semibold text-gray-900">
                     {pendingUpgrade.offering?.name || pendingUpgrade.offeringId}
                   </div>
                 </div>
@@ -343,7 +344,7 @@ export default function InventoryTab() {
                     const isDone = idx <= current;
                     return (
                       <div key={label} className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shadow ${isDone ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shadow ${isDone ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
                           {idx + 1}
                         </div>
                         <div className={`mt-2 text-xs font-medium ${isDone ? 'text-amber-700' : 'text-gray-500'}`}>{label}</div>
