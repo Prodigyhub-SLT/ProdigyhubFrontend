@@ -242,15 +242,14 @@ export default function InventoryTab() {
             <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
-            <div className="flex flex-col gap-3">
-              {/* Active status button - same size as other buttons */}
-              <Button
-                disabled
-                className="bg-emerald-500 text-white font-semibold rounded-full px-6 py-3 w-40 h-12 text-base shadow-lg"
-              >
-                Active
-              </Button>
-              {/* Action buttons in hero - stacked vertically like in image */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              {/* Active status button - vibrant green at top */}
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center justify-center bg-gradient-to-r from-emerald-400 to-emerald-500 text-emerald-900 font-bold rounded-full px-6 py-3 w-40 h-12 text-base shadow-lg">
+                  Active
+                </div>
+              </div>
+              {/* Action buttons at bottom */}
               <div className="flex flex-col gap-3">
                 <Button
                   variant="outline"
