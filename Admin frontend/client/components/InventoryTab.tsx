@@ -55,6 +55,7 @@ export default function InventoryTab() {
         ]);
 
         const userOrders = (allOrders || []).filter((o: any) => o?.customerDetails?.email === user.email);
+        console.log('🔍 Inventory - User orders loaded:', userOrders.map(o => ({ id: o.id, state: o.state, name: o.productOrderItem?.[0]?.productOffering?.name })));
         setOrders(userOrders as ProductOrder[]);
         let offeringList = (allOfferings || []) as ProductOffering[];
 
@@ -95,8 +96,14 @@ export default function InventoryTab() {
       return db - da;
     });
 
-    // Determine the single active package: pick the most recent completed order (cancelled orders are excluded by state !== 'cancelled')
+    // Debug: Log all order states
+    console.log('🔍 Inventory - All order states:', sorted.map(o => ({ id: o.id, state: o.state, name: o.productOrderItem?.[0]?.productOffering?.name })));
+
+    // Determine the single active package: pick the most recent completed order (exclude cancelled, failed, etc.)
     const recentCompleted = sorted.find((o) => o.state === 'completed');
+    
+    console.log('🔍 Inventory - Recent completed order:', recentCompleted ? { id: recentCompleted.id, state: recentCompleted.state } : 'None found');
+    
     if (!recentCompleted) return null;
 
     const poId = recentCompleted.productOrderItem?.[0]?.productOffering?.id;
