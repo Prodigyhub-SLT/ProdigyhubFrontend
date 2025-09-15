@@ -9,7 +9,8 @@ import {
   Package, 
   Bell,
   X,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
 
 interface User {
@@ -56,6 +57,25 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     }
   };
 
+  const getDeletedNotifications = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const stored = localStorage.getItem('deletedNotifications');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  };
+
+  const saveDeletedNotifications = (deletedIds: Set<string>) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('deletedNotifications', JSON.stringify([...deletedIds]));
+    } catch (error) {
+      console.error('Error saving deleted notifications:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadNotifications();
@@ -75,19 +95,22 @@ export default function MessagesTab({ user }: MessagesTabProps) {
           order.customerDetails?.email === user?.email
         );
         
-        // Get previously read notification IDs
+        // Get previously read and deleted notification IDs
         const readNotifications = getReadNotifications();
+        const deletedNotifications = getDeletedNotifications();
         
-        // Convert orders to notifications
-        const newNotifications: OrderNotification[] = userOrders.map((order: any) => ({
-          id: order.id,
-          orderId: order.id,
-          packageName: order.productOrderItem?.[0]?.productOffering?.name || 'Unknown Package',
-          status: order.state,
-          message: getStatusMessage(order.state, order.productOrderItem?.[0]?.productOffering?.name),
-          timestamp: order.creationDate || order.createdAt,
-          read: readNotifications.has(order.id)
-        }));
+        // Convert orders to notifications and filter out deleted ones
+        const newNotifications: OrderNotification[] = userOrders
+          .filter((order: any) => !deletedNotifications.has(order.id))
+          .map((order: any) => ({
+            id: order.id,
+            orderId: order.id,
+            packageName: order.productOrderItem?.[0]?.productOffering?.name || 'Unknown Package',
+            status: order.state,
+            message: getStatusMessage(order.state, order.productOrderItem?.[0]?.productOffering?.name),
+            timestamp: order.creationDate || order.createdAt,
+            read: readNotifications.has(order.id)
+          }));
         
         setNotifications(newNotifications);
       }
@@ -159,6 +182,18 @@ export default function MessagesTab({ user }: MessagesTabProps) {
     const readNotifications = getReadNotifications();
     notifications.forEach(notif => readNotifications.add(notif.id));
     saveReadNotifications(readNotifications);
+  };
+
+  const deleteNotification = (notificationId: string) => {
+    // Remove from current state
+    setNotifications(prev => 
+      prev.filter(notif => notif.id !== notificationId)
+    );
+    
+    // Add to deleted notifications in localStorage
+    const deletedNotifications = getDeletedNotifications();
+    deletedNotifications.add(notificationId);
+    saveDeletedNotifications(deletedNotifications);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -255,16 +290,28 @@ export default function MessagesTab({ user }: MessagesTabProps) {
                         </div>
                       </div>
                     </div>
-                    {!notification.read && (
+                    <div className="flex gap-1">
+                      {!notification.read && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markAsRead(notification.id)}
+                          className="text-gray-400 hover:text-gray-600"
+                          title="Mark as read"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => markAsRead(notification.id)}
-                        className="text-gray-400 hover:text-gray-600"
+                        onClick={() => deleteNotification(notification.id)}
+                        className="text-gray-400 hover:text-red-600"
+                        title="Delete message"
                       >
-                        <X className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
