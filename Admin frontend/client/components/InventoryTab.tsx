@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { productCatalogApi, productOrderingApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { Package, Zap } from 'lucide-react';
+import { Package, Zap, X, ArrowUpRight } from 'lucide-react';
 
 type OrderState = 'acknowledged' | 'inProgress' | 'completed' | 'failed' | 'cancelled';
 
@@ -242,29 +242,30 @@ export default function InventoryTab() {
             <p className="text-white/90 text-sm md:text-base">Your currently active package</p>
           </div>
           {activePackage && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-              {/* Active status button - vibrant green at top */}
-              <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center bg-gradient-to-r from-emerald-400 to-emerald-500 text-emerald-900 font-bold rounded-full px-6 py-3 w-40 h-12 text-base shadow-lg">
-                  Active
+            <div className="flex flex-col gap-3">
+              {/* Active status button - rectangular with glowing effect */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-emerald-400 rounded-lg blur-sm opacity-75"></div>
+                <div className="relative bg-gradient-to-r from-emerald-400 to-emerald-500 text-emerald-900 font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm flex items-center justify-center shadow-xl">
+                  Activate
                 </div>
               </div>
-              {/* Action buttons at bottom */}
-              <div className="flex flex-col gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCancelDialogOpen(true)}
-                  className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-full px-6 py-3 w-40 h-12 text-base font-semibold shadow-lg"
-                >
-                  Cancel Package
-                </Button>
-                <Button
-                  onClick={() => navigate({ search: '?tab=packages' })}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 w-40 h-12 text-base font-semibold shadow-lg"
-                >
-                  Upgrade Package
-                </Button>
-              </div>
+              {/* Action buttons */}
+              <Button
+                variant="outline"
+                onClick={() => setIsCancelDialogOpen(true)}
+                className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-4 py-3 w-32 h-12 text-sm font-semibold shadow-lg flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </Button>
+              <Button
+                onClick={() => navigate({ search: '?tab=packages' })}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-3 w-32 h-12 text-sm font-semibold shadow-lg flex items-center gap-2"
+              >
+                <ArrowUpRight className="w-4 h-4" />
+                Upgrade
+              </Button>
             </div>
           )}
         </div>
