@@ -249,10 +249,9 @@ export default function InventoryTab() {
           </div>
           {activePackage && (
             <div className="flex flex-col gap-3 ml-8">
-              {/* Activate button - blue-grey like in image */}
+              {/* Activate button - purple-grey like in image */}
               <Button
-                disabled
-                className="bg-slate-500 text-white font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm shadow-lg"
+                className="bg-purple-400 text-purple-900 font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm shadow-lg hover:bg-purple-500"
               >
                 Activate
               </Button>
