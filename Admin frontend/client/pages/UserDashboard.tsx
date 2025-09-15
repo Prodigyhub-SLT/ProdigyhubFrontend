@@ -9,6 +9,7 @@ import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
+import InventoryTab from '../components/InventoryTab';
 import MessagesTab from '../components/MessagesTab';
 import { 
   Wifi, 
@@ -637,14 +638,7 @@ export default function UserDashboard() {
 
         {/* Other tabs content can be added here */}
         {activeTab === 'inventory' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Inventory</CardTitle>
-                <CardDescription className="text-gray-600">Inventory management features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <InventoryTab />
         )}
 
         {activeTab === 'qualification' && (
