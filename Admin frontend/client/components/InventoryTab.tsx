@@ -122,6 +122,21 @@ export default function InventoryTab() {
     return { order: latest, offering, offeringId: poId };
   }, [orders, offerings]);
 
+  const getOrderStepIndex = (state: OrderState) => {
+    switch (state) {
+      case 'acknowledged':
+        return 0;
+      case 'inProgress':
+        return 1;
+      case 'completed':
+        return 2;
+      case 'failed':
+      case 'cancelled':
+      default:
+        return -1;
+    }
+  };
+
   const priceInfo = useMemo(() => {
     const off: any = activePackage?.offering as any;
     if (!off) return null;
@@ -308,10 +323,38 @@ export default function InventoryTab() {
 
           {/* Pending upgrade banner */}
           {pendingUpgrade && (
-            <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <div className="text-amber-800 font-medium mb-1">Upgrade in progress</div>
-              <div className="text-amber-700 text-sm">
-                Switching to {pendingUpgrade.offering?.name || pendingUpgrade.offeringId} · Status: {pendingUpgrade.order.state}
+            <div className="mt-8 rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-sm text-amber-700">Upgrade in progress</div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {pendingUpgrade.offering?.name || pendingUpgrade.offeringId}
+                  </div>
+                </div>
+                <Badge className="bg-amber-100 text-amber-800 capitalize">{pendingUpgrade.order.state}</Badge>
+              </div>
+
+              {/* Stepper */}
+              <div className="relative">
+                <div className="absolute left-0 right-0 top-4 h-0.5 bg-gray-200"></div>
+                <div className="relative z-10 grid grid-cols-3">
+                  {['Acknowledged', 'In Progress', 'Completed'].map((label, idx) => {
+                    const current = getOrderStepIndex(pendingUpgrade.order.state);
+                    const isDone = idx <= current;
+                    return (
+                      <div key={label} className="flex flex-col items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shadow ${isDone ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                          {idx + 1}
+                        </div>
+                        <div className={`mt-2 text-xs font-medium ${isDone ? 'text-amber-700' : 'text-gray-500'}`}>{label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-4 text-xs text-gray-600">
+                Last updated: {new Date(pendingUpgrade.order.orderDate || '').toLocaleString()}
               </div>
             </div>
           )}
