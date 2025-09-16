@@ -45,6 +45,21 @@ export default function CustomerCustomizeTab() {
     { label: 'Up to 500 Mbps Upload', tone: 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm' },
   ];
 
+  // ADSL guidance
+  const adslKeyPoints: string[] = [
+    'Speeds may vary depending on line distance and condition.',
+    'Download/upload speed can reduce to 64 Kbps after reaching anytime quota (standard quota).',
+    'Extra data can be requested with the same speed; charges may apply.',
+    'Off-peak time data from 00:00 to 08:00 hrs for time-based packs.',
+    'Migration between Anytime and Time-based packs is possible; fees may apply.',
+    'Broadband loyalty is reduced by 50% for each downgrade.',
+    'Equipment configuration support fee is Rs. 250 (optional).',
+  ];
+  const adslSpeedBadges = [
+    { label: 'Up to 21 Mbps Download', tone: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' },
+    { label: 'Up to 512 Kbps Upload', tone: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-sm' },
+  ];
+
   const handleSubmit = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
@@ -109,6 +124,25 @@ export default function CustomerCustomizeTab() {
                       p
                     )}
                   </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {data.connectionType === 'ADSL' && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 md:p-5 shadow-sm">
+              {/* Speed highlight row */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {adslSpeedBadges.map((b, i) => (
+                  <span key={i} className={`text-xs md:text-sm px-3 py-1.5 rounded-full ${b.tone}`}>{b.label}</span>
+                ))}
+                <span className="text-[11px] md:text-xs text-amber-900/80 bg-white/60 px-2 py-1 rounded-lg border border-amber-100">Best-effort, depends on copper line quality</span>
+              </div>
+
+              <div className="text-sm text-amber-900 font-semibold mb-2">Important notes before choosing ADSL</div>
+              <ul className="list-disc pl-5 space-y-1.5 text-sm text-amber-900">
+                {adslKeyPoints.map((p, i) => (
+                  <li key={i}>{p}</li>
                 ))}
               </ul>
             </div>
