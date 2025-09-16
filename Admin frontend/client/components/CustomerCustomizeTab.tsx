@@ -36,6 +36,7 @@ export default function CustomerCustomizeTab() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [similarOffers, setSimilarOffers] = useState<any[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
+  const [showAllOffers, setShowAllOffers] = useState(false);
 
   const canSubmit = data.connectionType && data.packageType && data.speedTier;
 
@@ -112,24 +113,29 @@ export default function CustomerCustomizeTab() {
   // Load similar offers when key fields change
   React.useEffect(() => {
     const fetchSimilar = async () => {
-      if (!data.connectionType && !data.packageType && !data.dataAmount) {
+      // Only start search when both Connection and Package Type are selected
+      if (!data.connectionType || !data.packageType) {
         setSimilarOffers([]);
         return;
       }
       setLoadingOffers(true);
       try {
         const offerings = await productCatalogApi.getOfferings();
-        const normalizedDataAmount = (data.dataAmount || '').toLowerCase();
+        const conn = data.connectionType.toLowerCase();
+        const pkg = data.packageType.toLowerCase();
         const matches = (offerings || []).filter((o: any) => {
           const name = `${o?.name || ''}`.toLowerCase();
           const desc = `${o?.description || ''}`.toLowerCase();
           const categoryDesc = `${(o as any).categoryDescription || ''}`.toLowerCase();
-          const hasConn = data.connectionType ? categoryDesc.includes(data.connectionType.toLowerCase()) || name.includes(data.connectionType.toLowerCase()) : true;
-          const hasPkg = data.packageType ? categoryDesc.includes(data.packageType.toLowerCase()) || name.includes(data.packageType.toLowerCase()) : true;
-          const hasData = normalizedDataAmount ? name.includes(normalizedDataAmount) || desc.includes(normalizedDataAmount) : true;
-          return hasConn && hasPkg && hasData;
-        }).slice(0, 6);
+          const text = `${name} ${desc} ${categoryDesc}`;
+          // Connection match: LTE, ADSL, Fiber
+          const connMatch = conn === 'lte' ? /lte/.test(text) : conn === 'adsl' ? /adsl/.test(text) : /fiber|fibre/.test(text);
+          // Package type match: Any Time, Unlimited, Time Based
+          const pkgMatch = pkg === 'any time' ? /any\s*time/.test(text) : pkg === 'unlimited' ? /unlimited/.test(text) : /time\s*based/.test(text);
+          return connMatch && pkgMatch;
+        });
         setSimilarOffers(matches);
+        setShowAllOffers(false);
       } catch (_) {
         setSimilarOffers([]);
       } finally {
@@ -137,7 +143,7 @@ export default function CustomerCustomizeTab() {
       }
     };
     fetchSimilar();
-  }, [data.connectionType, data.packageType, data.dataAmount]);
+  }, [data.connectionType, data.packageType]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -330,22 +336,29 @@ export default function CustomerCustomizeTab() {
               <div className="font-semibold text-gray-900">Similar Offers</div>
               {loadingOffers && <span className="text-xs text-gray-500">Searching…</span>}
             </div>
-            {(!data.connectionType && !data.packageType && !data.dataAmount) && (
+            {(!data.connectionType || !data.packageType) && (
               <div className="text-sm text-gray-500">Start selecting connection, package type, or data amount to see suggestions.</div>
             )}
-            {(data.connectionType || data.packageType || data.dataAmount) && (
+            {(data.connectionType && data.packageType) && (
               <>
                 {similarOffers.length === 0 && !loadingOffers && (
                   <div className="text-sm text-gray-500">No close matches found yet. Adjust selections to see suggestions.</div>
                 )}
                 {similarOffers.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {similarOffers.map((o: any) => (
+                    {(showAllOffers ? similarOffers : similarOffers.slice(0, 3)).map((o: any) => (
                       <div key={o.id} className="rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
                         <div className="font-semibold text-gray-900 line-clamp-2">{o.name}</div>
                         <div className="text-xs text-gray-600 mt-1 line-clamp-2">{o.description || (o.categoryDescription as any) || '—'}</div>
                       </div>
                     ))}
+                  </div>
+                )}
+                {similarOffers.length > 3 && (
+                  <div className="mt-3">
+                    <Button variant="outline" size="sm" onClick={() => setShowAllOffers(!showAllOffers)}>
+                      {showAllOffers ? 'Show less' : `Show other offers (${similarOffers.length - 3})`}
+                    </Button>
                   </div>
                 )}
               </>
