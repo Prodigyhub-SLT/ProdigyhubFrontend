@@ -105,7 +105,7 @@ const extractConfigurationData = (config: any) => {
   console.log('🔍 Config keys available:', Object.keys(config));
   
   // 🔧 ENHANCED: Always provide all expected fields with proper fallbacks
-  const defaultFields = {
+  const defaultFields: any = {
     category: undefined,
     connectionType: undefined,
     packageType: undefined,
@@ -148,9 +148,12 @@ const extractConfigurationData = (config: any) => {
     const characteristics = config.checkProductConfigurationItem[0].productConfiguration.configurationCharacteristic;
     
     for (const char of characteristics) {
-      if (char.name && char.value !== undefined) {
-        console.log(`📋 Found characteristic: ${char.name} = ${char.value}`);
-        defaultFields[char.name] = char.value;
+      const name = char?.name;
+      // Some backends store values under product.productCharacteristic only; here char may lack 'value'
+      const value = (char as any).value ?? (char as any).configurationCharacteristicValue?.[0]?.characteristicValue?.value;
+      if (name && value !== undefined) {
+        console.log(`📋 Found characteristic: ${name} = ${value}`);
+        defaultFields[name] = value;
       }
     }
   }
