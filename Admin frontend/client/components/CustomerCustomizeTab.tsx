@@ -325,26 +325,32 @@ export default function CustomerCustomizeTab() {
           </div>
 
           {/* Similar Offers */}
-          {(loadingOffers || similarOffers.length > 0) && (
-            <div className="rounded-2xl border border-purple-200 bg-white p-4 md:p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <div className="font-semibold text-gray-900">Similar Offers</div>
-                {loadingOffers && <span className="text-xs text-gray-500">Searching…</span>}
-              </div>
-              {similarOffers.length === 0 ? (
-                <div className="text-sm text-gray-500">No close matches found yet. Adjust selections to see suggestions.</div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {similarOffers.map((o: any) => (
-                    <div key={o.id} className="rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                      <div className="font-semibold text-gray-900 line-clamp-2">{o.name}</div>
-                      <div className="text-xs text-gray-600 mt-1 line-clamp-2">{o.description || (o.categoryDescription as any) || '—'}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+          <div className="rounded-2xl border border-purple-200 bg-white p-4 md:p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-semibold text-gray-900">Similar Offers</div>
+              {loadingOffers && <span className="text-xs text-gray-500">Searching…</span>}
             </div>
-          )}
+            {(!data.connectionType && !data.packageType && !data.dataAmount) && (
+              <div className="text-sm text-gray-500">Start selecting connection, package type, or data amount to see suggestions.</div>
+            )}
+            {(data.connectionType || data.packageType || data.dataAmount) && (
+              <>
+                {similarOffers.length === 0 && !loadingOffers && (
+                  <div className="text-sm text-gray-500">No close matches found yet. Adjust selections to see suggestions.</div>
+                )}
+                {similarOffers.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {similarOffers.map((o: any) => (
+                      <div key={o.id} className="rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                        <div className="font-semibold text-gray-900 line-clamp-2">{o.name}</div>
+                        <div className="text-xs text-gray-600 mt-1 line-clamp-2">{o.description || (o.categoryDescription as any) || '—'}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           <div className="pt-2">
             <Button disabled={!canSubmit || submitting} onClick={handleSubmit} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg">
