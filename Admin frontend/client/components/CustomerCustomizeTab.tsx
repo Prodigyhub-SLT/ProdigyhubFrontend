@@ -41,8 +41,8 @@ export default function CustomerCustomizeTab() {
   ];
 
   const speedBadges = [
-    { label: 'Up to 1000 Mbps DL', tone: 'bg-blue-100 text-blue-800' },
-    { label: 'Up to 500 Mbps UL', tone: 'bg-indigo-100 text-indigo-800' },
+    { label: 'Up to 1000 Mbps Download', tone: 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-sm' },
+    { label: 'Up to 500 Mbps Upload', tone: 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm' },
   ];
 
   const handleSubmit = async () => {
@@ -91,15 +91,24 @@ export default function CustomerCustomizeTab() {
           {/* Fiber guidance */}
           {data.connectionType === 'Fiber' && (
             <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 md:p-5 shadow-sm">
-              <div className="flex flex-wrap gap-2 mb-3">
+              {/* Speed highlight row */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
                 {speedBadges.map((b, i) => (
-                  <span key={i} className={`text-xs px-3 py-1 rounded-full ${b.tone}`}>{b.label}</span>
+                  <span key={i} className={`text-xs md:text-sm px-3 py-1.5 rounded-full ${b.tone}`}>{b.label}</span>
                 ))}
+                <span className="text-[11px] md:text-xs text-blue-900/80 bg-white/60 px-2 py-1 rounded-lg border border-blue-100">Best-effort, depends on line condition</span>
               </div>
+
               <div className="text-sm text-blue-900 font-semibold mb-2">Important notes before choosing Fiber</div>
               <ul className="list-disc pl-5 space-y-1.5 text-sm text-blue-900">
                 {fiberKeyPoints.map((p, i) => (
-                  <li key={i}>{p}</li>
+                  <li key={i}>
+                    {i === 0 ? (
+                      <span className="font-semibold bg-blue-100/70 px-1.5 py-0.5 rounded">{p}</span>
+                    ) : (
+                      p
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
