@@ -293,7 +293,7 @@ export default function UserDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b lg:pl-64">
+      <div className="bg-white shadow-sm border-b">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -343,7 +343,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Main Service Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b lg:pl-64">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-2 py-4">
             {services.map((service) => (
@@ -370,40 +370,43 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Sidebar Navigation */}
-      <div className="sticky top-[128px] w-64 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-20 h-[calc(100vh-128px)] overflow-y-auto">
-        <div className="px-3 py-4 space-y-2">
-          {secondNavTabs.map((tab) => {
-            const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-            const isLocked = isForceLocked && tab.id !== 'qualification';
-            const isActive = activeTab === tab.id;
-            return (
-              <Button
-                key={tab.id}
-                variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start rounded-xl px-3 py-2 transition-all duration-300 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
-                    : isLocked
-                    ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                    : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow'
-                }`}
-                onClick={() => handleTabClick(tab.id)}
-                disabled={isLocked}
-                title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                <span className="font-medium">{tab.name}</span>
-                {isLocked && <span className="ml-1 text-xs">🔒</span>}
-              </Button>
-            );
-          })}
+      {/* Tab Navigation */}
+      <div className="bg-white/90 backdrop-blur border-b shadow-sm">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-1 py-3">
+            {secondNavTabs.map((tab) => {
+              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+              const isLocked = isForceLocked && tab.id !== 'qualification';
+              const isActive = activeTab === tab.id;
+              return (
+                <Button
+                  key={tab.id}
+                  variant={isActive ? "default" : "ghost"}
+                  size="sm"
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
+                      : isLocked
+                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                  onClick={() => handleTabClick(tab.id)}
+                  disabled={isLocked}
+                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  <span className="font-medium">{tab.name}</span>
+                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Qualification Required Alert */}
       {showQualificationAlert && (
-        <div className="px-4 sm:px-6 lg:px-8 py-4 lg:pl-64">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
           <Alert className="border-orange-200 bg-orange-50 text-orange-800">
             <AlertDescription className="text-sm">
               🔒 Please complete the qualification process first before accessing other tabs. 
@@ -414,7 +417,7 @@ export default function UserDashboard() {
       )}
 
       {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 lg:pl-64">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Content */}
         {activeTab === 'summary' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
