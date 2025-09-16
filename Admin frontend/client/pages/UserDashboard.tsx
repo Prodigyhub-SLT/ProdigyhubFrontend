@@ -297,7 +297,9 @@ export default function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <img src="/images/slt-log.jpg" alt="SLT" className="h-10 w-auto rounded-lg object-contain" />
+              <a href="/" className="block">
+                <img src="/images/slt-log.jpg" alt="SLT" className="h-10 w-auto rounded-lg object-contain" />
+              </a>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -369,7 +371,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Second Navigation converted to Sidebar */}
-      <div className="fixed left-0 top-[64px] bottom-0 w-56 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-30">
+      <div className="sticky top-[64px] w-56 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-20 h-[calc(100vh-64px)] overflow-y-auto">
         <div className="px-3 py-4 space-y-2">
           {secondNavTabs.map((tab) => {
             const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
