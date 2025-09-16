@@ -343,18 +343,19 @@ export default function UserDashboard() {
       </div>
 
       {/* Main Service Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b h-16">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
         <div className="px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-2 h-full">
             {services.map((service) => (
               <Button
                 key={service.name}
                 variant={service.isActive ? "default" : "outline"}
-                className={`group relative overflow-hidden px-6 py-2 h-10 rounded-full transition-all duration-300 ${
+                className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
                   service.isActive 
                     ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]' 
                     : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
                 }`}
+                style={{height: '40px'}}
                 onClick={() => setActiveService(service.name.toLowerCase())}
               >
                 <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
@@ -371,7 +372,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b h-16">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
         <div className="px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-2 h-full">
             {secondNavTabs.map((tab) => {
@@ -382,16 +383,16 @@ export default function UserDashboard() {
                 <Button
                   key={tab.id}
                   variant={isActive ? "default" : "outline"}
-                  className={`group relative overflow-hidden px-6 py-2 h-10 rounded-full transition-all duration-300 ${
+                  className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
                       : isLocked
                       ? 'text-gray-400 cursor-not-allowed bg-gray-100/60 border border-gray-200'
                       : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
                   }`}
+                  style={{height: '40px'}}
                   onClick={() => handleTabClick(tab.id)}
                   disabled={isLocked}
-                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
                 >
                   <span className="transition-transform duration-300 group-hover:-translate-y-0.5 mr-2">
                     {tab.icon}
