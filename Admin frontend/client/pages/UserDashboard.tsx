@@ -368,35 +368,34 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Second Navigation Bar */}
-      <div className="bg-white/70 backdrop-blur shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 py-3">
-            {secondNavTabs.map((tab) => {
-              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-              const isLocked = isForceLocked && tab.id !== 'qualification';
-              return (
-                <Button
-                  key={tab.id}
-                  variant={activeTab === tab.id ? "default" : "ghost"}
-                  className={`px-4 py-2 rounded-full transition-all duration-300 ${
-                    activeTab === tab.id 
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-md hover:scale-[1.02]'
-                      : isLocked
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow'
-                  }`}
-                  onClick={() => handleTabClick(tab.id)}
-                  disabled={isLocked}
-                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
-                >
-                  <span className="transition-transform duration-300">{tab.icon}</span>
-                  <span className="ml-2 font-medium">{tab.name}</span>
-                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
-                </Button>
-              );
-            })}
-          </div>
+      {/* Second Navigation converted to Sidebar */}
+      <div className="fixed left-0 top-[64px] bottom-0 w-56 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-30">
+        <div className="px-3 py-4 space-y-2">
+          {secondNavTabs.map((tab) => {
+            const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+            const isLocked = isForceLocked && tab.id !== 'qualification';
+            const isActive = activeTab === tab.id;
+            return (
+              <Button
+                key={tab.id}
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full justify-start rounded-xl px-3 py-2 transition-all duration-300 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
+                    : isLocked
+                    ? 'text-gray-400 cursor-not-allowed bg-gray-100'
+                    : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow'
+                }`}
+                onClick={() => handleTabClick(tab.id)}
+                disabled={isLocked}
+                title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                <span className="font-medium">{tab.name}</span>
+                {isLocked && <span className="ml-1 text-xs">🔒</span>}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
@@ -413,7 +412,7 @@ export default function UserDashboard() {
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:pl-64">
         {/* Tab Content */}
         {activeTab === 'summary' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
