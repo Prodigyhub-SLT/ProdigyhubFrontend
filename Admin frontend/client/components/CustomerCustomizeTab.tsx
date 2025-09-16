@@ -60,6 +60,20 @@ export default function CustomerCustomizeTab() {
     { label: 'Up to 512 Kbps Upload', tone: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-sm' },
   ];
 
+  // LTE guidance
+  const lteKeyPoints: string[] = [
+    'Unlimited plans block torrents, VPNs and peer‑to‑peer apps.',
+    'Flash packages start at 00:00 hrs and are valid for 24 hours from purchase.',
+    'Free data from 12 midnight to 7 am for Flash packages (main package throttling applies).',
+    'No Extra GB or Data Add‑ons for unlimited packages.',
+    'Static IP is not available for unlimited packages.',
+    'Package upgrades/downgrades allowed; rental differences may apply.',
+  ];
+  const lteSpeedBadges = [
+    { label: 'Up to 100 Mbps Download', tone: 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-sm' },
+    { label: 'Up to 10 Mbps Upload', tone: 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-sm' },
+  ];
+
   const handleSubmit = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
@@ -142,6 +156,23 @@ export default function CustomerCustomizeTab() {
               <div className="text-sm text-amber-900 font-semibold mb-2">Important notes before choosing ADSL</div>
               <ul className="list-disc pl-5 space-y-1.5 text-sm text-amber-900">
                 {adslKeyPoints.map((p, i) => (
+                  <li key={i}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {data.connectionType === 'LTE' && (
+            <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 md:p-5 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {lteSpeedBadges.map((b, i) => (
+                  <span key={i} className={`text-xs md:text-sm px-3 py-1.5 rounded-full ${b.tone}`}>{b.label}</span>
+                ))}
+                <span className="text-[11px] md:text-xs text-sky-900/80 bg-white/60 px-2 py-1 rounded-lg border border-sky-100">Best-effort on mobile network conditions</span>
+              </div>
+              <div className="text-sm text-sky-900 font-semibold mb-2">Important notes before choosing LTE</div>
+              <ul className="list-disc pl-5 space-y-1.5 text-sm text-sky-900">
+                {lteKeyPoints.map((p, i) => (
                   <li key={i}>{p}</li>
                 ))}
               </ul>
