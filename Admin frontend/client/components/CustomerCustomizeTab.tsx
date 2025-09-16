@@ -29,6 +29,21 @@ export default function CustomerCustomizeTab() {
 
   const canSubmit = data.connectionType && data.packageType && data.speedTier;
 
+  // Highlighted guidance for Fiber based on provided terms/speeds image
+  const fiberKeyPoints: string[] = [
+    'Connection speeds are best-effort and depend on network conditions.',
+    'No Extra GB or Data Add‑ons for unlimited packages.',
+    'Static IP option is not available on unlimited packages.',
+    'Speed-based unlimited plans available (1, 10, 100, 300, 1000 Mbps).',
+    'Ultra/Flash packs: speed may reduce after reaching daily quota.',
+    'P2P/VPN prioritization not available with Unlimited Blast plans.',
+  ];
+
+  const speedBadges = [
+    { label: 'Up to 1000 Mbps DL', tone: 'bg-blue-100 text-blue-800' },
+    { label: 'Up to 500 Mbps UL', tone: 'bg-indigo-100 text-indigo-800' },
+  ];
+
   const handleSubmit = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
@@ -58,9 +73,28 @@ export default function CustomerCustomizeTab() {
       <Card className="bg-white shadow-lg border-0">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-gray-800">Customize Your Package</CardTitle>
-          <CardDescription className="text-gray-600">Select options and submit a request. It will appear in Product Configuration for admin review.</CardDescription>
+          <CardDescription className="text-gray-700">
+            <span className="font-medium text-gray-900">We can create our own packages — let’s try it out.</span> Choose your connection, package type, speed and whether you need a static IP.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Fiber guidance */}
+          {data.connectionType === 'Fiber' && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {speedBadges.map((b, i) => (
+                  <span key={i} className={`text-xs px-3 py-1 rounded-full ${b.tone}`}>{b.label}</span>
+                ))}
+              </div>
+              <div className="text-sm text-blue-900 font-medium mb-2">Important notes before choosing Fiber</div>
+              <ul className="list-disc pl-5 space-y-1 text-sm text-blue-900">
+                {fiberKeyPoints.map((p, i) => (
+                  <li key={i}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Connection Type</Label>
