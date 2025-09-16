@@ -293,7 +293,7 @@ export default function UserDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b lg:pl-64">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -341,7 +341,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Main Service Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b lg:pl-64">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-2 py-4">
             {services.map((service) => (
