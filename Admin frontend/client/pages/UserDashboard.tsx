@@ -301,7 +301,7 @@ export default function UserDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">SLT Prodigy Hub</span>
+              <span className="text-blue-800 font-extrabold tracking-wide">SLT Prodigy Hub</span>
               <div 
                 ref={profileTriggerRef}
                 className="relative cursor-pointer"
