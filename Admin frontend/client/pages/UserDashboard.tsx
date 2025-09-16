@@ -294,7 +294,7 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
       <div className="bg-white shadow-sm border-b lg:pl-64">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <a href="/" className="block">
@@ -344,7 +344,7 @@ export default function UserDashboard() {
 
       {/* Main Service Navigation */}
       <div className="bg-white/70 backdrop-blur shadow-md border-b lg:pl-64">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-2 py-4">
             {services.map((service) => (
               <Button
@@ -403,7 +403,7 @@ export default function UserDashboard() {
 
       {/* Qualification Required Alert */}
       {showQualificationAlert && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 lg:pl-64">
           <Alert className="border-orange-200 bg-orange-50 text-orange-800">
             <AlertDescription className="text-sm">
               🔒 Please complete the qualification process first before accessing other tabs. 
@@ -414,7 +414,7 @@ export default function UserDashboard() {
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:pl-64">
+      <div className="px-4 sm:px-6 lg:px-8 py-8 lg:pl-64">
         {/* Tab Content */}
         {activeTab === 'summary' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
