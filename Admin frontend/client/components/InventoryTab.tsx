@@ -393,19 +393,21 @@ export default function InventoryTab() {
                           {idx + 1}
                         </div>
                         
-                        {/* Step label - larger text */}
-                        <div className={`text-lg font-bold ${
-                          isActive ? 'text-orange-600' :
-                          isCompleted ? 'text-green-600' :
-                          'text-gray-500'
-                        }`}>
-                          {label}
-                        </div>
-                        {isActive && (
-                          <div className="text-sm text-gray-600 ml-2">
-                            {messages[idx]}
+                        {/* Step label + dynamic message */}
+                        <div className="flex flex-col">
+                          <div className={`text-lg font-bold ${
+                            isActive ? 'text-orange-600' :
+                            isCompleted ? 'text-green-600' :
+                            'text-gray-500'
+                          }`}>
+                            {label}
                           </div>
-                        )}
+                          {isActive && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {messages[idx]}
+                            </div>
+                          )}
+                        </div>
                         
                         {/* Active indicator dot - larger */}
                         {isActive && (
