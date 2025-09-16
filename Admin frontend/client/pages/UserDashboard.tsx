@@ -371,9 +371,9 @@ export default function UserDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white/90 backdrop-blur border-b shadow-sm">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 py-3">
+          <div className="flex space-x-2 py-4">
             {secondNavTabs.map((tab) => {
               const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
               const isLocked = isForceLocked && tab.id !== 'qualification';
@@ -381,22 +381,26 @@ export default function UserDashboard() {
               return (
                 <Button
                   key={tab.id}
-                  variant={isActive ? "default" : "ghost"}
-                  size="sm"
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  variant={isActive ? "default" : "outline"}
+                  className={`group relative overflow-hidden px-6 py-3 rounded-full transition-all duration-300 ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
                       : isLocked
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'text-gray-400 cursor-not-allowed bg-gray-100/60 border border-gray-200'
+                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
                   }`}
                   onClick={() => handleTabClick(tab.id)}
                   disabled={isLocked}
                   title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
                 >
-                  <span className="mr-2">{tab.icon}</span>
-                  <span className="font-medium">{tab.name}</span>
-                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
+                  <span className="transition-transform duration-300 group-hover:-translate-y-0.5 mr-2">
+                    {tab.icon}
+                  </span>
+                  <span className="font-semibold tracking-wide">{tab.name}</span>
+                  {isLocked && <span className="ml-2 text-xs">🔒</span>}
+                  {isActive && (
+                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
+                  )}
                 </Button>
               );
             })}
