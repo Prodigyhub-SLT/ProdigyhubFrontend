@@ -209,27 +209,10 @@ export default function InventoryTab() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Hero skeleton */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 p-8 shadow animate-pulse" />
-
-        {/* Table skeleton */}
-        <div className="rounded-2xl bg-white shadow border border-gray-100 overflow-hidden">
-          <div className="h-12 bg-gray-50 border-b border-gray-100" />
-          <div className="divide-y divide-gray-100">
-            {[...Array(5)].map((_, idx) => (
-              <div key={idx} className="grid grid-cols-12 gap-4 px-6 py-4 items-center animate-pulse">
-                <div className="col-span-4 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-xl" />
-                  <div className="h-4 w-40 bg-gray-200 rounded" />
-                </div>
-                <div className="col-span-2 h-6 bg-gray-200 rounded" />
-                <div className="col-span-2 h-4 bg-gray-200 rounded" />
-                <div className="col-span-2 h-6 bg-gray-200 rounded" />
-                <div className="col-span-2 h-8 bg-gray-200 rounded" />
-              </div>
-            ))}
-          </div>
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 mt-4">Loading inventory...</p>
         </div>
       </div>
     );
