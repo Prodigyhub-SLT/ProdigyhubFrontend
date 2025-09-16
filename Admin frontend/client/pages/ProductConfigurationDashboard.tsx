@@ -255,7 +255,11 @@ const extractConfigurationData = (config: any) => {
     packageType: defaultFields.packageType,
     speedTier: defaultFields.speedTier,
     contractTerm: defaultFields.contractTerm,
-    staticIP: defaultFields.staticIP,
+    staticIP: defaultFields.staticIP ?? defaultFields.staticIp,
+    staticIp: defaultFields.staticIp,
+    customerEmail: defaultFields.customerEmail,
+    dataAmount: defaultFields.dataAmount,
+    notes: defaultFields.notes,
     entertainmentAddons: defaultFields.entertainmentAddons || [],
     
     // Business specific fields
