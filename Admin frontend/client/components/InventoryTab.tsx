@@ -364,13 +364,19 @@ export default function InventoryTab() {
                 <Badge className="bg-amber-100 text-amber-800 capitalize font-medium">{pendingUpgrade.order.state}</Badge>
               </div>
 
-              {/* Vertical Stepper with connecting lines - larger and more prominent */}
+              {/* Vertical Stepper with connecting lines - larger and more prominent */
+              }
               <div className="relative mb-6">
                 {/* Connecting line */}
                 <div className="absolute left-6 top-8 bottom-8 w-1 bg-gray-200"></div>
                 
                 <div className="space-y-8">
                   {['Acknowledged', 'In Progress', 'Completed'].map((label, idx) => {
+                    const messages = [
+                      'Your order has been acknowledged and will be prepared soon',
+                      'We\u2019ve started working on your order\u2014hang tight',
+                      'Great news! Your order is finished and ready for you.'
+                    ];
                     const current = getOrderStepIndex(pendingUpgrade.order.state);
                     const isActive = idx === current;
                     const isCompleted = idx < current;
@@ -395,6 +401,11 @@ export default function InventoryTab() {
                         }`}>
                           {label}
                         </div>
+                        {isActive && (
+                          <div className="text-sm text-gray-600 ml-2">
+                            {messages[idx]}
+                          </div>
+                        )}
                         
                         {/* Active indicator dot - larger */}
                         {isActive && (
