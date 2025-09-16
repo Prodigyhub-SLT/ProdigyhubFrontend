@@ -10,6 +10,7 @@ import { enhancedApiService } from '@/pages/api-service';
 import { useAuth } from '@/contexts/AuthContext';
 import { Wifi, Signal, Cable } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { productCatalogApi } from '@/lib/api';
 
 interface CustomizeFormData {
   connectionType: 'LTE' | 'ADSL' | 'Fiber' | '';
@@ -33,6 +34,8 @@ export default function CustomerCustomizeTab() {
   const [submitting, setSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [similarOffers, setSimilarOffers] = useState<any[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(false);
 
   const canSubmit = data.connectionType && data.packageType && data.speedTier;
 
@@ -105,6 +108,36 @@ export default function CustomerCustomizeTab() {
       setSubmitting(false);
     }
   };
+
+  // Load similar offers when key fields change
+  React.useEffect(() => {
+    const fetchSimilar = async () => {
+      if (!data.connectionType && !data.packageType && !data.dataAmount) {
+        setSimilarOffers([]);
+        return;
+      }
+      setLoadingOffers(true);
+      try {
+        const offerings = await productCatalogApi.getOfferings();
+        const normalizedDataAmount = (data.dataAmount || '').toLowerCase();
+        const matches = (offerings || []).filter((o: any) => {
+          const name = `${o?.name || ''}`.toLowerCase();
+          const desc = `${o?.description || ''}`.toLowerCase();
+          const categoryDesc = `${(o as any).categoryDescription || ''}`.toLowerCase();
+          const hasConn = data.connectionType ? categoryDesc.includes(data.connectionType.toLowerCase()) || name.includes(data.connectionType.toLowerCase()) : true;
+          const hasPkg = data.packageType ? categoryDesc.includes(data.packageType.toLowerCase()) || name.includes(data.packageType.toLowerCase()) : true;
+          const hasData = normalizedDataAmount ? name.includes(normalizedDataAmount) || desc.includes(normalizedDataAmount) : true;
+          return hasConn && hasPkg && hasData;
+        }).slice(0, 6);
+        setSimilarOffers(matches);
+      } catch (_) {
+        setSimilarOffers([]);
+      } finally {
+        setLoadingOffers(false);
+      }
+    };
+    fetchSimilar();
+  }, [data.connectionType, data.packageType, data.dataAmount]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -290,6 +323,28 @@ export default function CustomerCustomizeTab() {
               <div className="sm:col-span-2"><span className="text-gray-500">Notes:</span> <span className="font-medium text-gray-900">{data.notes || '—'}</span></div>
             </div>
           </div>
+
+          {/* Similar Offers */}
+          {(loadingOffers || similarOffers.length > 0) && (
+            <div className="rounded-2xl border border-purple-200 bg-white p-4 md:p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="font-semibold text-gray-900">Similar Offers</div>
+                {loadingOffers && <span className="text-xs text-gray-500">Searching…</span>}
+              </div>
+              {similarOffers.length === 0 ? (
+                <div className="text-sm text-gray-500">No close matches found yet. Adjust selections to see suggestions.</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {similarOffers.map((o: any) => (
+                    <div key={o.id} className="rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                      <div className="font-semibold text-gray-900 line-clamp-2">{o.name}</div>
+                      <div className="text-xs text-gray-600 mt-1 line-clamp-2">{o.description || (o.categoryDescription as any) || '—'}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pt-2">
             <Button disabled={!canSubmit || submitting} onClick={handleSubmit} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg">
