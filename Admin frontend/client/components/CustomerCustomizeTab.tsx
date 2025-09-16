@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { enhancedApiService } from '@/pages/api-service';
 import { useAuth } from '@/contexts/AuthContext';
 import { Wifi, Signal, Cable } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface CustomizeFormData {
   connectionType: 'LTE' | 'ADSL' | 'Fiber' | '';
@@ -31,6 +32,7 @@ export default function CustomerCustomizeTab() {
   const [data, setData] = useState<CustomizeFormData>(initialData);
   const [submitting, setSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const canSubmit = data.connectionType && data.packageType && data.speedTier;
 
@@ -273,6 +275,22 @@ export default function CustomerCustomizeTab() {
             </div>
           </div>
 
+          {/* Selection Summary */}
+          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 md:p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-semibold text-gray-800">Your selections</div>
+              <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(true)}>Preview</Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div><span className="text-gray-500">Connection:</span> <span className="font-medium text-gray-900">{data.connectionType || '—'}</span></div>
+              <div><span className="text-gray-500">Package Type:</span> <span className="font-medium text-gray-900">{data.packageType || '—'}</span></div>
+              <div><span className="text-gray-500">Speed Tier:</span> <span className="font-medium text-gray-900">{data.speedTier || '—'}</span></div>
+              <div><span className="text-gray-500">Static IP:</span> <span className="font-medium text-gray-900">{data.staticIp ? 'With Static IP' : 'Without Static IP'}</span></div>
+              <div><span className="text-gray-500">Data Amount:</span> <span className="font-medium text-gray-900">{data.dataAmount || '—'}</span></div>
+              <div className="sm:col-span-2"><span className="text-gray-500">Notes:</span> <span className="font-medium text-gray-900">{data.notes || '—'}</span></div>
+            </div>
+          </div>
+
           <div className="pt-2">
             <Button disabled={!canSubmit || submitting} onClick={handleSubmit} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg">
               {submitting ? 'Submitting...' : 'Submit Customization Request'}
@@ -284,6 +302,32 @@ export default function CustomerCustomizeTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Review your customization</DialogTitle>
+            <DialogDescription>Confirm your selections before submitting.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between"><span className="text-gray-500">Connection</span><span className="font-medium">{data.connectionType || '—'}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Package Type</span><span className="font-medium">{data.packageType || '—'}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Speed Tier</span><span className="font-medium">{data.speedTier || '—'}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Static IP</span><span className="font-medium">{data.staticIp ? 'With Static IP' : 'Without Static IP'}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Data Amount</span><span className="font-medium">{data.dataAmount || '—'}</span></div>
+            <div>
+              <div className="text-gray-500 mb-1">Notes</div>
+              <div className="rounded-lg border border-gray-200 bg-white p-3 text-gray-800 min-h-[60px]">{data.notes || '—'}</div>
+            </div>
+          </div>
+          <div className="pt-2">
+            <Button className="w-full" onClick={() => { setIsPreviewOpen(false); if (canSubmit && !submitting) handleSubmit(); }}>
+              {submitting ? 'Submitting...' : 'Confirm & Submit'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
