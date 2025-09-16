@@ -112,6 +112,10 @@ const extractConfigurationData = (config: any) => {
     speedTier: undefined,
     contractTerm: undefined,
     staticIP: undefined,
+    staticIp: undefined,
+    customerEmail: undefined,
+    dataAmount: undefined,
+    notes: undefined,
     entertainmentAddons: [],
     businessType: undefined,
     bandwidthGuarantee: undefined,
@@ -469,6 +473,9 @@ const SimpleDataDisplay = ({ config }: { config: any }) => {
               <span className="font-medium">Status:</span> {config.status}
             </div>
             <div>
+              <span className="font-medium">Customer Email:</span> {config.customerEmail || 'Not specified'}
+            </div>
+            <div>
               <span className="font-medium">Category:</span> {config.category}
             </div>
             <div>
@@ -481,10 +488,13 @@ const SimpleDataDisplay = ({ config }: { config: any }) => {
               <span className="font-medium">Speed Tier:</span> {config.speedTier || 'Not specified'}
             </div>
             <div>
+              <span className="font-medium">Data Amount:</span> {config.dataAmount || 'Not specified'}
+            </div>
+            <div>
               <span className="font-medium">Contract Term:</span> {config.contractTerm || 'Not specified'}
             </div>
             <div>
-              <span className="font-medium">Static IP:</span> {config.staticIP ? 'Yes' : 'No'}
+              <span className="font-medium">Static IP:</span> {(config.staticIP ?? config.staticIp) ? 'Yes' : 'No'}
             </div>
           </div>
           
@@ -498,6 +508,11 @@ const SimpleDataDisplay = ({ config }: { config: any }) => {
           
           <div className="border-t pt-3">
             <span className="font-medium">Updated:</span> {config.updatedAt ? new Date(config.updatedAt).toLocaleString() : 'N/A'}
+          </div>
+
+          <div className="border-t pt-3">
+            <span className="font-medium">Notes:</span>
+            <div className="mt-1 p-2 bg-gray-50 rounded border text-gray-700 whitespace-pre-wrap">{config.notes || '—'}</div>
           </div>
         </div>
       </div>
