@@ -371,7 +371,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Second Navigation converted to Sidebar */}
-      <div className="sticky top-[64px] w-56 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-20 h-[calc(100vh-64px)] overflow-y-auto">
+      <div className="fixed left-0 top-[128px] w-64 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-20 h-[calc(100vh-128px)] overflow-y-auto">
         <div className="px-3 py-4 space-y-2">
           {secondNavTabs.map((tab) => {
             const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
