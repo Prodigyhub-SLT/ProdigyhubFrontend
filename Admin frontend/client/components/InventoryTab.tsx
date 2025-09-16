@@ -609,18 +609,9 @@ export default function InventoryTab() {
                           </div>
                         </td>
                         <td className="py-5 px-6">
-                          <div className="flex items-center space-x-3">
-                            {/* Status Icon */}
-                            <div className={`w-3 h-3 rounded-full ${
-                              order.state === 'completed' ? 'bg-emerald-500' :
-                              order.state === 'inProgress' ? 'bg-amber-500' :
-                              order.state === 'acknowledged' ? 'bg-blue-500' :
-                              order.state === 'cancelled' ? 'bg-red-500' :
-                              'bg-gray-400'
-                            }`}></div>
-                            
-                            {/* Enhanced Status Badge */}
-                            <div className={`relative overflow-hidden rounded-xl px-4 py-2 shadow-lg ${
+                          <div className="flex items-center">
+                            {/* Status Badge (fixed size, no leading dot) */}
+                            <div className={`relative overflow-hidden rounded-xl px-4 py-2 shadow-lg min-w-[120px] flex justify-center ${
                               order.state === 'completed' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
                               order.state === 'inProgress' ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
                               order.state === 'acknowledged' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
@@ -629,9 +620,8 @@ export default function InventoryTab() {
                             }`}>
                               {/* Shine effect */}
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse"></div>
-                              
-                              <div className="relative flex items-center space-x-2">
-                                <span className="text-white font-bold text-sm">
+                              <div className="relative flex items-center gap-2">
+                                <span className="text-white font-bold text-sm capitalize">
                                   {order.state === 'inProgress' ? 'In Progress' : order.state}
                                 </span>
                                 {order.state === 'inProgress' && (
