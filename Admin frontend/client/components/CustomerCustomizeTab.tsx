@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { enhancedApiService } from '@/pages/api-service';
 import { useAuth } from '@/contexts/AuthContext';
 import { Wifi, Signal, Cable } from 'lucide-react';
@@ -13,6 +15,8 @@ interface CustomizeFormData {
   packageType: 'Unlimited' | 'Any Time' | 'Time Based' | '';
   speedTier: '1Mbps' | '10Mbps' | '100Mbps' | '300Mbps' | '1000Mbps' | '';
   staticIp: boolean;
+  dataAmount?: string;
+  notes?: string;
 }
 
 const initialData: CustomizeFormData = {
@@ -85,6 +89,8 @@ export default function CustomerCustomizeTab() {
         packageType: data.packageType,
         speedTier: data.speedTier,
         staticIp: data.staticIp ? 'With Static IP Address' : 'Without Static IP Address',
+        dataAmount: data.dataAmount || '',
+        notes: data.notes || '',
         requestSource: 'CustomerCustomizeTab',
       };
 
@@ -235,6 +241,25 @@ export default function CustomerCustomizeTab() {
                   <SelectItem value="1000Mbps">1000 Mbps</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Data Amount</Label>
+              <Input
+                placeholder="e.g. 200 GB, Unlimited, or custom"
+                value={data.dataAmount || ''}
+                onChange={(e) => setData(d => ({ ...d, dataAmount: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label>Notes (optional)</Label>
+              <Textarea
+                placeholder="Tell us any other needs or preferences..."
+                value={data.notes || ''}
+                onChange={(e) => setData(d => ({ ...d, notes: e.target.value }))}
+                className="min-h-[90px]"
+              />
             </div>
 
             <div className="space-y-2">
