@@ -113,28 +113,58 @@ export default function CustomerCustomizeTab() {
   // Load similar offers when key fields change
   React.useEffect(() => {
     const fetchSimilar = async () => {
-      // Only start search when both Connection and Package Type are selected
-      if (!data.connectionType || !data.packageType) {
-        setSimilarOffers([]);
-        return;
-      }
       setLoadingOffers(true);
       try {
         const offerings = await productCatalogApi.getOfferings();
-        const conn = data.connectionType.toLowerCase();
-        const pkg = data.packageType.toLowerCase();
-        const matches = (offerings || []).filter((o: any) => {
+        const connSelected = (data.connectionType || '').toLowerCase();
+        const pkgSelected = (data.packageType || '').toLowerCase();
+        const dataStr = (data.dataAmount || '').toLowerCase();
+
+        const scoreOffer = (o: any) => {
           const name = `${o?.name || ''}`.toLowerCase();
           const desc = `${o?.description || ''}`.toLowerCase();
           const categoryDesc = `${(o as any).categoryDescription || ''}`.toLowerCase();
           const text = `${name} ${desc} ${categoryDesc}`;
-          // Connection match: LTE, ADSL, Fiber
-          const connMatch = conn === 'lte' ? /lte/.test(text) : conn === 'adsl' ? /adsl/.test(text) : /fiber|fibre/.test(text);
-          // Package type match: Any Time, Unlimited, Time Based
-          const pkgMatch = pkg === 'any time' ? /any\s*time/.test(text) : pkg === 'unlimited' ? /unlimited/.test(text) : /time\s*based/.test(text);
-          return connMatch && pkgMatch;
-        });
-        setSimilarOffers(matches);
+
+          let score = 0;
+          // Connection (broad detection, even if not selected)
+          const isFiber = /fiber|fibre/.test(text);
+          const isLTE = /\blte\b|\b4g\b/.test(text);
+          const isADSL = /\badsl\b/.test(text);
+          if (connSelected) {
+            if (connSelected === 'fiber' && isFiber) score += 2; 
+            if (connSelected === 'lte' && isLTE) score += 2; 
+            if (connSelected === 'adsl' && isADSL) score += 2;
+          } else {
+            // No selection: give 1 if any connection keyword present to sort meaningful plans first
+            if (isFiber || isLTE || isADSL) score += 1;
+          }
+
+          // Package type (broad detection)
+          const isAnyTime = /any\s*time|anytime/.test(text);
+          const isUnlimited = /unlimited/.test(text);
+          const isTimeBased = /time\s*based|time-based|flash/.test(text);
+          if (pkgSelected) {
+            if (pkgSelected === 'any time' && isAnyTime) score += 2;
+            if (pkgSelected === 'unlimited' && isUnlimited) score += 2;
+            if (pkgSelected === 'time based' && isTimeBased) score += 2;
+          } else {
+            if (isAnyTime || isUnlimited || isTimeBased) score += 1;
+          }
+
+          // Data amount hint
+          if (dataStr) {
+            if (text.includes(dataStr)) score += 1;
+          }
+          return score;
+        };
+
+        const scored = (offerings || []).map((o: any) => ({ o, s: scoreOffer(o) }))
+          .filter(x => x.s > 0)
+          .sort((a, b) => b.s - a.s)
+          .map(x => x.o);
+
+        setSimilarOffers(scored);
         setShowAllOffers(false);
       } catch (_) {
         setSimilarOffers([]);
@@ -143,7 +173,7 @@ export default function CustomerCustomizeTab() {
       }
     };
     fetchSimilar();
-  }, [data.connectionType, data.packageType]);
+  }, [data.connectionType, data.packageType, data.dataAmount]);
 
   return (
     <div className="max-w-6xl mx-auto">
