@@ -11,6 +11,7 @@ import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
 import InventoryTab from '../components/InventoryTab';
 import MessagesTab from '../components/MessagesTab';
+import CustomerCustomizeTab from '../components/CustomerCustomizeTab';
 import { 
   Wifi, 
   Tv, 
@@ -649,14 +650,7 @@ export default function UserDashboard() {
         )}
 
         {activeTab === 'customize' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Customize</CardTitle>
-                <CardDescription className="text-gray-600">Customization features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <CustomerCustomizeTab />
         )}
 
         {activeTab === 'messages' && (
