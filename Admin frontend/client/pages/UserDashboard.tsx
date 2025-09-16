@@ -341,22 +341,27 @@ export default function UserDashboard() {
       </div>
 
       {/* Main Service Navigation */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-2 py-4">
             {services.map((service) => (
               <Button
                 key={service.name}
                 variant={service.isActive ? "default" : "outline"}
-                className={`px-6 py-3 ${
+                className={`group relative overflow-hidden px-6 py-3 rounded-full transition-all duration-300 ${
                   service.isActive 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]' 
+                    : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
                 }`}
                 onClick={() => setActiveService(service.name.toLowerCase())}
               >
-                {service.icon}
-                <span className="ml-2">{service.name}</span>
+                <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                  {service.icon}
+                </span>
+                <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
+                {service.isActive && (
+                  <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
+                )}
               </Button>
             ))}
           </div>
@@ -364,7 +369,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Second Navigation Bar */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white/70 backdrop-blur shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1 py-3">
             {secondNavTabs.map((tab) => {
@@ -374,19 +379,19 @@ export default function UserDashboard() {
                 <Button
                   key={tab.id}
                   variant={activeTab === tab.id ? "default" : "ghost"}
-                  className={`px-4 py-2 ${
+                  className={`px-4 py-2 rounded-full transition-all duration-300 ${
                     activeTab === tab.id 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-md hover:scale-[1.02]'
                       : isLocked
                       ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-600 hover:text-blue-700 hover:bg-blue-100'
+                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow'
                   }`}
                   onClick={() => handleTabClick(tab.id)}
                   disabled={isLocked}
                   title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
                 >
-                  {tab.icon}
-                  <span className="ml-2">{tab.name}</span>
+                  <span className="transition-transform duration-300">{tab.icon}</span>
+                  <span className="ml-2 font-medium">{tab.name}</span>
                   {isLocked && <span className="ml-1 text-xs">🔒</span>}
                 </Button>
               );
