@@ -343,9 +343,9 @@ export default function UserDashboard() {
       </div>
 
       {/* Main Service Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-2 py-4">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b h-20">
+        <div className="px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex items-center space-x-2 h-full">
             {services.map((service) => (
               <Button
                 key={service.name}
@@ -371,9 +371,9 @@ export default function UserDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-2 py-4">
+      <div className="bg-white/70 backdrop-blur shadow-md border-b h-20">
+        <div className="px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex items-center space-x-2 h-full">
             {secondNavTabs.map((tab) => {
               const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
               const isLocked = isForceLocked && tab.id !== 'qualification';
