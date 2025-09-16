@@ -292,127 +292,132 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
-      <div className="flex">
-        {/* Second Navigation converted to Sidebar */}
-        <div className="sticky top-0 w-64 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-20 h-screen overflow-y-auto">
-          {/* Header Section in Sidebar */}
-          <div className="bg-white shadow-sm border-b">
-            <div className="px-4 py-4">
-              <div className="flex items-center space-x-2">
-                <img src="/images/slt-log.jpg" alt="SLT" className="h-8 w-auto rounded-lg object-contain" />
-                <span className="text-sm font-semibold text-black">SLT Prodigy Hub</span>
-              </div>
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b lg:pl-64">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <a href="/" className="block">
+                <img src="/images/slt-log.jpg" alt="SLT" className="h-10 w-auto rounded-lg object-contain" />
+              </a>
             </div>
-          </div>
-
-          {/* Main Service Navigation in Sidebar */}
-          <div className="bg-white/70 backdrop-blur border-b px-3 py-2">
-            <div className="flex flex-wrap gap-1">
-              {services.map((service) => (
-                <Button
-                  key={service.name}
-                  variant={service.isActive ? "default" : "outline"}
-                  size="sm"
-                  className={`text-xs px-2 py-1 ${
-                    service.isActive 
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
-                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white'
-                  }`}
-                  onClick={() => setActiveService(service.name.toLowerCase())}
-                >
-                  <span className="mr-1">{service.icon}</span>
-                  <span className="font-medium">{service.name}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Navigation Tabs */}
-          <div className="px-3 py-4 space-y-2">
-            {secondNavTabs.map((tab) => {
-              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-              const isLocked = isForceLocked && tab.id !== 'qualification';
-              const isActive = activeTab === tab.id;
-              return (
-                <Button
-                  key={tab.id}
-                  variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start rounded-xl px-3 py-2 transition-all duration-300 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
-                      : isLocked
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow'
-                  }`}
-                  onClick={() => handleTabClick(tab.id)}
-                  disabled={isLocked}
-                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
-                >
-                  <span className="mr-2">{tab.icon}</span>
-                  <span className="font-medium">{tab.name}</span>
-                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
-                </Button>
-              );
-            })}
-          </div>
-
-          {/* User Profile Section */}
-          <div className="mt-auto p-4 border-t">
-            <div 
-              ref={profileTriggerRef}
-              className="relative cursor-pointer"
-            >
+            
+            <div className="flex items-center space-x-4">
+              <span className="text-black tracking-normal">SLT Prodigy Hub</span>
               <div 
-                className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors overflow-hidden"
-                onClick={() => setShowProfilePopup(!showProfilePopup)}
+                ref={profileTriggerRef}
+                className="relative cursor-pointer"
               >
-                {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name || 'User'} 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.innerHTML = user?.name?.charAt(0) || 'U';
-                      }
-                    }}
-                  />
-                ) : (
-                  user?.name?.charAt(0) || 'U'
-                )}
+                <div 
+                  className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors overflow-hidden"
+                  onClick={() => setShowProfilePopup(!showProfilePopup)}
+                >
+                  {user?.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name || 'User'} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to letter avatar if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = user?.name?.charAt(0) || 'U';
+                        }
+                      }}
+                    />
+                  ) : (
+                    user?.name?.charAt(0) || 'U'
+                  )}
+                </div>
+                <ProfilePopup 
+                  isOpen={showProfilePopup}
+                  onClose={() => setShowProfilePopup(false)}
+                  triggerRef={profileTriggerRef}
+                />
               </div>
-              <ProfilePopup 
-                isOpen={showProfilePopup}
-                onClose={() => setShowProfilePopup(false)}
-                triggerRef={profileTriggerRef}
-              />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 min-h-screen">
+      {/* Main Service Navigation */}
+      <div className="bg-white/70 backdrop-blur shadow-md border-b lg:pl-64">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-2 py-4">
+            {services.map((service) => (
+              <Button
+                key={service.name}
+                variant={service.isActive ? "default" : "outline"}
+                className={`group relative overflow-hidden px-6 py-3 rounded-full transition-all duration-300 ${
+                  service.isActive 
+                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]' 
+                    : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
+                }`}
+                onClick={() => setActiveService(service.name.toLowerCase())}
+              >
+                <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                  {service.icon}
+                </span>
+                <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
+                {service.isActive && (
+                  <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-          {/* Qualification Required Alert */}
-          {showQualificationAlert && (
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
-              <Alert className="border-orange-200 bg-orange-50 text-orange-800">
-                <AlertDescription className="text-sm">
-                  🔒 Please complete the qualification process first before accessing other tabs. 
-                  Complete your address details and infrastructure check in the Qualification tab.
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
+      {/* Sidebar Navigation */}
+      <div className="sticky top-[128px] w-64 bg-white/80 backdrop-blur-lg border-r shadow-sm hidden lg:block z-20 h-[calc(100vh-128px)] overflow-y-auto">
+        <div className="px-3 py-4 space-y-2">
+          {secondNavTabs.map((tab) => {
+            const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+            const isLocked = isForceLocked && tab.id !== 'qualification';
+            const isActive = activeTab === tab.id;
+            return (
+              <Button
+                key={tab.id}
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full justify-start rounded-xl px-3 py-2 transition-all duration-300 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow'
+                    : isLocked
+                    ? 'text-gray-400 cursor-not-allowed bg-gray-100'
+                    : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow'
+                }`}
+                onClick={() => handleTabClick(tab.id)}
+                disabled={isLocked}
+                title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                <span className="font-medium">{tab.name}</span>
+                {isLocked && <span className="ml-1 text-xs">🔒</span>}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
 
-          {/* Main Content */}
-          <div className="px-4 sm:px-6 lg:px-8 py-8">
-            {/* Tab Content */}
-            {activeTab === 'summary' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Qualification Required Alert */}
+      {showQualificationAlert && (
+        <div className="px-4 sm:px-6 lg:px-8 py-4 lg:pl-64">
+          <Alert className="border-orange-200 bg-orange-50 text-orange-800">
+            <AlertDescription className="text-sm">
+              🔒 Please complete the qualification process first before accessing other tabs. 
+              Complete your address details and infrastructure check in the Qualification tab.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="px-4 sm:px-6 lg:px-8 py-8 lg:pl-64">
+        {/* Tab Content */}
+        {activeTab === 'summary' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             {/* Left Panel - Package Information and Data Usage */}
             <div className="lg:col-span-1 space-y-6">
@@ -619,34 +624,32 @@ export default function UserDashboard() {
               </Card>
             </div>
           </div>
-              )}
+        )}
 
-            {/* Packages Tab Content */}
-            {activeTab === 'packages' && (
-              <CustomerPackagesTab />
-            )}
+        {/* Packages Tab Content */}
+        {activeTab === 'packages' && (
+          <CustomerPackagesTab />
+        )}
 
-            {/* Other tabs content can be added here */}
-            {activeTab === 'inventory' && (
-              <InventoryTab />
-            )}
+        {/* Other tabs content can be added here */}
+        {activeTab === 'inventory' && (
+          <InventoryTab />
+        )}
 
-            {activeTab === 'qualification' && (
-              <QualificationTab 
-                onQualificationComplete={handleQualificationComplete} 
-                user={user}
-              />
-            )}
+        {activeTab === 'qualification' && (
+          <QualificationTab 
+            onQualificationComplete={handleQualificationComplete} 
+            user={user}
+          />
+        )}
 
-            {activeTab === 'customize' && (
-              <CustomerCustomizeTab />
-            )}
+        {activeTab === 'customize' && (
+          <CustomerCustomizeTab />
+        )}
 
-            {activeTab === 'messages' && (
-              <MessagesTab user={user} />
-            )}
-          </div>
-        </div>
+        {activeTab === 'messages' && (
+          <MessagesTab user={user} />
+        )}
       </div>
     </div>
   );
