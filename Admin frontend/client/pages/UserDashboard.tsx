@@ -1,688 +1,364 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/contexts/AuthContext';
-import { QualificationTab } from '../components/QualificationTab';
-import CustomerInventoryTab from '../components/CustomerInventoryTab';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import ProfilePopup from '../components/ProfilePopup';
-import CustomerPackagesTab from '../components/CustomerPackagesTab';
+import React, { useState, useEffect } from 'react';
 import { 
-  Wifi, 
-  Tv, 
-  Phone, 
+  User, 
+  Bell, 
+  Search, 
   Smartphone, 
-  Megaphone,
-  Plus,
-  Cloud,
-  Monitor,
+  Wifi, 
+  Phone, 
+  MessageSquare, 
+  Signal,
+  CreditCard,
   FileText,
-  MessageCircle,
-  ChevronDown,
-  ArrowRight,
-  CheckCircle,
-  Zap,
+  Plus,
   Gift,
+  MapPin,
   Clock,
-  History,
+  Calendar,
   Star,
-  LogOut,
+  Settings,
   Home,
+  HelpCircle,
+  Shield,
+  Zap,
+  Globe,
+  Radio,
+  Headphones,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  Tv,
+  Monitor,
   Package,
-  Database,
-  Award,
-  Palette,
-  MessageSquare
+  Users,
+  Building
 } from 'lucide-react';
 
-interface ServiceData {
-  name: string;
-  icon: React.ReactNode;
-  isActive: boolean;
-}
+const TelecomDashboard = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeMainTab, setActiveMainTab] = useState('broadband');
+  const [activeSubTab, setActiveSubTab] = useState('summary');
 
-interface DataUsage {
-  type: string;
-  used: string;
-  total: string;
-  percentage: number;
-}
-
-interface QuickLink {
-  name: string;
-  icon: React.ReactNode;
-  color: string;
-}
-
-interface ValueAddedService {
-  name: string;
-  icon: React.ReactNode;
-  color: string;
-}
-
-export default function UserDashboard() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const [activeService, setActiveService] = useState('broadband');
-  const [activeTab, setActiveTab] = useState('summary');
-  const [qualificationCompleted, setQualificationCompleted] = useState(false);
-  const [showQualificationAlert, setShowQualificationAlert] = useState(false);
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const profileTriggerRef = useRef<HTMLDivElement>(null);
-  
-  // Debug log for initial state
-  console.log('🚀 UserDashboard mounted with initial state:', { 
-    qualificationCompleted, 
-    activeTab,
-    urlSearch: location.search
-  });
-
-  const handleTabClick = (tabId: string) => {
-    console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
-    
-    // Check if localStorage is available
-    if (typeof Storage === "undefined") {
-      console.warn('localStorage not available, proceeding without qualification check');
-      setActiveTab(tabId);
-      return;
-    }
-    
-    // Double-check qualification state from localStorage
-    const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted, isForceLocked });
-    
-    // Only block access if user is force-locked (new user)
-    if (isForceLocked && tabId !== 'qualification') {
-      // Show message that qualification must be completed first
-      setShowQualificationAlert(true);
-      const timer = setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
-      console.log('🚫 Tab access blocked - user is force-locked (new user)');
-      return () => clearTimeout(timer);
-    }
-    
-    console.log('✅ Tab access granted');
-    setActiveTab(tabId);
-  };
-
-  const handleQualificationComplete = () => {
-    // Check if localStorage is available
-    if (typeof Storage === "undefined") {
-      console.warn('localStorage not available, setting state only');
-      setQualificationCompleted(true);
-      setActiveTab('summary');
-      return;
-    }
-
-    // Check if user is force-locked
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    
-    if (isForceLocked) {
-      console.log('🎯 Manual qualification completion - unlocking all tabs');
-      setQualificationCompleted(true);
-      localStorage.setItem('qualification_completed', 'true');
-      localStorage.removeItem('force_locked_until_manual_completion'); // Remove force lock
-      // Allow access to other tabs
-      setActiveTab('summary');
-    } else {
-      console.log('⚠️ Qualification completion called but user was not force-locked');
-    }
-  };
-
-  // Mock data for services
-  const services: ServiceData[] = [
-    { name: 'Broadband', icon: <Wifi className="w-6 h-6" />, isActive: true },
-    { name: 'PEOTV', icon: <Tv className="w-6 h-6" />, isActive: false },
-    { name: 'Voice', icon: <Phone className="w-6 h-6" />, isActive: false },
-    { name: 'Mobile', icon: <Smartphone className="w-6 h-6" />, isActive: false },
-    { name: 'Promotion', icon: <Megaphone className="w-6 h-6" />, isActive: false },
-  ];
-
-  // Mock data for broadband sub-services
-  const broadbandSubServices = [
-    { name: 'Summary', isActive: true },
-    { name: 'Daily Usage', isActive: false },
-    { name: 'Gift Data', isActive: false },
-    { name: 'History', isActive: false },
-    { name: 'Redeem Data', isActive: false },
-    { name: 'Happy Day', isActive: false },
-    { name: 'More', isActive: false, hasDropdown: true },
-  ];
-
-  // Mock data for data usage
-  const dataUsage: DataUsage[] = [
-    { type: 'My Package', used: '55.2', total: '87.1GB', percentage: 63 },
-    { type: 'Extra GB', used: '0.4', total: '1.0GB', percentage: 40 },
-    { type: 'Bonus Data', used: 'N/A', total: 'N/A', percentage: 0 },
-    { type: 'Add-Ons Data', used: '40.5', total: '45.0GB', percentage: 90 },
-    { type: 'Free Data', used: 'N/A', total: 'N/A', percentage: 0 },
-  ];
-
-  // Mock data for quick links
-  const quickLinks: QuickLink[] = [
-    { name: 'New Services', icon: <Plus className="w-5 h-5" />, color: 'bg-blue-500' },
-    { name: 'Digital Life', icon: <Cloud className="w-5 h-5" />, color: 'bg-green-500' },
-    { name: 'Hot Device', icon: <Monitor className="w-5 h-5" />, color: 'bg-purple-500' },
-    { name: 'Bill', icon: <FileText className="w-5 h-5" />, color: 'bg-orange-500' },
-    { name: 'Complaints', icon: <MessageCircle className="w-5 h-5" />, color: 'bg-red-500' },
-    { name: 'More', icon: <ChevronDown className="w-5 h-5" />, color: 'bg-gray-500' },
-  ];
-
-  // Mock data for value added services
-  const valueAddedServices: ValueAddedService[] = [
-    { name: 'Duthaya', icon: <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">D</div>, color: 'bg-blue-500' },
-    { name: 'Kaspersky', icon: <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">🛡️</div>, color: 'bg-green-500' },
-    { name: 'PEOTV GO', icon: <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs">PEO</div>, color: 'bg-purple-500' },
-    { name: 'SLT Kimaki', icon: <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">🥷</div>, color: 'bg-red-500' },
-    { name: 'Storage', icon: <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">📦</div>, color: 'bg-blue-600' },
-  ];
-
-  // Tab configuration for second navigation bar
-  const secondNavTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
-    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
-    { id: 'inventory', name: 'Inventory', icon: <Database className="w-4 h-4" /> },
-    { id: 'qualification', name: 'Qualification', icon: <Award className="w-4 h-4" /> },
-    { id: 'customize', name: 'Customize', icon: <Palette className="w-4 h-4" /> },
-    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
-  ];
-
-  // Handle URL parameters and set initial tab + qualification state
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const tabParam = urlParams.get('tab');
-    const fromSignup = urlParams.get('from') === 'signup';
-    
-    // Check if localStorage is available
-    if (typeof Storage === "undefined") {
-      console.warn('localStorage not available, setting default state');
-      setQualificationCompleted(true);
-      if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
-        setActiveTab(tabParam);
-      }
-      return;
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const mainTabs = [
+    { id: 'broadband', label: 'Broadband', icon: Wifi },
+    { id: 'peotv', label: 'PEOTV', icon: Tv },
+    { id: 'voice', label: 'Voice', icon: Phone },
+    { id: 'mobile', label: 'Mobile', icon: Smartphone },
+    { id: 'promotion', label: 'Promotion', icon: Gift }
+  ];
+
+  const subTabs = [
+    { id: 'summary', label: 'Summary', icon: Home },
+    { id: 'packages', label: 'Packages', icon: Package },
+    { id: 'inventory', label: 'Inventory', icon: Package },
+    { id: 'qualification', label: 'Qualification', icon: CheckCircle },
+    { id: 'customize', label: 'Customize', icon: Settings },
+    { id: 'messages', label: 'Messages', icon: MessageSquare }
+  ];
+
+  const quickLinks = [
+    { id: 1, name: 'New Services', icon: Plus, color: 'bg-blue-500' },
+    { id: 2, name: 'Digital Life', icon: Monitor, color: 'bg-green-500' },
+    { id: 3, name: 'Hot Device', icon: Smartphone, color: 'bg-purple-500' },
+    { id: 4, name: 'Bill', icon: FileText, color: 'bg-orange-500' },
+    { id: 5, name: 'Complaints', icon: AlertTriangle, color: 'bg-red-500' },
+    { id: 6, name: 'More', icon: Settings, color: 'bg-gray-500' }
+  ];
+
+  const recentActivities = [
+    {
+      id: 1,
+      type: 'warning',
+      title: 'Fair Usage Policy: 80% of high-speed data used.',
+      time: '2 hours ago',
+      icon: AlertTriangle
+    },
+    {
+      id: 2,
+      type: 'success',
+      title: 'Your International Pack is now active.',
+      time: '1 day ago',
+      icon: CheckCircle
+    },
+    {
+      id: 3,
+      type: 'info',
+      title: 'Scheduled maintenance in your area tonight at 2 AM.',
+      time: '3 days ago',
+      icon: Info
     }
-    
-    // Check qualification status from localStorage
-    const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    
-    if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
-      setActiveTab(tabParam);
-      
-      // Only apply force lock for NEW users coming from signup
-      if (tabParam === 'qualification' && fromSignup) {
-        // FORCE LOCKED STATE for new users coming to qualification tab from signup
-        localStorage.removeItem('qualification_completed');
-        setQualificationCompleted(false);
-        console.log('🔒 FORCED LOCK: New user from signup redirected to qualification tab - tabs will be locked until completion');
-        
-        // Add a flag to prevent any automatic unlocking
-        localStorage.setItem('force_locked_until_manual_completion', 'true');
-      } else if (tabParam === 'qualification' && !fromSignup) {
-        // Existing user visiting qualification tab - don't force lock
-        setQualificationCompleted(hasCompletedQualification);
-        console.log('✅ Existing user visiting qualification tab - no force lock applied');
-      } else {
-        // Other tabs - respect existing qualification state
-        setQualificationCompleted(hasCompletedQualification);
-        if (hasCompletedQualification) {
-          console.log('✅ User accessing other tab with completed qualification');
-        } else if (isForceLocked) {
-          console.log('🔒 User accessing other tab but is force-locked (new user)');
-        } else {
-          console.log('🔒 User accessing other tab without completed qualification - will be blocked');
-        }
-      }
-    } else {
-      // No tab parameter - check if user is force-locked (new user) or existing user
-      if (isForceLocked) {
-        // Check if this is actually a new user or an existing user with stale flag
-        // If user has no from=signup parameter, they're an existing user signing in
-        const isFromSignup = urlParams.get('from') === 'signup';
-        
-        if (!isFromSignup) {
-          // Existing user signing in - clear the force lock flag and allow access
-          localStorage.removeItem('force_locked_until_manual_completion');
-          setQualificationCompleted(true);
-          console.log('✅ No tab parameter - existing user signing in, cleared force lock flag and allowing access to all tabs');
-        } else {
-          // User is force-locked (new user) - keep tabs locked
-          setQualificationCompleted(false);
-          console.log('🔒 No tab parameter - user is force-locked (new user)');
-        }
-      } else {
-        // Existing user - allow access to all tabs regardless of qualification status
-        setQualificationCompleted(true);
-        console.log('✅ No tab parameter - existing user, allowing access to all tabs');
-      }
+  ];
+
+  const newsUpdates = [
+    {
+      id: 1,
+      title: '5G Network Expansion',
+      content: 'New 5G towers installed in Kandy and Galle areas',
+      time: 'Today',
+      color: 'bg-blue-500'
+    },
+    {
+      id: 2,
+      title: 'Holiday Offers',
+      content: 'Special discounts on data packages this December',
+      time: '2 days ago',
+      color: 'bg-green-500'
+    },
+    {
+      id: 3,
+      title: 'App Update Available',
+      content: 'New features and bug fixes in version 3.2.1',
+      time: '1 week ago',
+      color: 'bg-purple-500'
     }
-  }, [location.search]);
+  ];
 
-  // Monitor qualification state changes
-  useEffect(() => {
-    console.log('🔄 Qualification state changed:', { 
-      qualificationCompleted, 
-      activeTab,
-      timestamp: new Date().toISOString()
-    });
-  }, [qualificationCompleted, activeTab]);
-
-  // Periodic check to ensure qualification state is correct for new users
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Check if localStorage is available
-      if (typeof Storage === "undefined") {
-        return;
-      }
-
-      const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-      const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-      
-      // If user is force-locked, ensure tabs stay locked regardless of other state
-      if (isForceLocked && qualificationCompleted) {
-        console.log('🚨 FORCE LOCK VIOLATION: User is force-locked but tabs are unlocked! Forcing locked state.');
-        setQualificationCompleted(false);
-        localStorage.removeItem('qualification_completed'); // Remove any qualification completion
-        return;
-      }
-      
-      // If we're on qualification tab and localStorage says not completed, ensure state is locked
-      if (activeTab === 'qualification' && !localStorageQualification && qualificationCompleted) {
-        console.log('🚨 WARNING: Qualification state mismatch detected! Forcing locked state.');
-        setQualificationCompleted(false);
-      }
-    }, 1000); // Check every second
-
-    return () => clearInterval(interval);
-  }, [activeTab, qualificationCompleted]);
+  const footerSections = [
+    {
+      title: 'TELEPHONE',
+      links: ['Fibre', 'Megaline', '4G/LTE']
+    },
+    {
+      title: 'BROADBAND',
+      links: ['New Connection', 'Packages', 'Wi-Fi', 'Hosting Services']
+    },
+    {
+      title: 'PEO TV',
+      links: ['Packages', 'Channels', 'Video on Demand']
+    },
+    {
+      title: 'ABOUT US',
+      links: ['Corporate Responsibility', 'Investors', 'Media Center', 'Careers']
+    },
+    {
+      title: 'BUSINESS',
+      links: ['Enterprises', 'SME', 'Wholesale', 'International']
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">SLT</span>
+                  <span className="text-white font-bold text-sm">SLT</span>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">SLTMOBITEL</h1>
-                  <p className="text-sm text-gray-600">The Connection</p>
+                  <h1 className="text-lg font-bold text-gray-900">SLTMOBITEL</h1>
+                  <p className="text-xs text-gray-500">The Connection</p>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">My SLT Portal</span>
-              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
-                <span className="text-gray-700 font-medium">0372298622</span>
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              </div>
-              <div 
-                ref={profileTriggerRef}
-                className="relative cursor-pointer"
-              >
-                <div 
-                  className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold hover:bg-blue-700 transition-colors overflow-hidden"
-                  onClick={() => setShowProfilePopup(!showProfilePopup)}
-                >
-                  {user?.avatar ? (
-                    <img 
-                      src={user.avatar} 
-                      alt={user.name || 'User'} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to letter avatar if image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = user?.name?.charAt(0) || 'U';
-                        }
-                      }}
-                    />
-                  ) : (
-                    user?.name?.charAt(0) || 'U'
-                  )}
-                </div>
-                <ProfilePopup 
-                  isOpen={showProfilePopup}
-                  onClose={() => setShowProfilePopup(false)}
-                  triggerRef={profileTriggerRef}
+              <div className="relative">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search"
+                  className="bg-gray-100 border-0 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
                 />
               </div>
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Service Navigation */}
-      <div className="bg-white shadow-sm border-b">
+      {/* Main Navigation Tabs */}
+      <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-2 py-4">
-            {services.map((service) => (
-              <Button
-                key={service.name}
-                variant={service.isActive ? "default" : "outline"}
-                className={`px-6 py-3 ${
-                  service.isActive 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-                onClick={() => setActiveService(service.name.toLowerCase())}
-              >
-                {service.icon}
-                <span className="ml-2">{service.name}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Second Navigation Bar */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 py-3">
-            {secondNavTabs.map((tab) => {
-              // Safe localStorage check
-              let isForceLocked = false;
-              if (typeof Storage !== "undefined") {
-                isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-              }
-              const isLocked = isForceLocked && tab.id !== 'qualification';
+          <div className="flex space-x-0">
+            {mainTabs.map((tab) => {
+              const Icon = tab.icon;
               return (
-                <Button
+                <button
                   key={tab.id}
-                  variant={activeTab === tab.id ? "default" : "ghost"}
-                  className={`px-4 py-2 ${
-                    activeTab === tab.id 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : isLocked
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-600 hover:text-blue-700 hover:bg-blue-100'
+                  onClick={() => setActiveMainTab(tab.id)}
+                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeMainTab === tab.id
+                      ? 'border-blue-600 text-blue-600 bg-blue-50'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                   }`}
-                  onClick={() => handleTabClick(tab.id)}
-                  disabled={isLocked}
-                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
                 >
-                  {tab.icon}
-                  <span className="ml-2">{tab.name}</span>
-                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
-                </Button>
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
               );
             })}
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Qualification Required Alert */}
-      {showQualificationAlert && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Alert className="border-orange-200 bg-orange-50 text-orange-800">
-            <AlertDescription className="text-sm">
-              🔒 Please complete the qualification process first before accessing other tabs. 
-              Complete your address details and infrastructure check in the Qualification tab.
-            </AlertDescription>
-          </Alert>
+      {/* Sub Navigation */}
+      <nav className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-0">
+            {subTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSubTab(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${
+                    activeSubTab === tab.id
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      )}
+      </nav>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab Content */}
-        {activeTab === 'summary' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Left Panel - Package Information and Data Usage */}
-            <div className="lg:col-span-1 space-y-6">
-              
-              {/* Package Details */}
-              <Card className="bg-white shadow-lg border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold text-gray-800">Package Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Package:</span>
-                      <span className="font-semibold text-gray-800">ANY TRIO SHINE</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Status:</span>
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Username:</span>
-                      <span className="font-semibold text-gray-800">94372298622</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 pt-4">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                      Package Upgrade
-                    </Button>
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                      Get Extra GB
-                    </Button>
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                      Get Data Add-ons
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* Welcome Banner */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white mb-6">
+          <h2 className="text-2xl font-bold mb-2">Welcome Back John !</h2>
+        </div>
 
-              {/* Data Usage Cards */}
+        {/* Special Offer Banner */}
+        <div className="bg-gradient-to-r from-orange-400 to-pink-500 rounded-lg p-4 text-white mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Gift className="w-6 h-6" />
+            <div>
+              <h3 className="font-semibold">Special Offer</h3>
+              <p className="text-sm opacity-90">Get 50% off on your next data package upgrade. Limit time offer</p>
+            </div>
+          </div>
+          <button className="bg-white text-orange-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+            Claim Now
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column - Recent Activity */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+              
               <div className="space-y-4">
-                {dataUsage.map((usage, index) => (
-                  <Card key={index} className="bg-white shadow-lg border-0">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700">{usage.type}</span>
-                        <span className="text-sm text-gray-500">
-                          {usage.used} used from {usage.total}
-                        </span>
+                {recentActivities.map((activity) => {
+                  const Icon = activity.icon;
+                  return (
+                    <div key={activity.id} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                      <div className={`p-2 rounded-full ${
+                        activity.type === 'warning' ? 'bg-yellow-100' :
+                        activity.type === 'success' ? 'bg-green-100' : 'bg-blue-100'
+                      }`}>
+                        <Icon className={`w-4 h-4 ${
+                          activity.type === 'warning' ? 'text-yellow-600' :
+                          activity.type === 'success' ? 'text-green-600' : 'text-blue-600'
+                        }`} />
                       </div>
-                      {usage.percentage > 0 && (
-                        <Progress value={usage.percentage} className="h-2" />
-                      )}
-                      {usage.percentage === 0 && (
-                        <div className="h-2 bg-gray-200 rounded-full">
-                          <div className="h-2 bg-gray-300 rounded-full w-1/3"></div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Central Panel - Usage Meter */}
-            <div className="lg:col-span-1">
-              <Card className="bg-white shadow-lg border-0 h-full">
-                <CardContent className="p-8 text-center">
-                  <div className="mb-6">
-                    <div className="flex items-center justify-center space-x-2 mb-2">
-                      <span className="text-gray-600">Your speed is</span>
-                      <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">NORMAL</Badge>
-                      <span className="text-gray-600">right now</span>
-                    </div>
-                    <p className="text-gray-600 text-sm">Any Time Usage.</p>
-                  </div>
-
-                  {/* Circular Progress Meter */}
-                  <div className="relative w-48 h-48 mx-auto mb-6">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                      {/* Background circle */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        className="text-gray-200"
-                      />
-                      {/* Progress circle */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        className="text-blue-600"
-                        strokeDasharray={`${2 * Math.PI * 40}`}
-                        strokeDashoffset={`${2 * Math.PI * 40 * (1 - 0.37)}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    
-                    {/* Center text */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-2xl font-bold text-blue-600">37%</div>
-                      <div className="text-sm text-gray-600">REMAINING</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-lg font-semibold text-gray-800">
-                      55.2 GB USED OF 87.1 GB
-                    </p>
-                    <p className="text-sm text-gray-600">(Valid Till: 31-Aug)</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Panel - Quick Links, Promotions, Billing, VAS */}
-            <div className="lg:col-span-1 space-y-6">
+            {/* News & Updates */}
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">News & Updates</h3>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium border border-blue-600 px-3 py-1 rounded">
+                  View All
+                </button>
+              </div>
               
-              {/* Quick Links */}
-              <Card className="bg-white shadow-lg border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold text-gray-800">Quick Links</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-3">
-                    {quickLinks.map((link, index) => (
-                      <Button
-                        key={index}
-                        variant="ghost"
-                        className={`h-20 flex flex-col items-center justify-center space-y-2 ${link.color} text-white hover:opacity-80`}
-                      >
-                        {link.icon}
-                        <span className="text-xs font-medium">{link.name}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Promotional Banner */}
-              <Card className="bg-white shadow-lg border-0 overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="relative h-48 bg-gradient-to-r from-blue-600 to-purple-600">
-                    <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                    <div className="relative p-6 text-white h-full flex flex-col justify-between">
-                      <div className="text-center">
-                        <h3 className="text-2xl font-bold mb-2 text-yellow-300">
-                          SPEED BASED UNLIMITED DATA
-                        </h3>
-                        <p className="text-lg">Play, Learn, Work, Entertainment</p>
-                      </div>
-                      <div className="text-center text-sm">
-                        <p>SLT-MOBITEL FIBRE</p>
-                        <p>SPEED BASED Unlimited Data plans</p>
-                      </div>
+              <div className="space-y-4">
+                {newsUpdates.map((news) => (
+                  <div key={news.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div className={`w-2 h-2 rounded-full mt-2 ${news.color}`}></div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 mb-1">{news.title}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{news.content}</p>
+                      <p className="text-xs text-gray-400">{news.time}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Billing Information */}
-              <Card className="bg-white shadow-lg border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold text-gray-800">Billing</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Total Payable:</span>
-                    <Badge className="bg-green-100 text-green-800 text-lg px-4 py-2">Rs 0.00</Badge>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                      Pay Now
-                    </Button>
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                      Bill History
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Value Added Services */}
-              <Card className="bg-white shadow-lg border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold text-gray-800">Value Added Services</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-5 gap-3">
-                    {valueAddedServices.map((service, index) => (
-                      <div key={index} className="text-center">
-                        {service.icon}
-                        <p className="text-xs text-gray-600 mt-2">{service.name}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                ))}
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Packages Tab Content */}
-        {activeTab === 'packages' && (
-          <CustomerPackagesTab />
-        )}
-
-         {/* Other tabs content can be added here */}
-        {activeTab === 'inventory' && (
-          <CustomerInventoryTab />
-        )}
-
-        {activeTab === 'qualification' && (
-          <QualificationTab onQualificationComplete={handleQualificationComplete} />
-        )}
-
-        {activeTab === 'customize' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Customize</CardTitle>
-                <CardDescription className="text-gray-600">Customization features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
+          {/* Right Column - Quick Links */}
+          <div>
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {quickLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <button 
+                      key={link.id}
+                      className={`${link.color} text-white p-4 rounded-lg hover:opacity-90 transition-opacity flex flex-col items-center space-y-2`}
+                    >
+                      <Icon className="w-6 h-6" />
+                      <span className="text-sm font-medium text-center">{link.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+      </main>
 
-        {activeTab === 'messages' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Messages</CardTitle>
-                <CardDescription className="text-gray-600">Messaging features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
+      {/* Footer */}
+      <footer className="bg-gray-100 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            {footerSections.map((section, index) => (
+              <div key={index}>
+                <h4 className="font-semibold text-gray-900 mb-3">{section.title}</h4>
+                <ul className="space-y-2">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+          
+          <div className="border-t border-gray-200 mt-8 pt-8 flex items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                <span className="text-white font-bold text-xs">SLT</span>
+              </div>
+              <span className="font-medium text-gray-900">SLT_Prodigy Hub</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
-}
+};
+
+export default TelecomDashboard;
