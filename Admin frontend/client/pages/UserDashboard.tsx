@@ -1,328 +1,364 @@
-import { useState } from 'react';
-// Assuming hooks and UI components are available from these paths
-// import { useAuth } from '@/contexts/AuthContext';
-// import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import {
-    User,
-    Shield,
-    Building,
-    Calendar,
-    Camera,
-    Save,
-    Lock,
-    Eye,
-    EyeOff,
-    Trash2,
-    Download,
-    History,
-    Activity,
-    Search,
-    Mail
+import React, { useState, useEffect } from 'react';
+import { 
+  User, 
+  Bell, 
+  Search, 
+  Smartphone, 
+  Wifi, 
+  Phone, 
+  MessageSquare, 
+  Signal,
+  CreditCard,
+  FileText,
+  Plus,
+  Gift,
+  MapPin,
+  Clock,
+  Calendar,
+  Star,
+  Settings,
+  Home,
+  HelpCircle,
+  Shield,
+  Zap,
+  Globe,
+  Radio,
+  Headphones,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  Tv,
+  Monitor,
+  Package,
+  Users,
+  Building
 } from 'lucide-react';
 
-// Mock data and hooks for standalone demonstration
-const useToast = () => ({ toast: (options) => console.log('Toast:', options) });
-const useAuth = () => ({
-    user: {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        department: 'Customer Solutions',
-        role: 'admin',
-        lastLogin: '2025-09-18T14:30:00Z',
-        avatar: 'https://github.com/shadcn.png'
+const TelecomDashboard = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeMainTab, setActiveMainTab] = useState('broadband');
+  const [activeSubTab, setActiveSubTab] = useState('summary');
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const mainTabs = [
+    { id: 'broadband', label: 'Broadband', icon: Wifi },
+    { id: 'peotv', label: 'PEOTV', icon: Tv },
+    { id: 'voice', label: 'Voice', icon: Phone },
+    { id: 'mobile', label: 'Mobile', icon: Smartphone },
+    { id: 'promotion', label: 'Promotion', icon: Gift }
+  ];
+
+  const subTabs = [
+    { id: 'summary', label: 'Summary', icon: Home },
+    { id: 'packages', label: 'Packages', icon: Package },
+    { id: 'inventory', label: 'Inventory', icon: Package },
+    { id: 'qualification', label: 'Qualification', icon: CheckCircle },
+    { id: 'customize', label: 'Customize', icon: Settings },
+    { id: 'messages', label: 'Messages', icon: MessageSquare }
+  ];
+
+  const quickLinks = [
+    { id: 1, name: 'New Services', icon: Plus, color: 'bg-blue-500' },
+    { id: 2, name: 'Digital Life', icon: Monitor, color: 'bg-green-500' },
+    { id: 3, name: 'Hot Device', icon: Smartphone, color: 'bg-purple-500' },
+    { id: 4, name: 'Bill', icon: FileText, color: 'bg-orange-500' },
+    { id: 5, name: 'Complaints', icon: AlertTriangle, color: 'bg-red-500' },
+    { id: 6, name: 'More', icon: Settings, color: 'bg-gray-500' }
+  ];
+
+  const recentActivities = [
+    {
+      id: 1,
+      type: 'warning',
+      title: 'Fair Usage Policy: 80% of high-speed data used.',
+      time: '2 hours ago',
+      icon: AlertTriangle
     },
-    updateUser: (data) => console.log('Updating user:', data)
-});
+    {
+      id: 2,
+      type: 'success',
+      title: 'Your International Pack is now active.',
+      time: '1 day ago',
+      icon: CheckCircle
+    },
+    {
+      id: 3,
+      type: 'info',
+      title: 'Scheduled maintenance in your area tonight at 2 AM.',
+      time: '3 days ago',
+      icon: Info
+    }
+  ];
 
+  const newsUpdates = [
+    {
+      id: 1,
+      title: '5G Network Expansion',
+      content: 'New 5G towers installed in Kandy and Galle areas',
+      time: 'Today',
+      color: 'bg-blue-500'
+    },
+    {
+      id: 2,
+      title: 'Holiday Offers',
+      content: 'Special discounts on data packages this December',
+      time: '2 days ago',
+      color: 'bg-green-500'
+    },
+    {
+      id: 3,
+      title: 'App Update Available',
+      content: 'New features and bug fixes in version 3.2.1',
+      time: '1 week ago',
+      color: 'bg-purple-500'
+    }
+  ];
 
-export default function UserProfilePage() {
-    const { user, updateUser } = useAuth();
-    const { toast } = useToast();
-    const [activeTab, setActiveTab] = useState('profile');
-    const [isEditing, setIsEditing] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+  const footerSections = [
+    {
+      title: 'TELEPHONE',
+      links: ['Fibre', 'Megaline', '4G/LTE']
+    },
+    {
+      title: 'BROADBAND',
+      links: ['New Connection', 'Packages', 'Wi-Fi', 'Hosting Services']
+    },
+    {
+      title: 'PEO TV',
+      links: ['Packages', 'Channels', 'Video on Demand']
+    },
+    {
+      title: 'ABOUT US',
+      links: ['Corporate Responsibility', 'Investors', 'Media Center', 'Careers']
+    },
+    {
+      title: 'BUSINESS',
+      links: ['Enterprises', 'SME', 'Wholesale', 'International']
+    }
+  ];
 
-    const [profileData, setProfileData] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        department: user?.department || '',
-        bio: 'Senior Customer Solutions Manager with over 10 years of experience in the telecommunications industry.',
-        phone: '+94 77 123 4567',
-        location: 'Colombo, Sri Lanka',
-    });
-
-    const [securityData, setSecurityData] = useState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-    });
-
-    const handleProfileSave = () => {
-        updateUser({
-            name: profileData.name,
-            email: profileData.email,
-            department: profileData.department
-        });
-        setIsEditing(false);
-        toast({
-            title: "Profile Updated",
-            description: "Your profile information has been saved successfully.",
-        });
-    };
-
-    const handlePasswordChange = () => {
-        if (securityData.newPassword !== securityData.confirmPassword) {
-            toast({
-                title: "Password Mismatch",
-                description: "New password and confirmation do not match.",
-                variant: "destructive"
-            });
-            return;
-        }
-        toast({
-            title: "Password Updated",
-            description: "Your password has been changed successfully.",
-        });
-        setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    };
-
-    const handleAvatarChange = () => {
-        toast({
-            title: "Avatar Updated",
-            description: "Your profile picture has been changed.",
-        });
-    };
-
-    const mockActivityLog = [
-        { action: 'Logged In', timestamp: '2025-09-19 10:30:00', ip: '192.168.1.100' },
-        { action: 'Profile Information Updated', timestamp: '2025-09-18 16:45:00', ip: '192.168.1.100' },
-        { action: 'Password Changed', timestamp: '2025-09-15 09:15:00', ip: '203.0.113.25' },
-        { action: 'Data Export Requested', timestamp: '2025-09-14 11:20:00', ip: '192.168.1.100' },
-        { action: 'Logged In', timestamp: '2025-09-15 09:14:00', ip: '203.0.113.25' },
-    ];
-
-    const roleColors = {
-        admin: 'bg-red-100 text-red-800 border-red-200',
-        user: 'bg-blue-100 text-blue-800 border-blue-200',
-        viewer: 'bg-gray-100 text-gray-800 border-gray-200'
-    };
-    
-    const profileTabs = [
-        { id: 'profile', label: 'Profile', icon: User },
-        { id: 'security', label: 'Security', icon: Shield },
-        { id: 'activity', label: 'Activity', icon: History },
-        { id: 'data', label: 'Data Export', icon: Download },
-    ];
-
-    return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">SLT</span>
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-bold text-gray-900">SLTMOBITEL</h1>
-                                <p className="text-xs text-gray-500">The Connection</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search"
-                                    className="bg-gray-100 border-0 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-                                />
-                            </div>
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                <User className="w-5 h-5 text-gray-600" />
-                            </div>
-                        </div>
-                    </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">SLT</span>
                 </div>
-            </header>
-
-            {/* Sub Navigation */}
-            <nav className="bg-gray-50 border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex space-x-0">
-                        {profileTabs.map((tab) => {
-                            const Icon = tab.icon;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${
-                                        activeTab === tab.id
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    <Icon className="w-4 h-4" />
-                                    <span>{tab.label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">SLTMOBITEL</h1>
+                  <p className="text-xs text-gray-500">The Connection</p>
                 </div>
-            </nav>
+              </div>
+            </div>
 
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-                    <p className="text-gray-600 mt-1">Manage your account settings, profile, and preferences</p>
-                </div>
-                
-                {/* Profile Tab */}
-                {activeTab === 'profile' && (
-                    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                        <div className="flex items-center space-x-6">
-                            <div className="relative">
-                                <Avatar className="h-24 w-24">
-                                    <AvatarImage src={user?.avatar} />
-                                    <AvatarFallback className="text-2xl font-bold">
-                                        {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full" onClick={handleAvatarChange}>
-                                    <Camera className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-xl font-semibold">{user?.name}</h3>
-                                <p className="text-gray-600 flex items-center gap-2"><Mail className="h-4 w-4" />{user?.email}</p>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Badge className={`${roleColors[user?.role || 'viewer']} font-medium`}>
-                                        {user?.role?.toUpperCase()}
-                                    </Badge>
-                                    <Badge variant="outline" className="font-medium">
-                                        <Building className="h-3 w-3 mr-1.5" />
-                                        {user?.department}
-                                    </Badge>
-                                </div>
-                            </div>
-                            <Button variant={isEditing ? "outline" : "default"} onClick={() => setIsEditing(!isEditing)}>
-                                {isEditing ? "Cancel" : "Edit Profile"}
-                            </Button>
-                        </div>
-                        <Separator className="my-6" />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2"><Label htmlFor="name">Full Name</Label><Input id="name" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={!isEditing} /></div>
-                            <div className="space-y-2"><Label htmlFor="email">Email Address</Label><Input id="email" type="email" value={profileData.email} onChange={(e) => setProfileData({...profileData, email: e.target.value})} disabled={!isEditing} /></div>
-                            <div className="space-y-2"><Label htmlFor="department">Department</Label><Input id="department" value={profileData.department} onChange={(e) => setProfileData({...profileData, department: e.target.value})} disabled={!isEditing} /></div>
-                            <div className="space-y-2"><Label htmlFor="phone">Phone Number</Label><Input id="phone" value={profileData.phone} onChange={(e) => setProfileData({...profileData, phone: e.target.value})} disabled={!isEditing} /></div>
-                            <div className="space-y-2"><Label htmlFor="location">Location</Label><Input id="location" value={profileData.location} onChange={(e) => setProfileData({...profileData, location: e.target.value})} disabled={!isEditing} /></div>
-                        </div>
-                        <div className="mt-6 space-y-2"><Label htmlFor="bio">Bio</Label><Textarea id="bio" value={profileData.bio} onChange={(e) => setProfileData({...profileData, bio: e.target.value})} disabled={!isEditing} rows={4} /></div>
-                        {isEditing && (
-                            <div className="flex justify-end space-x-2 mt-6">
-                                <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-                                <Button onClick={handleProfileSave}><Save className="h-4 w-4 mr-2" />Save Changes</Button>
-                            </div>
-                        )}
-                    </div>
-                )}
-                
-                {/* Security Tab */}
-                {activeTab === 'security' && (
-                     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Password & Security</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="currentPassword">Current Password</Label>
-                                    <div className="relative">
-                                        <Input id="currentPassword" type={showPassword ? "text" : "password"} value={securityData.currentPassword} onChange={(e) => setSecurityData({...securityData, currentPassword: e.target.value})} />
-                                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowPassword(!showPassword)}>
-                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div className="space-y-2"><Label htmlFor="newPassword">New Password</Label><Input id="newPassword" type="password" value={securityData.newPassword} onChange={(e) => setSecurityData({...securityData, newPassword: e.target.value})} /></div>
-                                <div className="space-y-2"><Label htmlFor="confirmPassword">Confirm New Password</Label><Input id="confirmPassword" type="password" value={securityData.confirmPassword} onChange={(e) => setSecurityData({...securityData, confirmPassword: e.target.value})} /></div>
-                                <Button onClick={handlePasswordChange} className="w-full">Update Password</Button>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                                    <div><p className="font-medium">Last Login</p><p className="text-sm text-gray-600">{new Date(user.lastLogin).toLocaleString()}</p></div>
-                                    <Calendar className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                                    <div><p className="font-medium">Account Status</p><p className="text-sm text-green-600 font-semibold">Active</p></div>
-                                    <Shield className="h-5 w-5 text-green-500" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                 {/* Activity Tab */}
-                {activeTab === 'activity' && (
-                     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Activity</h3>
-                        <div className="space-y-3">
-                            {mockActivityLog.map((activity, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center space-x-3">
-                                        <Activity className="h-5 w-5 text-blue-500" />
-                                        <div>
-                                            <p className="font-medium text-gray-800">{activity.action}</p>
-                                            <p className="text-sm text-gray-600">IP Address: {activity.ip}</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-gray-500">{activity.timestamp}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Data Export Tab */}
-                {activeTab === 'data' && (
-                    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Export & Management</h3>
-                        <div className="space-y-6">
-                            <div className="p-4 border rounded-lg bg-gray-50">
-                                <h4 className="font-medium mb-2">Export Account Data</h4>
-                                <p className="text-sm text-gray-600 mb-4">Download a copy of all your account data including profile information, activity logs, and preferences.</p>
-                                <Button variant="outline"><Download className="h-4 w-4 mr-2" />Download Data (JSON)</Button>
-                            </div>
-                            <div className="p-4 border rounded-lg border-red-200 bg-red-50">
-                                <h4 className="font-medium mb-2 text-red-800">Danger Zone</h4>
-                                <p className="text-sm text-gray-600 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive"><Trash2 className="h-4 w-4 mr-2" />Delete Account</Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction className="bg-red-600 hover:bg-red-700">Delete Account</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </main>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search"
+                  className="bg-gray-100 border-0 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                />
+              </div>
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
+            </div>
+          </div>
         </div>
-    );
-}
+      </header>
+
+      {/* Main Navigation Tabs */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-0">
+            {mainTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveMainTab(tab.id)}
+                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeMainTab === tab.id
+                      ? 'border-blue-600 text-blue-600 bg-blue-50'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* Sub Navigation */}
+      <nav className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-0">
+            {subTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSubTab(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${
+                    activeSubTab === tab.id
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* Welcome Banner */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white mb-6">
+          <h2 className="text-2xl font-bold mb-2">Welcome Back John !</h2>
+        </div>
+
+        {/* Special Offer Banner */}
+        <div className="bg-gradient-to-r from-orange-400 to-pink-500 rounded-lg p-4 text-white mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Gift className="w-6 h-6" />
+            <div>
+              <h3 className="font-semibold">Special Offer</h3>
+              <p className="text-sm opacity-90">Get 50% off on your next data package upgrade. Limit time offer</p>
+            </div>
+          </div>
+          <button className="bg-white text-orange-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+            Claim Now
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column - Recent Activity */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+              
+              <div className="space-y-4">
+                {recentActivities.map((activity) => {
+                  const Icon = activity.icon;
+                  return (
+                    <div key={activity.id} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                      <div className={`p-2 rounded-full ${
+                        activity.type === 'warning' ? 'bg-yellow-100' :
+                        activity.type === 'success' ? 'bg-green-100' : 'bg-blue-100'
+                      }`}>
+                        <Icon className={`w-4 h-4 ${
+                          activity.type === 'warning' ? 'text-yellow-600' :
+                          activity.type === 'success' ? 'text-green-600' : 'text-blue-600'
+                        }`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* News & Updates */}
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">News & Updates</h3>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium border border-blue-600 px-3 py-1 rounded">
+                  View All
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {newsUpdates.map((news) => (
+                  <div key={news.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div className={`w-2 h-2 rounded-full mt-2 ${news.color}`}></div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 mb-1">{news.title}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{news.content}</p>
+                      <p className="text-xs text-gray-400">{news.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Quick Links */}
+          <div>
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {quickLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <button 
+                      key={link.id}
+                      className={`${link.color} text-white p-4 rounded-lg hover:opacity-90 transition-opacity flex flex-col items-center space-y-2`}
+                    >
+                      <Icon className="w-6 h-6" />
+                      <span className="text-sm font-medium text-center">{link.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-100 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            {footerSections.map((section, index) => (
+              <div key={index}>
+                <h4 className="font-semibold text-gray-900 mb-3">{section.title}</h4>
+                <ul className="space-y-2">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          
+          <div className="border-t border-gray-200 mt-8 pt-8 flex items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                <span className="text-white font-bold text-xs">SLT</span>
+              </div>
+              <span className="font-medium text-gray-900">SLT_Prodigy Hub</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default TelecomDashboard;
