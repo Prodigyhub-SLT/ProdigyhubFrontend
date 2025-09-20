@@ -779,9 +779,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await reload(currentUser);
         const isVerified = currentUser.emailVerified;
         
-        // Update user context with verification status
+        console.log('🔍 Email verification check result:', {
+          isVerified,
+          previousStatus: user.emailVerified,
+          needsUpdate: user.emailVerified !== isVerified
+        });
+        
+        // Update user context with verification status immediately
         if (user.emailVerified !== isVerified) {
-          updateUser({ emailVerified: isVerified });
+          console.log('🔄 Updating user emailVerified status from', user.emailVerified, 'to', isVerified);
+          const updatedUser = { ...user, emailVerified: isVerified };
+          setUser(updatedUser);
+          
+          // Update localStorage immediately
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+              console.log('💾 Email verification status updated in localStorage');
+            }
+          } catch (error) {
+            console.warn('Failed to update localStorage with verification status:', error);
+          }
         }
         
         return isVerified;
@@ -962,6 +980,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Ensure we keep the Firebase UID
             uid: user.uid,
             userId: user.userId || user.uid,
+            // Preserve Firebase authentication status (emailVerified, etc.)
+            emailVerified: user.emailVerified,
             // Create a combined name field for backward compatibility
             name: responseData.user.firstName && responseData.user.lastName 
               ? `${responseData.user.firstName} ${responseData.user.lastName}`.trim()
