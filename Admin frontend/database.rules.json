@@ -1,0 +1,48 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "orders": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "products": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "offerings": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "categories": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "qualifications": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "events": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "systemHealth": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "collectionStats": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "infrastructure": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}

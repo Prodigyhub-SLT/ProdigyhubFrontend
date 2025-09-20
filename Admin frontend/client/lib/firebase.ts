@@ -243,7 +243,7 @@ export const authOperations = {
   }
 };
 
-// Initialize anonymous auth
-authOperations.signInAnonymously().catch(console.error);
+// Initialize anonymous auth - Commented out to prevent conflicts with email/password auth
+// authOperations.signInAnonymously().catch(console.error);
 
 export default app;
