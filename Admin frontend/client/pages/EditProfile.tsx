@@ -109,11 +109,46 @@ export default function EditProfile() {
     }
   };
 
-  // Removed automatic refresh on user sign-in
-  // Only refresh when actual changes happen
+  // Refresh user profile when component mounts to get latest data from MongoDB
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (user?.uid && refreshUserProfile) {
+        console.log('🔄 EditProfile - Refreshing user profile from MongoDB...');
+        console.log('🔍 EditProfile - Current user address before refresh:', user.address);
+        try {
+          await refreshUserProfile();
+          console.log('✅ EditProfile - User profile refreshed successfully');
+        } catch (error) {
+          console.error('❌ EditProfile - Failed to refresh user profile:', error);
+        }
+      }
+    };
+    
+    loadUserProfile();
+  }, []); // Only run once when component mounts
+  
+  // Also refresh if address data is missing but user exists
+  useEffect(() => {
+    const checkAddressData = async () => {
+      if (user?.uid && (!user.address || Object.values(user.address).every(val => !val)) && refreshUserProfile) {
+        console.log('🔄 EditProfile - Address data missing, refreshing profile...');
+        try {
+          await refreshUserProfile();
+          console.log('✅ EditProfile - Profile refreshed due to missing address data');
+        } catch (error) {
+          console.error('❌ EditProfile - Failed to refresh profile for address data:', error);
+        }
+      }
+    };
+    
+    checkAddressData();
+  }, [user?.uid, user?.address]); // Run when user ID or address changes
 
   useEffect(() => {
     if (user) {
+      console.log('🔄 EditProfile - Loading user data:', user);
+      console.log('🏠 EditProfile - User address data:', user.address);
+      
       // Handle both combined name and separate firstName/lastName fields
       let firstName = '';
       let lastName = '';
@@ -156,6 +191,7 @@ export default function EditProfile() {
       };
       
       setFormData(newFormData);
+      console.log('📝 EditProfile - Form data set:', newFormData);
 
       // Set address data from user profile
       const newAddressData = {
@@ -167,6 +203,7 @@ export default function EditProfile() {
       };
       
       setAddressData(newAddressData);
+      console.log('🏠 EditProfile - Address data set:', newAddressData);
       
       // Mark data as loaded
       setDataLoaded(true);

@@ -699,11 +699,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const mongoUserData = await response.json();
         console.log('✅ MongoDB profile data refreshed:', mongoUserData);
         console.log('🏠 Address data from API:', mongoUserData.address);
+        console.log('🔍 Available MongoDB fields:', Object.keys(mongoUserData));
+        console.log('🔍 Address field exists:', 'address' in mongoUserData);
+        console.log('🔍 Address field value:', mongoUserData.address);
         
         // Update user with MongoDB data
         const updatedUser: User = {
           ...user,
           // Direct fields from MongoDB
+          firstName: mongoUserData.firstName || user.firstName,
+          lastName: mongoUserData.lastName || user.lastName,
           userId: mongoUserData.userId || user.userId,
           phoneNumber: mongoUserData.phoneNumber || user.phoneNumber || '',
           nic: mongoUserData.nic || user.nic || '',
@@ -726,6 +731,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         setUser(updatedUser);
         console.log('👤 User profile refreshed:', updatedUser);
+        console.log('🏠 Final address in user state:', updatedUser.address);
         
         // Update localStorage
         try {
