@@ -1,99 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
-  User, 
-  Bell, 
-  Search, 
-  Smartphone, 
   Wifi, 
+  Tv, 
   Phone, 
-  MessageSquare, 
-  Signal,
-  CreditCard,
-  FileText,
+  Smartphone, 
+  Megaphone,
   Plus,
-  Gift,
-  MapPin,
-  Clock,
-  Calendar,
-  Star,
-  Settings,
-  Home,
-  HelpCircle,
-  Shield,
-  Zap,
-  Globe,
-  Radio,
-  Headphones,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Tv,
   Monitor,
+  FileText,
+  MessageCircle,
+  ArrowRight,
+  CheckCircle,
+  Zap,
+  Gift,
+  History,
+  Star,
+  Home,
   Package,
-  Users,
-  Building
+  Database,
+  Award,
+  Palette,
+  MessageSquare,
+  TrendingUp,
+  CreditCard,
+  DollarSign,
+  MoreHorizontal,
+  Search,
+  User,
+  Settings,
+  Bell,
+  AlertTriangle,
+  Info,
+  Building,
+  Globe
 } from 'lucide-react';
 
+// Mock user data
+const mockUser = {
+  name: "John Doe",
+  avatar: null,
+  id: "USR001"
+};
+
 const TelecomDashboard = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeMainTab, setActiveMainTab] = useState('broadband');
-  const [activeSubTab, setActiveSubTab] = useState('summary');
+  const [activeService, setActiveService] = useState('broadband');
+  const [activeTab, setActiveTab] = useState('summary');
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const profileTriggerRef = useRef(null);
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const mainTabs = [
-    { id: 'broadband', label: 'Broadband', icon: Wifi },
-    { id: 'peotv', label: 'PEOTV', icon: Tv },
-    { id: 'voice', label: 'Voice', icon: Phone },
-    { id: 'mobile', label: 'Mobile', icon: Smartphone },
-    { id: 'promotion', label: 'Promotion', icon: Gift }
+  // Navigation configurations
+  const services = [
+    { name: 'Broadband', icon: Wifi, id: 'broadband' },
+    { name: 'PEOTV', icon: Tv, id: 'peotv' },
+    { name: 'Voice', icon: Phone, id: 'voice' },
+    { name: 'Mobile', icon: Smartphone, id: 'mobile' },
+    { name: 'Promotion', icon: Megaphone, id: 'promotion' }
   ];
 
   const subTabs = [
-    { id: 'summary', label: 'Summary', icon: Home },
-    { id: 'packages', label: 'Packages', icon: Package },
-    { id: 'inventory', label: 'Inventory', icon: Package },
-    { id: 'qualification', label: 'Qualification', icon: CheckCircle },
-    { id: 'customize', label: 'Customize', icon: Settings },
-    { id: 'messages', label: 'Messages', icon: MessageSquare }
+    { name: 'Summary', icon: Home, id: 'summary' },
+    { name: 'Package', icon: Package, id: 'packages' },
+    { name: 'Inventory', icon: Database, id: 'inventory' },
+    { name: 'Qualification', icon: Award, id: 'qualification' },
+    { name: 'Customize', icon: Palette, id: 'customize' },
+    { name: 'Messages', icon: MessageSquare, id: 'messages' }
   ];
 
+  // Quick Links data
   const quickLinks = [
-    { id: 1, name: 'New Services', icon: Plus, color: 'bg-blue-500' },
-    { id: 2, name: 'Digital Life', icon: Monitor, color: 'bg-green-500' },
-    { id: 3, name: 'Hot Device', icon: Smartphone, color: 'bg-purple-500' },
-    { id: 4, name: 'Bill', icon: FileText, color: 'bg-orange-500' },
-    { id: 5, name: 'Complaints', icon: AlertTriangle, color: 'bg-red-500' },
-    { id: 6, name: 'More', icon: Settings, color: 'bg-gray-500' }
+    { name: 'New Services', icon: Plus, color: 'bg-blue-500', id: 'new-services' },
+    { name: 'Digital Life', icon: Monitor, color: 'bg-green-500', id: 'digital-life' },
+    { name: 'Hot Device', icon: Smartphone, color: 'bg-purple-500', id: 'hot-device' },
+    { name: 'Bill', icon: FileText, color: 'bg-orange-500', id: 'bill' },
+    { name: 'Complaints', icon: MessageCircle, color: 'bg-red-500', id: 'complaints' },
+    { name: 'More', icon: MoreHorizontal, color: 'bg-gray-500', id: 'more' }
   ];
 
+  // Recent Activity data
   const recentActivities = [
     {
       id: 1,
       type: 'warning',
       title: 'Fair Usage Policy: 80% of high-speed data used.',
       time: '2 hours ago',
-      icon: AlertTriangle
+      icon: AlertTriangle,
+      bgColor: 'bg-yellow-50',
+      textColor: 'text-yellow-800',
+      iconColor: 'text-yellow-600'
     },
     {
       id: 2,
       type: 'success',
       title: 'Your International Pack is now active.',
       time: '1 day ago',
-      icon: CheckCircle
+      icon: CheckCircle,
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-800',
+      iconColor: 'text-green-600'
     },
     {
       id: 3,
       type: 'info',
       title: 'Scheduled maintenance in your area tonight at 2 AM.',
       time: '3 days ago',
-      icon: Info
+      icon: Info,
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-800',
+      iconColor: 'text-blue-600'
     }
   ];
 
+  // News & Updates data
   const newsUpdates = [
     {
       id: 1,
@@ -118,6 +135,7 @@ const TelecomDashboard = () => {
     }
   ];
 
+  // Footer sections data
   const footerSections = [
     {
       title: 'TELEPHONE',
@@ -141,15 +159,196 @@ const TelecomDashboard = () => {
     }
   ];
 
+  // Component handlers
+  const handleServiceClick = (serviceId) => {
+    setActiveService(serviceId);
+  };
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+  };
+
+  const handleQuickLinkClick = (linkId) => {
+    console.log(`Navigating to ${linkId}`);
+    // Add navigation logic here
+  };
+
+  // Profile Popup Component
+  const ProfilePopup = () => {
+    if (!showProfilePopup) return null;
+
+    return (
+      <div className="absolute right-0 top-12 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+              {mockUser.name.charAt(0)}
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">{mockUser.name}</h3>
+              <p className="text-sm text-gray-500">Premium Member</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-2">
+          <button className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center space-x-2">
+            <User className="w-4 h-4" />
+            <span>Profile Settings</span>
+          </button>
+          <button className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center space-x-2">
+            <Settings className="w-4 h-4" />
+            <span>Account Settings</span>
+          </button>
+          <button className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md text-red-600 flex items-center space-x-2">
+            <ArrowRight className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Tab Content Components
+  const SummaryContent = () => (
+    <div className="max-w-6xl mx-auto">
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-purple-400 to-purple-600 rounded-2xl p-6 text-white mb-6">
+        <h2 className="text-2xl font-bold">Hi John, Welcome to Prodigyhub</h2>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Activity */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <div className="space-y-4">
+              {recentActivities.map((activity) => {
+                const Icon = activity.icon;
+                return (
+                  <div key={activity.id} className={`p-4 rounded-lg ${activity.bgColor} flex items-start space-x-3`}>
+                    <Icon className={`w-5 h-5 mt-0.5 ${activity.iconColor}`} />
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium ${activity.textColor}`}>{activity.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* News & Updates */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">News & Updates</h3>
+              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium border border-blue-600 px-3 py-1 rounded">
+                View All
+              </button>
+            </div>
+            <div className="space-y-4">
+              {newsUpdates.map((news) => (
+                <div key={news.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                  <div className={`w-2 h-2 rounded-full mt-2 ${news.color}`}></div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900 mb-1">{news.title}</h4>
+                    <p className="text-sm text-gray-600 mb-2">{news.content}</p>
+                    <p className="text-xs text-gray-400">{news.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Links */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <button 
+                  key={link.id}
+                  onClick={() => handleQuickLinkClick(link.id)}
+                  className={`${link.color} text-white p-4 rounded-lg hover:opacity-90 transition-opacity flex flex-col items-center space-y-2`}
+                >
+                  <Icon className="w-6 h-6" />
+                  <span className="text-sm font-medium text-center">{link.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const PackageContent = () => (
+    <div className="bg-white rounded-xl shadow-sm p-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Package Management</h2>
+      <p className="text-gray-600">Package management features will be implemented here.</p>
+    </div>
+  );
+
+  const InventoryContent = () => (
+    <div className="bg-white rounded-xl shadow-sm p-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Inventory</h2>
+      <p className="text-gray-600">Inventory management features will be implemented here.</p>
+    </div>
+  );
+
+  const QualificationContent = () => (
+    <div className="bg-white rounded-xl shadow-sm p-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Service Qualification</h2>
+      <p className="text-gray-600">Service qualification features will be implemented here.</p>
+    </div>
+  );
+
+  const CustomizeContent = () => (
+    <div className="bg-white rounded-xl shadow-sm p-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Customize</h2>
+      <p className="text-gray-600">Customization features will be implemented here.</p>
+    </div>
+  );
+
+  const MessagesContent = () => (
+    <div className="bg-white rounded-xl shadow-sm p-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Messages</h2>
+      <p className="text-gray-600">Messaging features will be implemented here.</p>
+    </div>
+  );
+
+  // Render tab content based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'summary':
+        return <SummaryContent />;
+      case 'packages':
+        return <PackageContent />;
+      case 'inventory':
+        return <InventoryContent />;
+      case 'qualification':
+        return <QualificationContent />;
+      case 'customize':
+        return <CustomizeContent />;
+      case 'messages':
+        return <MessagesContent />;
+      default:
+        return <SummaryContent />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            {/* Logo */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                   <span className="text-white font-bold text-sm">SLT</span>
                 </div>
                 <div>
@@ -159,7 +358,9 @@ const TelecomDashboard = () => {
               </div>
             </div>
 
+            {/* Right side */}
             <div className="flex items-center space-x-4">
+              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <input 
@@ -168,32 +369,44 @@ const TelecomDashboard = () => {
                   className="bg-gray-100 border-0 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
                 />
               </div>
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-600" />
+              
+              {/* User Profile */}
+              <div className="relative" ref={profileTriggerRef}>
+                <div 
+                  className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-400 transition-colors"
+                  onClick={() => setShowProfilePopup(!showProfilePopup)}
+                >
+                  <User className="w-5 h-5 text-gray-600" />
+                </div>
+                <ProfilePopup />
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Navigation Tabs */}
-      <nav className="bg-white border-b border-gray-200">
+      {/* Main Service Navigation */}
+      <nav className="bg-blue-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-0">
-            {mainTabs.map((tab) => {
-              const Icon = tab.icon;
+            {services.map((service) => {
+              const Icon = service.icon;
+              const isActive = activeService === service.id;
               return (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveMainTab(tab.id)}
-                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeMainTab === tab.id
-                      ? 'border-blue-600 text-blue-600 bg-blue-50'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  key={service.id}
+                  onClick={() => handleServiceClick(service.id)}
+                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-colors relative ${
+                    isActive 
+                      ? 'bg-blue-900 text-white' 
+                      : 'text-blue-100 hover:text-white hover:bg-blue-700'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
+                  <span>{service.name}</span>
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white"></div>
+                  )}
                 </button>
               );
             })}
@@ -202,23 +415,24 @@ const TelecomDashboard = () => {
       </nav>
 
       {/* Sub Navigation */}
-      <nav className="bg-gray-50 border-b border-gray-200">
+      <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-0">
             {subTabs.map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveSubTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${
-                    activeSubTab === tab.id
+                  onClick={() => handleTabClick(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium transition-colors ${
+                    isActive
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
+                  <span>{tab.name}</span>
                 </button>
               );
             })}
@@ -227,104 +441,8 @@ const TelecomDashboard = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
-        {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white mb-6">
-          <h2 className="text-2xl font-bold mb-2">Welcome Back John !</h2>
-        </div>
-
-        {/* Special Offer Banner */}
-        <div className="bg-gradient-to-r from-orange-400 to-pink-500 rounded-lg p-4 text-white mb-6 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Gift className="w-6 h-6" />
-            <div>
-              <h3 className="font-semibold">Special Offer</h3>
-              <p className="text-sm opacity-90">Get 50% off on your next data package upgrade. Limit time offer</p>
-            </div>
-          </div>
-          <button className="bg-white text-orange-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors">
-            Claim Now
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Left Column - Recent Activity */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-              
-              <div className="space-y-4">
-                {recentActivities.map((activity) => {
-                  const Icon = activity.icon;
-                  return (
-                    <div key={activity.id} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                      <div className={`p-2 rounded-full ${
-                        activity.type === 'warning' ? 'bg-yellow-100' :
-                        activity.type === 'success' ? 'bg-green-100' : 'bg-blue-100'
-                      }`}>
-                        <Icon className={`w-4 h-4 ${
-                          activity.type === 'warning' ? 'text-yellow-600' :
-                          activity.type === 'success' ? 'text-green-600' : 'text-blue-600'
-                        }`} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* News & Updates */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">News & Updates</h3>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium border border-blue-600 px-3 py-1 rounded">
-                  View All
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {newsUpdates.map((news) => (
-                  <div key={news.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${news.color}`}></div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 mb-1">{news.title}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{news.content}</p>
-                      <p className="text-xs text-gray-400">{news.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Quick Links */}
-          <div>
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
-              
-              <div className="grid grid-cols-2 gap-3">
-                {quickLinks.map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <button 
-                      key={link.id}
-                      className={`${link.color} text-white p-4 rounded-lg hover:opacity-90 transition-opacity flex flex-col items-center space-y-2`}
-                    >
-                      <Icon className="w-6 h-6" />
-                      <span className="text-sm font-medium text-center">{link.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderTabContent()}
       </main>
 
       {/* Footer */}
