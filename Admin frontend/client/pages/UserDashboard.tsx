@@ -139,21 +139,6 @@ export default function UserDashboard() {
 
   // Handle onboarding popup close
   const handleOnboardingClose = () => {
-    if (userNeedsOnboarding) {
-      // Show confirmation dialog before allowing close
-      const shouldClose = window.confirm(
-        'Your profile setup is not complete. If you close now, you\'ll need to complete it later to access all features. Are you sure you want to close?'
-      );
-      if (!shouldClose) {
-        return;
-      }
-      // User confirmed, allow closing but keep the flag that they need onboarding
-      console.log('⚠️ User closed onboarding popup without completing setup');
-      // Show an alert that they can reopen it later
-      setTimeout(() => {
-        alert('You can complete your profile setup anytime by clicking on your profile picture in the top right corner.');
-      }, 1000);
-    }
     setShowOnboardingPopup(false);
   };
 
@@ -437,8 +422,6 @@ export default function UserDashboard() {
                   isOpen={showProfilePopup}
                   onClose={() => setShowProfilePopup(false)}
                   triggerRef={profileTriggerRef}
-                  onReopenOnboarding={() => setShowOnboardingPopup(true)}
-                  showOnboardingOption={userNeedsOnboarding && user?.authMethod === 'google'}
                 />
               </div>
             </div>
