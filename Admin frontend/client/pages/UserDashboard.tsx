@@ -72,8 +72,6 @@ export default function UserDashboard() {
   const { user } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
   const [activeTab, setActiveTab] = useState('summary');
-  const [qualificationCompleted, setQualificationCompleted] = useState(false);
-  const [showQualificationAlert, setShowQualificationAlert] = useState(false);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showOnboardingPopup, setShowOnboardingPopup] = useState(false);
   const [userNeedsOnboarding, setUserNeedsOnboarding] = useState(false);
@@ -81,7 +79,6 @@ export default function UserDashboard() {
   
   // Debug log for initial state
   console.log('🚀 UserDashboard mounted with initial state:', { 
-    qualificationCompleted, 
     activeTab,
     urlSearch: location.search
   });
@@ -91,40 +88,13 @@ export default function UserDashboard() {
 
 
   const handleTabClick = (tabId: string) => {
-    console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
-    
-    // Double-check qualification state from localStorage
-    const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted, isForceLocked });
-    
-    // Only block access if user is force-locked (new user)
-    if (isForceLocked && tabId !== 'qualification') {
-      // Show message that qualification must be completed first
-      setShowQualificationAlert(true);
-      setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
-      console.log('🚫 Tab access blocked - user is force-locked (new user)');
-      return;
-    }
-    
-    console.log('✅ Tab access granted');
+    console.log('🔍 Tab click:', { tabId, currentTab: activeTab });
     setActiveTab(tabId);
   };
 
   const handleQualificationComplete = () => {
-    // Check if user is force-locked
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    
-    if (isForceLocked) {
-      console.log('🎯 Manual qualification completion - unlocking all tabs');
-      setQualificationCompleted(true);
-      localStorage.setItem('qualification_completed', 'true');
-      localStorage.removeItem('force_locked_until_manual_completion'); // Remove force lock
-      // Allow access to other tabs
-      setActiveTab('summary');
-    } else {
-      console.log('⚠️ Qualification completion called but user was not force-locked');
-    }
+    // Qualification completed - no special handling needed since tabs are always accessible
+    console.log('✅ Qualification completed');
   };
 
   // Handle onboarding completion
@@ -314,101 +284,24 @@ export default function UserDashboard() {
     checkUserOnboardingStatus();
   }, [user]);
 
-  // Handle URL parameters and set initial tab + qualification state
+  // Handle URL parameters for tab selection
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
-    const fromSignup = urlParams.get('from') === 'signup';
-    
-    // Check qualification status from localStorage
-    const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
     
     if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
-      
-      // Only apply force lock for NEW users coming from signup
-      if (tabParam === 'qualification' && fromSignup) {
-        // FORCE LOCKED STATE for new users coming to qualification tab from signup
-        localStorage.removeItem('qualification_completed');
-        setQualificationCompleted(false);
-        console.log('🔒 FORCED LOCK: New user from signup redirected to qualification tab - tabs will be locked until completion');
-        
-        // Add a flag to prevent any automatic unlocking
-        localStorage.setItem('force_locked_until_manual_completion', 'true');
-      } else if (tabParam === 'qualification' && !fromSignup) {
-        // Existing user visiting qualification tab - don't force lock
-        setQualificationCompleted(hasCompletedQualification);
-        console.log('✅ Existing user visiting qualification tab - no force lock applied');
-      } else {
-        // Other tabs - respect existing qualification state
-        setQualificationCompleted(hasCompletedQualification);
-        if (hasCompletedQualification) {
-          console.log('✅ User accessing other tab with completed qualification');
-        } else if (isForceLocked) {
-          console.log('🔒 User accessing other tab but is force-locked (new user)');
-        } else {
-          console.log('🔒 User accessing other tab without completed qualification - will be blocked');
-        }
-      }
-    } else {
-      // No tab parameter - check if user is force-locked (new user) or existing user
-      if (isForceLocked) {
-        // Check if this is actually a new user or an existing user with stale flag
-        // If user has no from=signup parameter, they're an existing user signing in
-        const isFromSignup = urlParams.get('from') === 'signup';
-        
-        if (!isFromSignup) {
-          // Existing user signing in - clear the force lock flag and allow access
-          localStorage.removeItem('force_locked_until_manual_completion');
-          setQualificationCompleted(true);
-          console.log('✅ No tab parameter - existing user signing in, cleared force lock flag and allowing access to all tabs');
-        } else {
-          // User is force-locked (new user) - keep tabs locked
-          setQualificationCompleted(false);
-          console.log('🔒 No tab parameter - user is force-locked (new user)');
-        }
-      } else {
-        // Existing user - allow access to all tabs regardless of qualification status
-        setQualificationCompleted(true);
-        console.log('✅ No tab parameter - existing user, allowing access to all tabs');
-      }
+      console.log('✅ Tab set from URL parameter:', tabParam);
     }
   }, [location.search]);
 
-  // Monitor qualification state changes
+  // Clean up old qualification system localStorage entries
   useEffect(() => {
-    console.log('🔄 Qualification state changed:', { 
-      qualificationCompleted, 
-      activeTab,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
-  }, [qualificationCompleted, activeTab]);
-
-  // Periodic check to ensure qualification state is correct for new users
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-      const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-      
-      // If user is force-locked, ensure tabs stay locked regardless of other state
-      if (isForceLocked && qualificationCompleted) {
-        console.log('🚨 FORCE LOCK VIOLATION: User is force-locked but tabs are unlocked! Forcing locked state.');
-        setQualificationCompleted(false);
-        localStorage.removeItem('qualification_completed'); // Remove any qualification completion
-        return;
-      }
-      
-      // If we're on qualification tab and localStorage says not completed, ensure state is locked
-      if (activeTab === 'qualification' && !localStorageQualification && qualificationCompleted) {
-        console.log('🚨 WARNING: Qualification state mismatch detected! Forcing locked state.');
-        setQualificationCompleted(false);
-      }
-    }, 1000); // Check every second
-
-    return () => clearInterval(interval);
-  }, [activeTab, qualificationCompleted]);
+    // Remove old qualification system localStorage entries
+    localStorage.removeItem('qualification_completed');
+    localStorage.removeItem('force_locked_until_manual_completion');
+    console.log('🧹 Cleaned up old qualification system localStorage entries');
+  }, []);
 
 
 
@@ -508,8 +401,6 @@ export default function UserDashboard() {
         <div className="px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-2 h-full">
             {secondNavTabs.map((tab) => {
-              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-              const isLocked = isForceLocked && tab.id !== 'qualification';
               const isActive = activeTab === tab.id;
               return (
                 <Button
@@ -518,19 +409,15 @@ export default function UserDashboard() {
                   className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                      : isLocked
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-100/60 border border-gray-200'
                       : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
                   }`}
                   style={{height: '40px'}}
                   onClick={() => handleTabClick(tab.id)}
-                  disabled={isLocked}
                 >
                   <span className="transition-transform duration-300 group-hover:-translate-y-0.5 mr-2">
                     {tab.icon}
                   </span>
                   <span className="font-semibold tracking-wide">{tab.name}</span>
-                  {isLocked && <span className="ml-2 text-xs">🔒</span>}
                   {isActive && (
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
                   )}
@@ -541,17 +428,6 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Qualification Required Alert */}
-      {showQualificationAlert && (
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <Alert className="border-orange-200 bg-orange-50 text-orange-800">
-            <AlertDescription className="text-sm">
-              🔒 Please complete the qualification process first before accessing other tabs. 
-              Complete your address details and infrastructure check in the Qualification tab.
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
 
       {/* Main Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-8">
