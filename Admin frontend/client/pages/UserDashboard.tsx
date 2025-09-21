@@ -171,125 +171,123 @@ export default function UserDashboard() {
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
-  // Check if user needs onboarding (new Google users without profile details)
+  // Check if user needs onboarding (users without complete profile details)
   useEffect(() => {
     const checkUserOnboardingStatus = async () => {
       if (!user || !user.uid) return;
 
-      // Only check for Google authenticated users
-      if (user.authMethod === 'google') {
-        try {
-          const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
-          console.log('🔍 Checking onboarding status for Google user:', user.uid);
-          console.log('🌐 Backend URL:', backendURL);
+      // Check for all users who might be missing profile details
+      console.log('🔍 Checking onboarding status for user:', user.uid, 'Auth method:', user.authMethod);
+      try {
+        const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
+        console.log('🌐 Backend URL:', backendURL);
           
-          const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+        const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('📊 Profile check response status:', response.status);
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('👤 User data from MongoDB:', userData);
+          console.log('🔍 Detailed field check:', {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            phoneNumber: userData.phoneNumber,
+            nic: userData.nic,
+            address: userData.address,
+            addressStreet: userData.address?.street,
+            addressCity: userData.address?.city,
+            addressDistrict: userData.address?.district,
+            addressProvince: userData.address?.province
           });
 
-          console.log('📊 Profile check response status:', response.status);
-
-          if (response.ok) {
-            const userData = await response.json();
-            console.log('👤 User data from MongoDB:', userData);
-            console.log('🔍 Detailed field check:', {
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              phoneNumber: userData.phoneNumber,
-              nic: userData.nic,
-              address: userData.address,
-              addressStreet: userData.address?.street,
-              addressCity: userData.address?.city,
-              addressDistrict: userData.address?.district,
-              addressProvince: userData.address?.province
-            });
-
-            // Store complete user data for the onboarding popup
-            setCompleteUserData({
-              ...user,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              phoneNumber: userData.phoneNumber,
-              nic: userData.nic,
-              address: userData.address
-            });
+          // Store complete user data for the onboarding popup
+          setCompleteUserData({
+            ...user,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            phoneNumber: userData.phoneNumber,
+            nic: userData.nic,
+            address: userData.address
+          });
+          
+          // Check if user has completed onboarding
+          // Be flexible with field checking and handle whitespace
+          const hasUserDetails = !!(
+            (userData.firstName && userData.firstName.trim()) && 
+            (userData.lastName && userData.lastName.trim()) && 
+            (userData.phoneNumber && userData.phoneNumber.trim()) && 
+            (userData.nic && userData.nic.trim())
+          );
+          
+          const hasAddressDetails = !!(userData.address && 
+            (userData.address.street && userData.address.street.trim()) && 
+            (userData.address.city && userData.address.city.trim()) && 
+            (userData.address.district && userData.address.district.trim()) && 
+            (userData.address.province && userData.address.province.trim())
+          );
+          
+          // User needs onboarding if they are missing EITHER user details OR address details
+          // AND onboardingCompleted is not true
+          const needsOnboarding = !userData.onboardingCompleted && (!hasUserDetails || !hasAddressDetails);
+          const isExistingCompleteUser = hasUserDetails && hasAddressDetails;
             
-            // Check if user has completed onboarding
-            // Be flexible with field checking and handle whitespace
-            const hasUserDetails = !!(
-              (userData.firstName && userData.firstName.trim()) && 
-              (userData.lastName && userData.lastName.trim()) && 
-              (userData.phoneNumber && userData.phoneNumber.trim()) && 
-              (userData.nic && userData.nic.trim())
-            );
-            
-            const hasAddressDetails = !!(userData.address && 
-              (userData.address.street && userData.address.street.trim()) && 
-              (userData.address.city && userData.address.city.trim()) && 
-              (userData.address.district && userData.address.district.trim()) && 
-              (userData.address.province && userData.address.province.trim())
-            );
-            
-            // User needs onboarding if they are missing EITHER user details OR address details
-            // AND onboardingCompleted is not true
-            const needsOnboarding = !userData.onboardingCompleted && (!hasUserDetails || !hasAddressDetails);
-            const isExistingCompleteUser = hasUserDetails && hasAddressDetails;
-            
-            console.log('🔍 Onboarding check details:', {
-              onboardingCompleted: userData.onboardingCompleted,
-              hasUserDetails,
-              hasAddressDetails,
-              isExistingCompleteUser,
-              needsOnboarding
-            });
-            
-            if (needsOnboarding) {
-              console.log('🆕 Google user needs onboarding');
-              setUserNeedsOnboarding(true);
-              setShowOnboardingPopup(true);
-            } else {
-              console.log('✅ Google user has completed onboarding');
-              setUserNeedsOnboarding(false);
-              
-              // If this is an existing complete user but onboardingCompleted is not set,
-              // update it in the backend to avoid future checks
-              if (isExistingCompleteUser && !userData.onboardingCompleted) {
-                console.log('🔄 Marking existing complete user as onboarding completed');
-                try {
-                  await fetch(`${backendURL}/users/profile`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      uid: user.uid,
-                      onboardingCompleted: true
-                    })
-                  });
-                  console.log('✅ Updated onboardingCompleted flag for existing user');
-                } catch (error) {
-                  console.warn('⚠️ Failed to update onboardingCompleted flag:', error);
-                }
-              }
-            }
-          } else {
-            // User not found in MongoDB, needs onboarding
-            console.log('🆕 Google user not found in database (status:', response.status, '), needs onboarding');
-            setCompleteUserData(user); // Use basic user data from auth context
+          console.log('🔍 Onboarding check details:', {
+            onboardingCompleted: userData.onboardingCompleted,
+            hasUserDetails,
+            hasAddressDetails,
+            isExistingCompleteUser,
+            needsOnboarding
+          });
+          
+          if (needsOnboarding) {
+            console.log('🆕 User needs onboarding');
             setUserNeedsOnboarding(true);
             setShowOnboardingPopup(true);
+          } else {
+            console.log('✅ User has completed onboarding');
+            setUserNeedsOnboarding(false);
+            
+            // If this is an existing complete user but onboardingCompleted is not set,
+            // update it in the backend to avoid future checks
+            if (isExistingCompleteUser && !userData.onboardingCompleted) {
+              console.log('🔄 Marking existing complete user as onboarding completed');
+              try {
+                await fetch(`${backendURL}/users/profile`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    uid: user.uid,
+                    onboardingCompleted: true
+                  })
+                });
+                console.log('✅ Updated onboardingCompleted flag for existing user');
+              } catch (error) {
+                console.warn('⚠️ Failed to update onboardingCompleted flag:', error);
+              }
+            }
           }
-        } catch (error) {
-          console.error('❌ Error checking user onboarding status:', error);
-          // On error, assume user needs onboarding for safety
-          console.log('⚠️ Falling back to showing onboarding popup due to error');
+        } else {
+          // User not found in MongoDB, needs onboarding
+          console.log('🆕 User not found in database (status:', response.status, '), needs onboarding');
           setCompleteUserData(user); // Use basic user data from auth context
           setUserNeedsOnboarding(true);
           setShowOnboardingPopup(true);
         }
+      } catch (error) {
+        console.error('❌ Error checking user onboarding status:', error);
+        // On error, assume user needs onboarding for safety
+        console.log('⚠️ Falling back to showing onboarding popup due to error');
+        setCompleteUserData(user); // Use basic user data from auth context
+        setUserNeedsOnboarding(true);
+        setShowOnboardingPopup(true);
       }
     };
 
