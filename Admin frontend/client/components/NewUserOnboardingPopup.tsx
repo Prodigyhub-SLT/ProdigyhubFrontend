@@ -284,7 +284,7 @@ export default function NewUserOnboardingPopup({
     }
   };
 
-  // Check infrastructure availability using mongoAPI.saveQualification approach
+  // Check infrastructure availability - EXACT COPY from QualificationTab
   const checkInfrastructureAvailability = async () => {
     if (!addressDetails.district || !addressDetails.province) {
       toast({
@@ -297,87 +297,147 @@ export default function NewUserOnboardingPopup({
 
     setIsCheckingInfrastructure(true);
     try {
-      console.log('🔄 Starting qualification check for:', addressDetails.district, addressDetails.province);
-      
-      // Use the EXACT same approach as mongoAPI.saveQualification
-      const qualificationData = {
-        location: {
-          address: `${addressDetails.street}, ${addressDetails.city}`,
-          district: addressDetails.district,
-          province: addressDetails.province,
-          postalCode: addressDetails.postalCode,
-        },
-        requestedServices: ['Infrastructure Check'],
-        customerType: 'residential',
-        infrastructure: {
-          fiber: { available: false },
-          adsl: { available: false },
-          mobile: { available: false }
-        },
-        qualificationResult: 'unqualified', // Will be updated by backend
-        creationDate: new Date().toISOString(),
-        state: 'acknowledged'
-      };
-
-      console.log('📝 Qualification data for save:', qualificationData);
-
-      // First get areas to check against
-      let matchedArea = null;
-      try {
-        const areasResponse = await fetch('/api/areaManagement/v5/area', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (areasResponse.ok) {
-          const areas = await areasResponse.json();
-          console.log('✅ Areas fetched for matching:', areas.length, 'areas');
-          
-          matchedArea = areas.find((area: any) => 
-            area.district === addressDetails.district && 
-            area.province === addressDetails.province &&
-            area.status === 'active'
-          );
-
-          if (matchedArea) {
-            console.log('✅ Matched area found:', matchedArea.name);
-            qualificationData.infrastructure = matchedArea.infrastructure || qualificationData.infrastructure;
-            qualificationData.qualificationResult = 'qualified';
-          } else {
-            console.log('⚠️ No matching area found');
-          }
+      // Check if area exists in the system
+      const response = await fetch('/api/areaManagement/v5/area', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
         }
-      } catch (areaError) {
-        console.warn('⚠️ Area lookup failed:', areaError);
-      }
+      });
 
-      // Create the TMF payload exactly like mongoAPI.saveQualification
-      const tmfPayload = {
+      if (response.ok) {
+        const areas = await response.json();
+        const matchedArea = areas.find((area: any) => 
+          area.district === addressDetails.district && 
+          area.province === addressDetails.province &&
+          area.status === 'active'
+        );
+
+        if (matchedArea) {
+          // Transform QualificationTab infrastructure format to our popup format
+          const qualTabInfra = matchedArea.infrastructure;
+          const transformedInfrastructure: InfrastructureAvailability = {
+            broadband: qualTabInfra?.fiber?.available || qualTabInfra?.adsl?.available || false,
+            mobile: qualTabInfra?.mobile?.available || false,
+            fiber: qualTabInfra?.fiber?.available || false,
+            peotv: qualTabInfra?.fiber?.available || qualTabInfra?.adsl?.available || false,
+            voice: qualTabInfra?.mobile?.available || qualTabInfra?.fiber?.available || qualTabInfra?.adsl?.available || false,
+            areaQualified: true,
+            qualificationScore: 85,
+            availableServices: [],
+            limitations: [],
+            recommendation: `Found infrastructure data for ${matchedArea.name}. Infrastructure check completed.`,
+            estimatedSpeed: qualTabInfra?.fiber?.available ? 
+              (qualTabInfra.fiber.maxSpeed || '100 Mbps') : 
+              qualTabInfra?.adsl?.available ? 
+              (qualTabInfra.adsl.maxSpeed || '16 Mbps') : 
+              '10 Mbps',
+            installationTimeframe: '3-7 business days'
+          };
+
+          // Build available services list
+          if (transformedInfrastructure.broadband) transformedInfrastructure.availableServices.push('Broadband');
+          if (transformedInfrastructure.fiber) transformedInfrastructure.availableServices.push('Fiber');
+          if (transformedInfrastructure.mobile) transformedInfrastructure.availableServices.push('Mobile');
+          if (transformedInfrastructure.peotv) transformedInfrastructure.availableServices.push('PEOTV');
+          if (transformedInfrastructure.voice) transformedInfrastructure.availableServices.push('Voice');
+
+          // Build limitations list
+          if (!qualTabInfra?.fiber?.available) transformedInfrastructure.limitations.push('Fiber not available in this area');
+          if (!qualTabInfra?.adsl?.available) transformedInfrastructure.limitations.push('ADSL not available in this area');
+          if (!qualTabInfra?.mobile?.available) transformedInfrastructure.limitations.push('Mobile coverage limited');
+
+          setInfrastructureCheck(transformedInfrastructure);
+          toast({
+            title: "Infrastructure Found",
+            description: `Found infrastructure data for ${matchedArea.name}. Infrastructure check completed and saved to Qualification Records.`,
+          });
+          
+          // Create qualification record - EXACT same as QualificationTab
+          await createInfrastructureQualificationRecord(matchedArea.infrastructure, matchedArea);
+          
+        } else {
+          // If area not found in system, all services should be unavailable - EXACT same as QualificationTab
+          const defaultInfrastructure: InfrastructureAvailability = {
+            broadband: false,
+            mobile: false,
+            fiber: false,
+            peotv: false,
+            voice: false,
+            areaQualified: false,
+            qualificationScore: 30,
+            availableServices: [],
+            limitations: ['Area not currently covered by SLT services'],
+            recommendation: 'This area is not currently in our system. All services are marked as unavailable.',
+            estimatedSpeed: 'Contact SLT for details',
+            installationTimeframe: 'Contact SLT for availability'
+          };
+          
+          setInfrastructureCheck(defaultInfrastructure);
+          toast({
+            title: "Area Not Found",
+            description: "This area is not currently in our system. All services are marked as unavailable.",
+          });
+          
+          // Create qualification record
+          await createInfrastructureQualificationRecord(defaultInfrastructure, null);
+        }
+      } else {
+        throw new Error('Failed to fetch area data');
+      }
+    } catch (error) {
+      console.error('Error checking infrastructure:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check infrastructure availability. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCheckingInfrastructure(false);
+    }
+  };
+
+  // Create qualification record - EXACT COPY from QualificationTab
+  const createInfrastructureQualificationRecord = async (infrastructureData: any, areaDataParam: any) => {
+    try {
+      const qualificationData = {
         description: `SLT Infrastructure Check Completed for ${addressDetails.district}, ${addressDetails.province}`,
         instantSyncQualification: true,
         provideAlternative: false,
         provideOnlyAvailable: true,
         provideResultReason: false,
         state: "acknowledged",
+        creationDate: new Date().toISOString(),
         note: [
           {
-            text: `SLT_LOCATION:${JSON.stringify(qualificationData.location)}`,
+            text: `SLT_LOCATION:${JSON.stringify({
+              address: `${addressDetails.street}, ${addressDetails.city}, ${addressDetails.district}, ${addressDetails.province}`,
+              street: addressDetails.street,
+              city: addressDetails.city,
+              district: addressDetails.district,
+              province: addressDetails.province,
+              postalCode: addressDetails.postalCode || ''
+            })}`,
             author: 'SLT System',
             date: new Date().toISOString(),
             '@type': 'Note'
           },
           {
-            text: `SLT_SERVICES:${JSON.stringify(qualificationData.requestedServices)}`,
-            author: 'SLT System', 
+            text: `SLT_SERVICES:${JSON.stringify(['Infrastructure Check'])}`,
+            author: 'SLT System',
             date: new Date().toISOString(),
             '@type': 'Note'
           },
           {
-            text: `SLT_INFRASTRUCTURE:${JSON.stringify(qualificationData.infrastructure)}`,
+            text: `SLT_INFRASTRUCTURE:${JSON.stringify(infrastructureData)}`,
             author: 'SLT System',
-            date: new Date().toISOString(), 
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_AREA_MATCH:${JSON.stringify({ matchedArea: areaDataParam, qualificationResult: areaDataParam ? 'qualified' : 'unqualified' })}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
             '@type': 'Note'
           },
           {
@@ -387,6 +447,8 @@ export default function NewUserOnboardingPopup({
             '@type': 'Note'
           }
         ],
+        channel: {},
+        checkProductOfferingQualificationItem: [],
         relatedParty: [{
           id: user.uid || 'onboarding-user',
           name: `${userDetails.firstName} ${userDetails.lastName}`,
@@ -398,9 +460,6 @@ export default function NewUserOnboardingPopup({
         "@type": "CheckProductOfferingQualification"
       };
 
-      console.log('📝 TMF payload for qualification:', tmfPayload);
-
-      // Save the qualification using the same endpoint
       const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
         method: 'POST',
         headers: {
@@ -408,94 +467,18 @@ export default function NewUserOnboardingPopup({
           'Accept': 'application/json',
           'Origin': window.location.origin
         },
-        body: JSON.stringify(tmfPayload)
+        body: JSON.stringify(qualificationData)
       });
-
+      
       if (response.ok) {
         const responseData = await response.json();
-        console.log('✅ Qualification saved successfully:', responseData);
-
-        // Transform to our UI format
-        const infrastructure = qualificationData.infrastructure;
-        const transformedInfrastructure: InfrastructureAvailability = {
-          broadband: infrastructure.fiber?.available || infrastructure.adsl?.available || false,
-          mobile: infrastructure.mobile?.available || false,
-          fiber: infrastructure.fiber?.available || false,
-          peotv: infrastructure.fiber?.available || infrastructure.adsl?.available || false,
-          voice: infrastructure.mobile?.available || infrastructure.fiber?.available || infrastructure.adsl?.available || false,
-          areaQualified: qualificationData.qualificationResult === 'qualified',
-          qualificationScore: qualificationData.qualificationResult === 'qualified' ? 85 : 30,
-          availableServices: [],
-          limitations: [],
-          recommendation: matchedArea ? 
-            `Area ${matchedArea.name} is covered by SLT services` : 
-            'Area coverage limited',
-          estimatedSpeed: infrastructure.fiber?.available ? 
-            (infrastructure.fiber.maxSpeed || '100 Mbps') : 
-            infrastructure.adsl?.available ? 
-            (infrastructure.adsl.maxSpeed || '16 Mbps') : 
-            '10 Mbps',
-          installationTimeframe: qualificationData.qualificationResult === 'qualified' ? '3-7 business days' : 'Contact SLT'
-        };
-
-        // Build available services list
-        if (transformedInfrastructure.broadband) transformedInfrastructure.availableServices.push('Broadband');
-        if (transformedInfrastructure.fiber) transformedInfrastructure.availableServices.push('Fiber');
-        if (transformedInfrastructure.mobile) transformedInfrastructure.availableServices.push('Mobile');
-        if (transformedInfrastructure.peotv) transformedInfrastructure.availableServices.push('PEOTV');
-        if (transformedInfrastructure.voice) transformedInfrastructure.availableServices.push('Voice');
-
-        // Build limitations list
-        if (!infrastructure.fiber?.available) transformedInfrastructure.limitations.push('Fiber not available in this area');
-        if (!infrastructure.adsl?.available) transformedInfrastructure.limitations.push('ADSL not available in this area');
-        if (!infrastructure.mobile?.available) transformedInfrastructure.limitations.push('Mobile coverage limited');
-
-        setInfrastructureCheck(transformedInfrastructure);
-        
-        toast({
-          title: "Infrastructure Check Completed",
-          description: "Service availability check completed and recorded.",
-        });
-        
+        console.log('✅ Qualification record created:', responseData.id);
       } else {
-        throw new Error(`Qualification API failed: ${response.status}`);
+        console.warn('⚠️ Failed to create qualification record:', response.status);
       }
-      
     } catch (error) {
-      console.error('❌ Error checking infrastructure:', error);
-      
-      // Always provide fallback data to ensure UI completes
-      console.log('⚠️ Providing fallback infrastructure data...');
-      
-      const fallbackInfrastructure: InfrastructureAvailability = {
-        broadband: true,
-        mobile: true,
-        fiber: ['Colombo', 'Gampaha', 'Kandy'].includes(addressDetails.district),
-        peotv: true,
-        voice: true,
-        areaQualified: true,
-        qualificationScore: ['Colombo', 'Gampaha'].includes(addressDetails.district) ? 85 : 70,
-        availableServices: ['Broadband', 'Mobile', 'Voice', 'PEOTV'],
-        limitations: ['Colombo', 'Gampaha'].includes(addressDetails.district) ? [] : ['Fiber availability may be limited'],
-        recommendation: 'Service availability confirmed',
-        estimatedSpeed: ['Colombo', 'Gampaha'].includes(addressDetails.district) ? '100 Mbps' : '50 Mbps',
-        installationTimeframe: '3-7 business days'
-      };
-
-      if (fallbackInfrastructure.fiber) {
-        fallbackInfrastructure.availableServices.push('Fiber');
-      }
-
-      setInfrastructureCheck(fallbackInfrastructure);
-      console.log('✅ Fallback infrastructure data set:', fallbackInfrastructure);
-      
-      toast({
-        title: "Infrastructure Check Completed",
-        description: "Service availability confirmed using area data.",
-      });
-    } finally {
-      setIsCheckingInfrastructure(false);
-      console.log('🔄 Infrastructure check loading state set to false');
+      console.warn('⚠️ Error creating qualification record:', error);
+      // Don't fail the onboarding if qualification record creation fails
     }
   };
 
