@@ -60,6 +60,17 @@ interface NewUserOnboardingPopupProps {
     email?: string;
     name?: string;
     uid?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    nic?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      district?: string;
+      province?: string;
+      postalCode?: string;
+    };
   };
   onComplete: (userData: UserDetails & AddressDetails) => void;
 }
@@ -74,21 +85,21 @@ export default function NewUserOnboardingPopup({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Form data states
+  // Form data states - pre-populate with existing data
   const [userDetails, setUserDetails] = useState<UserDetails>({
-    firstName: user?.name?.split(' ')[0] || '',
-    lastName: user?.name?.split(' ').slice(1).join(' ') || '',
+    firstName: user?.firstName || user?.name?.split(' ')[0] || '',
+    lastName: user?.lastName || user?.name?.split(' ').slice(1).join(' ') || '',
     email: user?.email || '',
-    phoneNumber: '',
-    idNumber: ''
+    phoneNumber: user?.phoneNumber || '',
+    idNumber: user?.nic || ''
   });
 
   const [addressDetails, setAddressDetails] = useState<AddressDetails>({
-    street: '',
-    city: '',
-    district: '',
-    province: '',
-    postalCode: ''
+    street: user?.address?.street || '',
+    city: user?.address?.city || '',
+    district: user?.address?.district || '',
+    province: user?.address?.province || '',
+    postalCode: user?.address?.postalCode || ''
   });
 
   const [infrastructureCheck, setInfrastructureCheck] = useState<InfrastructureAvailability | null>(null);
@@ -420,13 +431,41 @@ export default function NewUserOnboardingPopup({
     }
   };
 
-  // Reset form when popup closes
+  // Determine starting screen and reset form when popup opens/closes
   useEffect(() => {
     if (!isOpen) {
-      setCurrentScreen(1);
       setInfrastructureCheck(null);
+      return;
     }
-  }, [isOpen]);
+
+    // Determine starting screen based on what data is missing
+    const hasUserDetails = !!(
+      (userDetails.firstName && userDetails.firstName.trim()) && 
+      (userDetails.lastName && userDetails.lastName.trim()) && 
+      (userDetails.phoneNumber && userDetails.phoneNumber.trim()) && 
+      (userDetails.idNumber && userDetails.idNumber.trim())
+    );
+    
+    const hasAddressDetails = !!(
+      (addressDetails.street && addressDetails.street.trim()) && 
+      (addressDetails.city && addressDetails.city.trim()) && 
+      (addressDetails.district && addressDetails.district.trim()) && 
+      (addressDetails.province && addressDetails.province.trim()) && 
+      (addressDetails.postalCode && addressDetails.postalCode.trim())
+    );
+
+    // Start on the appropriate screen
+    if (!hasUserDetails) {
+      setCurrentScreen(1); // Start with user details
+      console.log('🔄 Starting onboarding at user details screen');
+    } else if (!hasAddressDetails) {
+      setCurrentScreen(2); // Skip to address details
+      console.log('🔄 Starting onboarding at address details screen');
+    } else {
+      setCurrentScreen(3); // Skip to infrastructure check
+      console.log('🔄 Starting onboarding at infrastructure check screen');
+    }
+  }, [isOpen, userDetails, addressDetails]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -75,6 +75,7 @@ export default function UserDashboard() {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showOnboardingPopup, setShowOnboardingPopup] = useState(false);
   const [userNeedsOnboarding, setUserNeedsOnboarding] = useState(false);
+  const [completeUserData, setCompleteUserData] = useState<any>(null);
   const profileTriggerRef = useRef<HTMLDivElement>(null);
   
   // Debug log for initial state
@@ -205,6 +206,16 @@ export default function UserDashboard() {
               addressDistrict: userData.address?.district,
               addressProvince: userData.address?.province
             });
+
+            // Store complete user data for the onboarding popup
+            setCompleteUserData({
+              ...user,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              phoneNumber: userData.phoneNumber,
+              nic: userData.nic,
+              address: userData.address
+            });
             
             // Check if user has completed onboarding
             // Be flexible with field checking and handle whitespace
@@ -222,11 +233,10 @@ export default function UserDashboard() {
               (userData.address.province && userData.address.province.trim())
             );
             
-            // User is considered complete if they have EITHER:
-            // 1. onboardingCompleted flag is true, OR
-            // 2. They have both user details and address details (existing user)
+            // User needs onboarding if they are missing EITHER user details OR address details
+            // AND onboardingCompleted is not true
+            const needsOnboarding = !userData.onboardingCompleted && (!hasUserDetails || !hasAddressDetails);
             const isExistingCompleteUser = hasUserDetails && hasAddressDetails;
-            const needsOnboarding = !userData.onboardingCompleted && !isExistingCompleteUser;
             
             console.log('🔍 Onboarding check details:', {
               onboardingCompleted: userData.onboardingCompleted,
@@ -268,6 +278,7 @@ export default function UserDashboard() {
           } else {
             // User not found in MongoDB, needs onboarding
             console.log('🆕 Google user not found in database (status:', response.status, '), needs onboarding');
+            setCompleteUserData(user); // Use basic user data from auth context
             setUserNeedsOnboarding(true);
             setShowOnboardingPopup(true);
           }
@@ -275,6 +286,7 @@ export default function UserDashboard() {
           console.error('❌ Error checking user onboarding status:', error);
           // On error, assume user needs onboarding for safety
           console.log('⚠️ Falling back to showing onboarding popup due to error');
+          setCompleteUserData(user); // Use basic user data from auth context
           setUserNeedsOnboarding(true);
           setShowOnboardingPopup(true);
         }
@@ -669,11 +681,11 @@ export default function UserDashboard() {
       </div>
 
       {/* New User Onboarding Popup */}
-      {user && (
+      {completeUserData && (
         <NewUserOnboardingPopup
           isOpen={showOnboardingPopup}
           onClose={handleOnboardingClose}
-          user={user}
+          user={completeUserData}
           onComplete={handleOnboardingComplete}
         />
       )}
