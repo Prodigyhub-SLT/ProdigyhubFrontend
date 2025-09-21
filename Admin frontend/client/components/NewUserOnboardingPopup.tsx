@@ -545,6 +545,14 @@ export default function NewUserOnboardingPopup({
     }
   }, [isOpen, userDetails, addressDetails]);
 
+  // Auto-trigger infrastructure check when reaching screen 3
+  useEffect(() => {
+    if (currentScreen === 3 && !infrastructureCheck && !isCheckingInfrastructure) {
+      console.log('🎯 Auto-triggering infrastructure check for screen 3');
+      checkInfrastructureAvailability();
+    }
+  }, [currentScreen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
