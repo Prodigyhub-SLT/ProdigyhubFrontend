@@ -232,7 +232,7 @@ export default function UserDashboard() {
             // Check if user has completed onboarding
             const hasUserDetails = userData.firstName && userData.lastName && userData.phoneNumber && userData.nic;
             const hasAddressDetails = userData.address && 
-                                    userData.address.streetAddress && 
+                                    userData.address.street && 
                                     userData.address.city && 
                                     userData.address.district && 
                                     userData.address.province;

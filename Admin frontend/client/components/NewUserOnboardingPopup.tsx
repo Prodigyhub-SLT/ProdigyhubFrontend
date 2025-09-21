@@ -31,7 +31,7 @@ interface UserDetails {
 }
 
 interface AddressDetails {
-  streetAddress: string;
+  street: string;
   city: string;
   district: string;
   province: string;
@@ -84,7 +84,7 @@ export default function NewUserOnboardingPopup({
   });
 
   const [addressDetails, setAddressDetails] = useState<AddressDetails>({
-    streetAddress: '',
+    street: '',
     city: '',
     district: '',
     province: '',
@@ -117,7 +117,7 @@ export default function NewUserOnboardingPopup({
   };
 
   const isAddressDetailsValid = () => {
-    return addressDetails.streetAddress && 
+    return addressDetails.street && 
            addressDetails.city && 
            addressDetails.district && 
            addressDetails.province && 
@@ -191,7 +191,7 @@ export default function NewUserOnboardingPopup({
         phoneNumber: userDetails.phoneNumber,
         nic: userDetails.idNumber,
         address: {
-          streetAddress: addressDetails.streetAddress,
+          street: addressDetails.street,
           city: addressDetails.city,
           district: addressDetails.district,
           province: addressDetails.province,
@@ -433,11 +433,11 @@ export default function NewUserOnboardingPopup({
             </div>
 
             <div>
-              <Label htmlFor="streetAddress">Street Address *</Label>
+              <Label htmlFor="street">Street Address *</Label>
               <Input
-                id="streetAddress"
-                value={addressDetails.streetAddress}
-                onChange={(e) => handleAddressDetailsChange('streetAddress', e.target.value)}
+                id="street"
+                value={addressDetails.street}
+                onChange={(e) => handleAddressDetailsChange('street', e.target.value)}
                 placeholder="Enter your street address"
               />
             </div>
