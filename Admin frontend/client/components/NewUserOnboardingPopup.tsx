@@ -286,6 +286,9 @@ export default function NewUserOnboardingPopup({
 
   // Check infrastructure availability - EXACT COPY from QualificationTab
   const checkInfrastructureAvailability = async () => {
+    console.log('🚀 checkInfrastructureAvailability CALLED!');
+    console.log('📍 Address details:', addressDetails);
+    
     if (!addressDetails.district || !addressDetails.province) {
       toast({
         title: "Missing Information",
