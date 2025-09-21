@@ -16,9 +16,11 @@ interface ProfilePopupProps {
   isOpen: boolean;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLDivElement>;
+  onReopenOnboarding?: () => void;
+  showOnboardingOption?: boolean;
 }
 
-export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePopupProps) {
+export default function ProfilePopup({ isOpen, onClose, triggerRef, onReopenOnboarding, showOnboardingOption }: ProfilePopupProps) {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
@@ -72,6 +74,13 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
     onClose();
     // You can navigate to a privacy policy page or open in new tab
     window.open('/privacy-policy', '_blank');
+  };
+
+  const handleReopenOnboarding = () => {
+    onClose();
+    if (onReopenOnboarding) {
+      onReopenOnboarding();
+    }
   };
 
   if (!isOpen) return null;
@@ -143,6 +152,17 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
               <Settings className="w-4 h-4 mr-3 text-blue-200" />
               <span>Settings</span>
             </Button>
+
+            {showOnboardingOption && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start px-4 py-3 text-left hover:bg-white/10 text-white"
+                onClick={handleReopenOnboarding}
+              >
+                <User className="w-4 h-4 mr-3 text-blue-200" />
+                <span>Complete Profile Setup</span>
+              </Button>
+            )}
 
             <Button
               variant="ghost"
