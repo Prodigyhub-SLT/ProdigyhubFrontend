@@ -167,3 +167,4 @@ If you're still experiencing issues after following this guide:
 2. Verify all Firebase Console settings match this guide
 3. Try the troubleshooting steps above
 4. Consider creating a new Firebase project if the current one has conflicting settings
+

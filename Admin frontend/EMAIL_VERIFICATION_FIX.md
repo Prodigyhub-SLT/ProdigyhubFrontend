@@ -126,3 +126,4 @@ If users still experience verification issues:
 4. **Test with a fresh email address** to isolate the issue
 
 The fix ensures that Firebase authentication status is properly maintained throughout the user session, eliminating the verification loop problem.
+

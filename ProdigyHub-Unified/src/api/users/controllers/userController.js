@@ -504,6 +504,7 @@ const userController = {
         nic: user.nic,
         address: user.address,
         status: user.status,
+        onboardingCompleted: user.onboardingCompleted,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       };
@@ -511,6 +512,122 @@ const userController = {
       res.status(200).json(profileData);
     } catch (error) {
       console.error('Error in getUserProfile:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: error.message
+      });
+    }
+  },
+
+  // POST /api/users/profile - Create or update user profile for onboarding
+  createUserProfile: async (req, res) => {
+    try {
+      const {
+        uid,
+        email,
+        firstName,
+        lastName,
+        phoneNumber,
+        nic,
+        address,
+        authMethod,
+        onboardingCompleted
+      } = req.body;
+
+      if (!uid || !email) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Firebase UID and email are required'
+        });
+      }
+
+      // Check if user already exists
+      let user = await User.findOne({ userId: uid });
+
+      if (user) {
+        // Update existing user
+        const updateData = {
+          firstName,
+          lastName,
+          phoneNumber,
+          nic,
+          address,
+          authMethod,
+          onboardingCompleted: onboardingCompleted || true,
+          updatedAt: new Date()
+        };
+
+        // Remove undefined values
+        Object.keys(updateData).forEach(key => 
+          updateData[key] === undefined && delete updateData[key]
+        );
+
+        const updatedUser = await User.findOneAndUpdate(
+          { userId: uid },
+          updateData,
+          { new: true, runValidators: true }
+        );
+
+        console.log('✅ User profile updated:', {
+          id: updatedUser._id,
+          email: updatedUser.email,
+          onboardingCompleted: updatedUser.onboardingCompleted
+        });
+
+        return res.status(200).json({
+          message: 'User profile updated successfully',
+          user: {
+            userId: updatedUser.userId,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email,
+            phoneNumber: updatedUser.phoneNumber,
+            nic: updatedUser.nic,
+            address: updatedUser.address,
+            onboardingCompleted: updatedUser.onboardingCompleted
+          }
+        });
+      } else {
+        // Create new user profile
+        const newUser = new User({
+          userId: uid,
+          email,
+          firstName,
+          lastName,
+          phoneNumber,
+          nic,
+          address,
+          authMethod: authMethod || 'google',
+          onboardingCompleted: onboardingCompleted || true,
+          status: 'active',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+
+        const savedUser = await newUser.save();
+
+        console.log('✅ New user profile created:', {
+          id: savedUser._id,
+          email: savedUser.email,
+          onboardingCompleted: savedUser.onboardingCompleted
+        });
+
+        return res.status(201).json({
+          message: 'User profile created successfully',
+          user: {
+            userId: savedUser.userId,
+            firstName: savedUser.firstName,
+            lastName: savedUser.lastName,
+            email: savedUser.email,
+            phoneNumber: savedUser.phoneNumber,
+            nic: savedUser.nic,
+            address: savedUser.address,
+            onboardingCompleted: savedUser.onboardingCompleted
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error in createUserProfile:', error);
       res.status(500).json({
         error: 'Internal Server Error',
         message: error.message

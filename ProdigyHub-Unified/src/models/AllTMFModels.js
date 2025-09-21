@@ -375,6 +375,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true }, // Added password field
   address: {
     street: String, // Made optional for basic signup
+    streetAddress: String, // Alternative field name for compatibility
     city: String,   // Made optional for basic signup
     district: String, // Made optional for basic signup
     province: String, // Made optional for basic signup
@@ -403,6 +404,8 @@ const UserSchema = new mongoose.Schema({
     }
   },
   areaData: mongoose.Schema.Types.Mixed, // Reference to area data if found
+  onboardingCompleted: { type: Boolean, default: false }, // Track if user completed onboarding
+  authMethod: { type: String, enum: ['email', 'google'], default: 'email' }, // Track authentication method
   status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

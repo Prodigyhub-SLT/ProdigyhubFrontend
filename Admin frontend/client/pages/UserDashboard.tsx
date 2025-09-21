@@ -12,6 +12,7 @@ import CustomerPackagesTab from '../components/CustomerPackagesTab';
 import InventoryTab from '../components/InventoryTab';
 import MessagesTab from '../components/MessagesTab';
 import CustomerCustomizeTab from '../components/CustomerCustomizeTab';
+import NewUserOnboardingPopup from '../components/NewUserOnboardingPopup';
 import { 
   Wifi, 
   Tv, 
@@ -74,6 +75,8 @@ export default function UserDashboard() {
   const [qualificationCompleted, setQualificationCompleted] = useState(false);
   const [showQualificationAlert, setShowQualificationAlert] = useState(false);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [showOnboardingPopup, setShowOnboardingPopup] = useState(false);
+  const [userNeedsOnboarding, setUserNeedsOnboarding] = useState(false);
   const profileTriggerRef = useRef<HTMLDivElement>(null);
   
   // Debug log for initial state
@@ -122,6 +125,25 @@ export default function UserDashboard() {
     } else {
       console.log('⚠️ Qualification completion called but user was not force-locked');
     }
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = (userData: any) => {
+    console.log('✅ User onboarding completed:', userData);
+    setUserNeedsOnboarding(false);
+    setShowOnboardingPopup(false);
+    
+    // Update user context if needed
+    // You might want to refresh user data from the backend here
+  };
+
+  // Handle onboarding popup close
+  const handleOnboardingClose = () => {
+    if (userNeedsOnboarding) {
+      // Don't allow closing if user still needs onboarding
+      return;
+    }
+    setShowOnboardingPopup(false);
   };
 
   // Mock data for services
@@ -181,6 +203,61 @@ export default function UserDashboard() {
     { id: 'customize', name: 'Customize', icon: <Palette className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
+
+  // Check if user needs onboarding (new Google users without profile details)
+  useEffect(() => {
+    const checkUserOnboardingStatus = async () => {
+      if (!user || !user.uid) return;
+
+      // Only check for Google authenticated users
+      if (user.authMethod === 'google') {
+        try {
+          const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            
+            // Check if user has completed onboarding
+            const hasUserDetails = userData.firstName && userData.lastName && userData.phoneNumber && userData.nic;
+            const hasAddressDetails = userData.address && 
+                                    userData.address.streetAddress && 
+                                    userData.address.city && 
+                                    userData.address.district && 
+                                    userData.address.province;
+            
+            const needsOnboarding = !userData.onboardingCompleted || !hasUserDetails || !hasAddressDetails;
+            
+            if (needsOnboarding) {
+              console.log('🆕 New Google user needs onboarding');
+              setUserNeedsOnboarding(true);
+              setShowOnboardingPopup(true);
+            } else {
+              console.log('✅ Google user has completed onboarding');
+              setUserNeedsOnboarding(false);
+            }
+          } else {
+            // User not found in MongoDB, needs onboarding
+            console.log('🆕 Google user not found in database, needs onboarding');
+            setUserNeedsOnboarding(true);
+            setShowOnboardingPopup(true);
+          }
+        } catch (error) {
+          console.error('❌ Error checking user onboarding status:', error);
+          // On error, assume user needs onboarding for safety
+          setUserNeedsOnboarding(true);
+          setShowOnboardingPopup(true);
+        }
+      }
+    };
+
+    checkUserOnboardingStatus();
+  }, [user]);
 
   // Handle URL parameters and set initial tab + qualification state
   useEffect(() => {
@@ -659,6 +736,16 @@ export default function UserDashboard() {
           <MessagesTab user={user} />
         )}
       </div>
+
+      {/* New User Onboarding Popup */}
+      {user && (
+        <NewUserOnboardingPopup
+          isOpen={showOnboardingPopup}
+          onClose={handleOnboardingClose}
+          user={user}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
     </div>
   );
 }

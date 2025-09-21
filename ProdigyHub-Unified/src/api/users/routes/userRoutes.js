@@ -33,6 +33,7 @@ router.get('/stats', userController.getUserStats);
 
 // User profile routes (specific routes first)
 router.get('/profile/:userId', userController.getUserProfile);
+router.post('/profile', userController.createUserProfile);
 router.put('/update', userController.updateUserProfile);
 
 // Generic CRUD operations (parameterized routes last)
