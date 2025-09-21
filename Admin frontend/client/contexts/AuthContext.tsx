@@ -271,7 +271,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Fetch complete user profile from MongoDB backend
       try {
-        const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
         
         // Try multiple methods to find the user in MongoDB
         let mongoUser = null;
@@ -337,7 +337,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Create user in MongoDB backend
           try {
-            const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
             const createUserData = {
               firstName: userData.name?.split(' ')[0] || 'User',
               lastName: userData.name?.split(' ').slice(1).join(' ') || 'Name',
@@ -460,7 +460,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Also save user data to MongoDB backend
       try {
         // Use the backend URL - adjust this to match your MongoDB backend
-        const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
         
         const mongoUserData = {
           firstName: firstName,
@@ -587,7 +587,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Fetch complete user profile from MongoDB backend
         try {
-          const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
           const response = await fetch(`${backendURL}/users/profile/${result.user.uid}`, {
             method: 'GET',
             headers: {

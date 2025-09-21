@@ -181,7 +181,7 @@ export default function NewUserOnboardingPopup({
   const saveUserData = async () => {
     try {
       setIsLoading(true);
-      const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
       
       const userData = {
         uid: user.uid,
@@ -202,6 +202,9 @@ export default function NewUserOnboardingPopup({
         createdAt: new Date().toISOString()
       };
 
+      console.log('🔄 Saving user data to:', `${backendURL}/users/profile`);
+      console.log('📝 User data payload:', JSON.stringify(userData, null, 2));
+
       const response = await fetch(`${backendURL}/users/profile`, {
         method: 'POST',
         headers: {
@@ -210,11 +213,17 @@ export default function NewUserOnboardingPopup({
         body: JSON.stringify(userData)
       });
 
+      console.log('📊 Response status:', response.status);
+      console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error('Failed to save user data');
+        const errorText = await response.text();
+        console.error('❌ Server response error:', errorText);
+        throw new Error(`Failed to save user data: ${response.status} - ${errorText}`);
       }
 
-      console.log('✅ User data saved to MongoDB');
+      const responseData = await response.json();
+      console.log('✅ User data saved to MongoDB:', responseData);
       
       toast({
         title: "Profile Saved",
@@ -225,7 +234,7 @@ export default function NewUserOnboardingPopup({
       console.error('❌ Error saving user data:', error);
       toast({
         title: "Save Error",
-        description: "Failed to save your profile. Please try again.",
+        description: `Failed to save your profile: ${error.message}`,
         variant: "destructive"
       });
     } finally {

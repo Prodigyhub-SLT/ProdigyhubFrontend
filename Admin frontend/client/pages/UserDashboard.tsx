@@ -212,7 +212,10 @@ export default function UserDashboard() {
       // Only check for Google authenticated users
       if (user.authMethod === 'google') {
         try {
-          const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
+          console.log('🔍 Checking onboarding status for Google user:', user.uid);
+          console.log('🌐 Backend URL:', backendURL);
+          
           const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
             method: 'GET',
             headers: {
@@ -220,8 +223,11 @@ export default function UserDashboard() {
             },
           });
 
+          console.log('📊 Profile check response status:', response.status);
+
           if (response.ok) {
             const userData = await response.json();
+            console.log('👤 User data from MongoDB:', userData);
             
             // Check if user has completed onboarding
             const hasUserDetails = userData.firstName && userData.lastName && userData.phoneNumber && userData.nic;
@@ -233,6 +239,13 @@ export default function UserDashboard() {
             
             const needsOnboarding = !userData.onboardingCompleted || !hasUserDetails || !hasAddressDetails;
             
+            console.log('🔍 Onboarding check details:', {
+              onboardingCompleted: userData.onboardingCompleted,
+              hasUserDetails,
+              hasAddressDetails,
+              needsOnboarding
+            });
+            
             if (needsOnboarding) {
               console.log('🆕 New Google user needs onboarding');
               setUserNeedsOnboarding(true);
@@ -243,13 +256,14 @@ export default function UserDashboard() {
             }
           } else {
             // User not found in MongoDB, needs onboarding
-            console.log('🆕 Google user not found in database, needs onboarding');
+            console.log('🆕 Google user not found in database (status:', response.status, '), needs onboarding');
             setUserNeedsOnboarding(true);
             setShowOnboardingPopup(true);
           }
         } catch (error) {
           console.error('❌ Error checking user onboarding status:', error);
           // On error, assume user needs onboarding for safety
+          console.log('⚠️ Falling back to showing onboarding popup due to error');
           setUserNeedsOnboarding(true);
           setShowOnboardingPopup(true);
         }

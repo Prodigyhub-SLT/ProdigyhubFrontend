@@ -367,12 +367,12 @@ const UserSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
   userId: String, // Firebase UID
   userEmail: String, // Firebase email
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+  firstName: { type: String, required: false }, // Optional for Google users during onboarding
+  lastName: { type: String, required: false }, // Optional for Google users during onboarding
   email: { type: String, required: true, unique: true },
-  phoneNumber: { type: String, required: true },
-  nic: { type: String, required: true }, // Added NIC field
-  password: { type: String, required: true }, // Added password field
+  phoneNumber: { type: String, required: false }, // Optional during initial signup
+  nic: { type: String, required: false }, // Optional during initial signup
+  password: { type: String, required: false }, // Optional password field (not required for Google users)
   address: {
     street: String, // Made optional for basic signup
     streetAddress: String, // Alternative field name for compatibility
