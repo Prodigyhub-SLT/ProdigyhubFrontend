@@ -224,31 +224,76 @@ export default function UserDashboard() {
           if (response.ok) {
             const userData = await response.json();
             console.log('👤 User data from MongoDB:', userData);
+            console.log('🔍 Detailed field check:', {
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              phoneNumber: userData.phoneNumber,
+              nic: userData.nic,
+              address: userData.address,
+              addressStreet: userData.address?.street,
+              addressCity: userData.address?.city,
+              addressDistrict: userData.address?.district,
+              addressProvince: userData.address?.province
+            });
             
             // Check if user has completed onboarding
-            const hasUserDetails = userData.firstName && userData.lastName && userData.phoneNumber && userData.nic;
-            const hasAddressDetails = userData.address && 
-                                    userData.address.street && 
-                                    userData.address.city && 
-                                    userData.address.district && 
-                                    userData.address.province;
+            // Be flexible with field checking and handle whitespace
+            const hasUserDetails = !!(
+              (userData.firstName && userData.firstName.trim()) && 
+              (userData.lastName && userData.lastName.trim()) && 
+              (userData.phoneNumber && userData.phoneNumber.trim()) && 
+              (userData.nic && userData.nic.trim())
+            );
             
-            const needsOnboarding = !userData.onboardingCompleted || !hasUserDetails || !hasAddressDetails;
+            const hasAddressDetails = !!(userData.address && 
+              (userData.address.street && userData.address.street.trim()) && 
+              (userData.address.city && userData.address.city.trim()) && 
+              (userData.address.district && userData.address.district.trim()) && 
+              (userData.address.province && userData.address.province.trim())
+            );
+            
+            // User is considered complete if they have EITHER:
+            // 1. onboardingCompleted flag is true, OR
+            // 2. They have both user details and address details (existing user)
+            const isExistingCompleteUser = hasUserDetails && hasAddressDetails;
+            const needsOnboarding = !userData.onboardingCompleted && !isExistingCompleteUser;
             
             console.log('🔍 Onboarding check details:', {
               onboardingCompleted: userData.onboardingCompleted,
               hasUserDetails,
               hasAddressDetails,
+              isExistingCompleteUser,
               needsOnboarding
             });
             
             if (needsOnboarding) {
-              console.log('🆕 New Google user needs onboarding');
+              console.log('🆕 Google user needs onboarding');
               setUserNeedsOnboarding(true);
               setShowOnboardingPopup(true);
             } else {
               console.log('✅ Google user has completed onboarding');
               setUserNeedsOnboarding(false);
+              
+              // If this is an existing complete user but onboardingCompleted is not set,
+              // update it in the backend to avoid future checks
+              if (isExistingCompleteUser && !userData.onboardingCompleted) {
+                console.log('🔄 Marking existing complete user as onboarding completed');
+                try {
+                  await fetch(`${backendURL}/users/profile`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      uid: user.uid,
+                      onboardingCompleted: true
+                    })
+                  });
+                  console.log('✅ Updated onboardingCompleted flag for existing user');
+                } catch (error) {
+                  console.warn('⚠️ Failed to update onboardingCompleted flag:', error);
+                }
+              }
             }
           } else {
             // User not found in MongoDB, needs onboarding
