@@ -284,154 +284,112 @@ export default function NewUserOnboardingPopup({
     }
   };
 
-  // Check infrastructure availability using real qualification API
+  // Check infrastructure availability using EXACT same logic as QualificationTab
   const checkInfrastructureAvailability = async () => {
+    if (!addressDetails.district || !addressDetails.province) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both district and province to check infrastructure availability.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCheckingInfrastructure(true);
     try {
-      setIsCheckingInfrastructure(true);
+      console.log('🔄 Checking infrastructure for:', addressDetails.district, addressDetails.province);
       
-      console.log('🔄 Starting real infrastructure qualification check...');
-      
-      // Set a maximum timeout to prevent hanging
-      setTimeout(() => {
-        if (isCheckingInfrastructure) {
-          console.log('⏰ Infrastructure check timeout - providing fallback data');
-          setIsCheckingInfrastructure(false);
-          // Provide fallback data if still checking after 15 seconds
-          if (!infrastructureCheck) {
-            const timeoutFallback: InfrastructureAvailability = {
-              broadband: true,
-              mobile: true,
-              fiber: ['Colombo', 'Gampaha', 'Kandy'].includes(addressDetails.district),
-              peotv: true,
-              voice: true,
-              areaQualified: true,
-              qualificationScore: 75,
-              availableServices: ['Broadband', 'Mobile', 'Voice', 'PEOTV'],
-              limitations: [],
-              recommendation: 'Service availability confirmed',
-              estimatedSpeed: '50 Mbps',
-              installationTimeframe: '3-7 business days'
-            };
-            setInfrastructureCheck(timeoutFallback);
-          }
-        }
-      }, 15000); // 15 second timeout
-      
-      // Create qualification data using the same format as admin dashboard
-      const qualificationData = {
-        instantSync: true,
-        provideAlternative: true,
-        provideOnlyAvailable: true,
-        provideUnavailabilityReason: true,
-        
-        location: {
-          address: `${addressDetails.street}, ${addressDetails.city}`,
-          district: addressDetails.district,
-          province: addressDetails.province,
-          postalCode: addressDetails.postalCode,
-          coordinates: {
-            lat: 0,
-            lng: 0
-          }
-        },
-        
-        requestedServices: ['Broadband', 'Fiber', 'Mobile', 'PEOTV', 'Voice'],
-        checkFiber: true,
-        checkADSL: true,
-        checkMobile: true,
-        customerType: 'residential',
-        
-        productOfferingQualificationItem: [{
-          productOffering: {
-            id: 'slt-infrastructure-check',
-            name: 'SLT Infrastructure Availability Check',
-            '@type': 'ProductOffering'
-          },
-          qualificationItem: {
-            location: {
-              address: `${addressDetails.street}, ${addressDetails.city}`,
-              district: addressDetails.district,
-              province: addressDetails.province,
-              postalCode: addressDetails.postalCode
-            },
-            requestedServices: ['Broadband', 'Fiber', 'Mobile', 'PEOTV', 'Voice'],
-            checkFiber: true,
-            checkADSL: true,
-            checkMobile: true,
-            customerType: 'residential'
-          },
-          '@type': 'ProductOfferingQualificationItem'
-        }],
-        
-        '@type': 'CheckProductOfferingQualification'
-      };
-
-      console.log('📝 Qualification data:', qualificationData);
-
-      // Use the same API endpoint as admin dashboard with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
-        method: 'POST',
+      // Check if area exists in the system - EXACT same as QualificationTab
+      const response = await fetch('/api/areaManagement/v5/area', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        },
-        body: JSON.stringify(qualificationData),
-        signal: controller.signal
+        }
       });
 
-      clearTimeout(timeoutId);
-
       if (response.ok) {
-        const responseData = await response.json();
-        console.log('✅ Real qualification response:', responseData);
-
-        // Transform the real API response to our interface format
-        const infrastructure = responseData.infrastructure || {};
-        const realInfrastructure: InfrastructureAvailability = {
-          broadband: infrastructure.fiber?.available || infrastructure.adsl?.available || false,
-          mobile: infrastructure.mobile?.available || false,
-          fiber: infrastructure.fiber?.available || false,
-          peotv: infrastructure.fiber?.available || infrastructure.adsl?.available || false,
-          voice: infrastructure.mobile?.available || infrastructure.fiber?.available || infrastructure.adsl?.available || false,
-          areaQualified: responseData.qualificationResult === 'qualified',
-          qualificationScore: responseData.qualificationResult === 'qualified' ? 
-            Math.min(95, 60 + (infrastructure.fiber?.available ? 20 : 0) + (infrastructure.adsl?.available ? 10 : 0) + (infrastructure.mobile?.available ? 5 : 0)) : 
-            Math.max(30, 60 - 30),
-          availableServices: [],
-          limitations: [],
-          recommendation: responseData.qualificationResult === 'qualified' ? 
-            'Your area is qualified for SLT services' : 
-            'Limited service availability in your area',
-          estimatedSpeed: infrastructure.fiber?.available ? 
-            (infrastructure.fiber.maxSpeed || '100 Mbps') : 
-            infrastructure.adsl?.available ? 
-            (infrastructure.adsl.maxSpeed || '16 Mbps') : 
-            'Contact SLT for details',
-          installationTimeframe: responseData.qualificationResult === 'qualified' ? '3-7 business days' : 'Contact SLT for availability'
-        };
-
-        // Build available services list
-        if (realInfrastructure.broadband) realInfrastructure.availableServices.push('Broadband');
-        if (realInfrastructure.fiber) realInfrastructure.availableServices.push('Fiber');
-        if (realInfrastructure.mobile) realInfrastructure.availableServices.push('Mobile');
-        if (realInfrastructure.peotv) realInfrastructure.availableServices.push('PEOTV');
-        if (realInfrastructure.voice) realInfrastructure.availableServices.push('Voice');
-
-        // Build limitations list
-        if (!infrastructure.fiber?.available) realInfrastructure.limitations.push('Fiber not available in this area');
-        if (!infrastructure.adsl?.available) realInfrastructure.limitations.push('ADSL not available in this area');
-        if (!infrastructure.mobile?.available) realInfrastructure.limitations.push('Mobile coverage limited');
-
-        setInfrastructureCheck(realInfrastructure);
-
-        console.log('✅ Infrastructure check completed with real data:', realInfrastructure);
+        const areas = await response.json();
+        console.log('✅ Areas fetched:', areas.length, 'areas found');
         
+        const matchedArea = areas.find((area: any) => 
+          area.district === addressDetails.district && 
+          area.province === addressDetails.province &&
+          area.status === 'active'
+        );
+
+        if (matchedArea) {
+          console.log('✅ Matched area found:', matchedArea.name);
+          
+          // Transform area infrastructure data to our interface format
+          const areaInfra = matchedArea.infrastructure || {};
+          const transformedInfrastructure: InfrastructureAvailability = {
+            broadband: areaInfra.fiber?.available || areaInfra.adsl?.available || false,
+            mobile: areaInfra.mobile?.available || false,
+            fiber: areaInfra.fiber?.available || false,
+            peotv: areaInfra.fiber?.available || areaInfra.adsl?.available || false,
+            voice: areaInfra.mobile?.available || areaInfra.fiber?.available || areaInfra.adsl?.available || false,
+            areaQualified: true,
+            qualificationScore: 85,
+            availableServices: [],
+            limitations: [],
+            recommendation: `Area ${matchedArea.name} is covered by SLT services`,
+            estimatedSpeed: areaInfra.fiber?.available ? 
+              (areaInfra.fiber.maxSpeed || '100 Mbps') : 
+              areaInfra.adsl?.available ? 
+              (areaInfra.adsl.maxSpeed || '16 Mbps') : 
+              '10 Mbps',
+            installationTimeframe: '3-7 business days'
+          };
+
+          // Build available services list
+          if (transformedInfrastructure.broadband) transformedInfrastructure.availableServices.push('Broadband');
+          if (transformedInfrastructure.fiber) transformedInfrastructure.availableServices.push('Fiber');
+          if (transformedInfrastructure.mobile) transformedInfrastructure.availableServices.push('Mobile');
+          if (transformedInfrastructure.peotv) transformedInfrastructure.availableServices.push('PEOTV');
+          if (transformedInfrastructure.voice) transformedInfrastructure.availableServices.push('Voice');
+
+          // Build limitations list
+          if (!areaInfra.fiber?.available) transformedInfrastructure.limitations.push('Fiber not available in this area');
+          if (!areaInfra.adsl?.available) transformedInfrastructure.limitations.push('ADSL not available in this area');
+          if (!areaInfra.mobile?.available) transformedInfrastructure.limitations.push('Mobile coverage limited');
+
+          setInfrastructureCheck(transformedInfrastructure);
+          
+          toast({
+            title: "Infrastructure Found",
+            description: `Found infrastructure data for ${matchedArea.name}. Check completed.`,
+          });
+
+          // Create qualification record like QualificationTab does
+          await createInfrastructureQualificationRecord(areaInfra, matchedArea);
+          
+        } else {
+          console.log('⚠️ No matching area found for:', addressDetails.district, addressDetails.province);
+          
+          // If area not found in system, provide default unavailable infrastructure
+          const defaultInfrastructure: InfrastructureAvailability = {
+            broadband: false,
+            mobile: false,
+            fiber: false,
+            peotv: false,
+            voice: false,
+            areaQualified: false,
+            qualificationScore: 30,
+            availableServices: [],
+            limitations: ['Area not currently covered by SLT services'],
+            recommendation: 'This area is not currently in our service coverage. Please contact SLT for more information.',
+            estimatedSpeed: 'Contact SLT for details',
+            installationTimeframe: 'Contact SLT for availability'
+          };
+          
+          setInfrastructureCheck(defaultInfrastructure);
+          toast({
+            title: "Area Not Found",
+            description: "This area is not currently in our system. Please contact SLT for service availability.",
+          });
+        }
       } else {
-        throw new Error(`API call failed with status ${response.status}`);
+        throw new Error(`Failed to fetch areas: ${response.status}`);
       }
       
     } catch (error) {
@@ -469,6 +427,80 @@ export default function NewUserOnboardingPopup({
     } finally {
       setIsCheckingInfrastructure(false);
       console.log('🔄 Infrastructure check loading state set to false');
+    }
+  };
+
+  // Create qualification record - EXACT same as QualificationTab
+  const createInfrastructureQualificationRecord = async (infrastructureData: any, areaDataParam: any) => {
+    try {
+      const qualificationData = {
+        description: `SLT Infrastructure Check Completed for ${addressDetails.district}, ${addressDetails.province}`,
+        instantSyncQualification: true,
+        provideAlternative: false,
+        provideOnlyAvailable: true,
+        provideResultReason: false,
+        state: "acknowledged",
+        creationDate: new Date().toISOString(),
+        note: [
+          {
+            text: `SLT_LOCATION:${JSON.stringify({
+              address: `${addressDetails.street}, ${addressDetails.city}, ${addressDetails.district}, ${addressDetails.province}`,
+              street: addressDetails.street,
+              city: addressDetails.city,
+              district: addressDetails.district,
+              province: addressDetails.province,
+              postalCode: addressDetails.postalCode || ''
+            })}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_SERVICES:${JSON.stringify(['Infrastructure Check'])}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          },
+          {
+            text: `SLT_USER_EMAIL:${user.email}`,
+            author: 'SLT System',
+            date: new Date().toISOString(),
+            '@type': 'Note'
+          }
+        ],
+        relatedParty: [
+          {
+            id: user.uid || 'unknown',
+            name: `${userDetails.firstName} ${userDetails.lastName}`,
+            email: user.email,
+            role: 'Customer',
+            '@type': 'RelatedPartyRefOrPartyRoleRef'
+          }
+        ],
+        "@type": "CheckProductOfferingQualification"
+      };
+
+      console.log('📝 Creating qualification record:', qualificationData);
+
+      const response = await fetch('/api/productOfferingQualification/v5/checkProductOfferingQualification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        },
+        body: JSON.stringify(qualificationData)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Qualification record created:', responseData.id);
+      } else {
+        console.warn('⚠️ Failed to create qualification record:', response.status);
+      }
+    } catch (error) {
+      console.warn('⚠️ Error creating qualification record:', error);
+      // Don't fail the onboarding if qualification record creation fails
     }
   };
 
