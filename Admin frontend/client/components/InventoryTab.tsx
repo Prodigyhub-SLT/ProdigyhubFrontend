@@ -242,17 +242,17 @@ export default function InventoryTab() {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             {/* Greeting with user avatar */}
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white/30">
+            <div className="flex items-center gap-5 mb-6">
+              <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-white/30 shadow-xl">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-white/20 flex items-center justify-center text-white">{firstName?.[0] || 'U'}</div>
+                  <div className="w-full h-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{firstName?.[0] || 'U'}</div>
                 )}
               </div>
               <div className="leading-tight">
-                <div className="text-lg md:text-xl font-semibold">Hi {firstName},</div>
-                <div className="text-sm md:text-base opacity-90">Welcome to Prodigyhub</div>
+                <div className="text-2xl md:text-3xl font-extrabold tracking-tight">Hi {firstName},</div>
+                <div className="text-base md:text-lg opacity-90 font-semibold">Welcome to Prodigyhub</div>
               </div>
             </div>
 
