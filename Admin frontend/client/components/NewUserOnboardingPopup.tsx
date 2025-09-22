@@ -598,7 +598,12 @@ export default function NewUserOnboardingPopup({
                 </div>
               </div>
               <p className="text-gray-500 text-sm">
-                Let us know more about you • Help us provide better service coverage • You can complete it later
+                {currentScreen === 1 
+                  ? "Let us know more about you • You can complete it later"
+                  : currentScreen === 2 
+                  ? "Help us provide better service coverage • You can complete it later"
+                  : "You can complete it later"
+                }
               </p>
             </div>
           </div>
@@ -649,7 +654,6 @@ export default function NewUserOnboardingPopup({
                 <User className="w-4 h-4 text-blue-600" />
                 <h3 className="text-base font-semibold text-gray-900">Personal Information</h3>
               </div>
-              <p className="text-gray-600 text-sm">Let us know more about you</p>
             </div>
 
             <div className="space-y-4">
@@ -739,7 +743,6 @@ export default function NewUserOnboardingPopup({
                 <MapPin className="w-4 h-4 text-blue-600" />
                 <h3 className="text-base font-semibold text-gray-900">Address Information</h3>
               </div>
-              <p className="text-gray-600 text-sm">Help us provide better service coverage</p>
             </div>
 
             <div className="space-y-4">
