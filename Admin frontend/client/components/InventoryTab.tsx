@@ -601,25 +601,25 @@ export default function InventoryTab() {
       ) : (
         /* Single column layout when no upgrade in progress */
         <Card className="bg-white shadow-xl border border-gray-100 rounded-2xl">
-          <CardContent className="p-6 md:p-8 space-y-6">
+          <CardContent className="p-8 md:p-10 space-y-8">
             {!activePackage && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-gray-900">Quick actions</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Quick actions</h3>
                   <span className="text-sm text-gray-500">Choose where to go next</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Packages */}
                   <button
                     onClick={() => navigate({ search: '?tab=packages' })}
-                    className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-blue-50 text-blue-700 p-2">
-                        <Package className="w-5 h-5" />
+                      <div className="rounded-2xl bg-blue-50 text-blue-700 p-3 shadow-inner">
+                        <Package className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 group-hover:text-blue-700">Packages</div>
+                        <div className="text-lg font-semibold text-gray-900 group-hover:text-blue-700">Packages</div>
                         <div className="text-sm text-gray-500">Browse and select your package</div>
                       </div>
                     </div>
@@ -627,14 +627,14 @@ export default function InventoryTab() {
                   {/* Qualification */}
                   <button
                     onClick={() => navigate({ search: '?tab=qualification' })}
-                    className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    className="group rounded-2xl border border-gray-200 bg-white hover:border-indigo-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-indigo-50 text-indigo-700 p-2">
-                        <ClipboardCheck className="w-5 h-5" />
+                      <div className="rounded-2xl bg-indigo-50 text-indigo-700 p-3 shadow-inner">
+                        <ClipboardCheck className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 group-hover:text-indigo-700">Qualification</div>
+                        <div className="text-lg font-semibold text-gray-900 group-hover:text-indigo-700">Qualification</div>
                         <div className="text-sm text-gray-500">Check your service availability</div>
                       </div>
                     </div>
@@ -642,14 +642,14 @@ export default function InventoryTab() {
                   {/* Customize */}
                   <button
                     onClick={() => navigate({ search: '?tab=customize' })}
-                    className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    className="group rounded-2xl border border-gray-200 bg-white hover:border-purple-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-purple-50 text-purple-700 p-2">
-                        <Sliders className="w-5 h-5" />
+                      <div className="rounded-2xl bg-purple-50 text-purple-700 p-3 shadow-inner">
+                        <Sliders className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 group-hover:text-purple-700">Customize</div>
+                        <div className="text-lg font-semibold text-gray-900 group-hover:text-purple-700">Customize</div>
                         <div className="text-sm text-gray-500">Tailor your experience</div>
                       </div>
                     </div>
@@ -657,38 +657,38 @@ export default function InventoryTab() {
                   {/* Messages */}
                   <button
                     onClick={() => navigate({ search: '?tab=messages' })}
-                    className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    className="group rounded-2xl border border-gray-200 bg-white hover:border-teal-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-teal-50 text-teal-700 p-2">
-                        <MessageSquare className="w-5 h-5" />
+                      <div className="rounded-2xl bg-teal-50 text-teal-700 p-3 shadow-inner">
+                        <MessageSquare className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 group-hover:text-teal-700">Messages</div>
+                        <div className="text-lg font-semibold text-gray-900 group-hover:text-teal-700">Messages</div>
                         <div className="text-sm text-gray-500">Get help or chat with us</div>
                       </div>
                     </div>
                   </button>
                   {/* Hot Device - placeholder */}
-                  <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
+                  <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-orange-50 text-orange-700 p-2">
-                        <Cpu className="w-5 h-5" />
+                      <div className="rounded-2xl bg-orange-50 text-orange-700 p-3">
+                        <Cpu className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">Hot Device</div>
+                        <div className="text-lg font-semibold text-gray-900">Hot Device</div>
                         <div className="text-sm text-gray-500">Coming soon</div>
                       </div>
                     </div>
                   </div>
                   {/* Complaints - placeholder */}
-                  <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
+                  <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-rose-50 text-rose-700 p-2">
-                        <AlertTriangle className="w-5 h-5" />
+                      <div className="rounded-2xl bg-rose-50 text-rose-700 p-3">
+                        <AlertTriangle className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">Complaints</div>
+                        <div className="text-lg font-semibold text-gray-900">Complaints</div>
                         <div className="text-sm text-gray-500">Coming soon</div>
                       </div>
                     </div>
