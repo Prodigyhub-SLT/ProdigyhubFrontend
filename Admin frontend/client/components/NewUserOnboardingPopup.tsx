@@ -526,34 +526,10 @@ export default function NewUserOnboardingPopup({
       return;
     }
 
-    // Determine starting screen based on what data is missing
-    const hasUserDetails = !!(
-      (userDetails.firstName && userDetails.firstName.trim()) && 
-      (userDetails.lastName && userDetails.lastName.trim()) && 
-      (userDetails.phoneNumber && userDetails.phoneNumber.trim()) && 
-      (userDetails.idNumber && userDetails.idNumber.trim())
-    );
-    
-    const hasAddressDetails = !!(
-      (addressDetails.street && addressDetails.street.trim()) && 
-      (addressDetails.city && addressDetails.city.trim()) && 
-      (addressDetails.district && addressDetails.district.trim()) && 
-      (addressDetails.province && addressDetails.province.trim()) && 
-      (addressDetails.postalCode && addressDetails.postalCode.trim())
-    );
-
-    // Start on the appropriate screen
-    if (!hasUserDetails) {
-      setCurrentScreen(1); // Start with user details
-      console.log('🔄 Starting onboarding at user details screen');
-    } else if (!hasAddressDetails) {
-      setCurrentScreen(2); // Skip to address details
-      console.log('🔄 Starting onboarding at address details screen');
-    } else {
-      setCurrentScreen(3); // Skip to infrastructure check
-      console.log('🔄 Starting onboarding at infrastructure check screen');
-    }
-  }, [isOpen, userDetails, addressDetails]);
+    // Always start on screen 1 - users must manually progress through screens
+    setCurrentScreen(1);
+    console.log('🔄 Starting onboarding at user details screen');
+  }, [isOpen]);
 
   // Auto-trigger infrastructure check when reaching screen 3
   useEffect(() => {
@@ -599,9 +575,9 @@ export default function NewUserOnboardingPopup({
               </div>
               <p className="text-gray-500 text-sm">
                 {currentScreen === 1 
-                  ? "Let us know more about you • You can complete it later"
+                  ? "Let us know more about you and you can complete it later in profile"
                   : currentScreen === 2 
-                  ? "Help us provide better service coverage • You can complete it later"
+                  ? "Help us provide better service coverage and You can complete it later in profile"
                   : "You can complete it later"
                 }
               </p>
