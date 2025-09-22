@@ -153,6 +153,10 @@ export default function InventoryTab() {
     }
   };
 
+  // Derived user display values
+  const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : '');
+  const avatarUrl = (user as any)?.photoURL || user?.avatar;
+
   const priceInfo = useMemo(() => {
     const off: any = activePackage?.offering as any;
     if (!off) return null;
@@ -237,6 +241,21 @@ export default function InventoryTab() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 p-8 md:p-10 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex-1">
+            {/* Greeting with user avatar */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white/30">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-white/20 flex items-center justify-center text-white">{firstName?.[0] || 'U'}</div>
+                )}
+              </div>
+              <div className="leading-tight">
+                <div className="text-lg md:text-xl font-semibold">Hi {firstName},</div>
+                <div className="text-sm md:text-base opacity-90">Welcome to Prodigyhub</div>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 mb-2">
               <div className="rounded-xl bg-white/10 p-2 backdrop-blur">
                 <Package className="w-6 h-6" />
