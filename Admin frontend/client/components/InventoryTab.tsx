@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { productCatalogApi, productOrderingApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { Package, Zap, X, ArrowUpRight, Eye, Trash2 } from 'lucide-react';
+import { Package, Zap, X, ArrowUpRight, Eye, Trash2, ClipboardCheck, Sliders, MessageSquare, Cpu, AlertTriangle } from 'lucide-react';
 
 type OrderState = 'acknowledged' | 'inProgress' | 'completed' | 'failed' | 'cancelled';
 
@@ -319,7 +319,98 @@ export default function InventoryTab() {
           <Card className="bg-white shadow-xl border border-gray-100 rounded-2xl">
             <CardContent className="p-6 md:p-8 space-y-6">
               {!activePackage && (
-                <div className="text-gray-700">No active package found.</div>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-gray-900">Quick actions</h3>
+                    <span className="text-sm text-gray-500">Choose where to go next</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Packages */}
+                    <button
+                      onClick={() => navigate({ search: '?tab=packages' })}
+                      className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-blue-50 text-blue-700 p-2">
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 group-hover:text-blue-700">Packages</div>
+                          <div className="text-sm text-gray-500">Browse and select your package</div>
+                        </div>
+                      </div>
+                    </button>
+                    {/* Qualification */}
+                    <button
+                      onClick={() => navigate({ search: '?tab=qualification' })}
+                      className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-indigo-50 text-indigo-700 p-2">
+                          <ClipboardCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 group-hover:text-indigo-700">Qualification</div>
+                          <div className="text-sm text-gray-500">Check your service availability</div>
+                        </div>
+                      </div>
+                    </button>
+                    {/* Customize */}
+                    <button
+                      onClick={() => navigate({ search: '?tab=customize' })}
+                      className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-purple-50 text-purple-700 p-2">
+                          <Sliders className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 group-hover:text-purple-700">Customize</div>
+                          <div className="text-sm text-gray-500">Tailor your experience</div>
+                        </div>
+                      </div>
+                    </button>
+                    {/* Messages */}
+                    <button
+                      onClick={() => navigate({ search: '?tab=messages' })}
+                      className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500 hover:shadow-md p-4 text-left transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-teal-50 text-teal-700 p-2">
+                          <MessageSquare className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 group-hover:text-teal-700">Messages</div>
+                          <div className="text-sm text-gray-500">Get help or chat with us</div>
+                        </div>
+                      </div>
+                    </button>
+                    {/* Hot Device - placeholder */}
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-orange-50 text-orange-700 p-2">
+                          <Cpu className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">Hot Device</div>
+                          <div className="text-sm text-gray-500">Coming soon</div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Complaints - placeholder */}
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-rose-50 text-rose-700 p-2">
+                          <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">Complaints</div>
+                          <div className="text-sm text-gray-500">Coming soon</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {activePackage && (
