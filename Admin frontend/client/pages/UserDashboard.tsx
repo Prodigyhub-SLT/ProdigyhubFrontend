@@ -161,8 +161,8 @@ export default function UserDashboard() {
     { name: 'Storage', icon: <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">📦</div>, color: 'bg-blue-600' },
   ];
 
-  // Tab configuration for second navigation bar
-  const secondNavTabs = [
+  // Tab configuration for second navigation bar (per service)
+  const broadbandTabs = [
     { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'inventory', name: 'Inventory', icon: <Database className="w-4 h-4" /> },
@@ -170,6 +170,15 @@ export default function UserDashboard() {
     { id: 'customize', name: 'Customize', icon: <Palette className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
+
+  // For other services we can reuse a slimmer set (can be expanded later)
+  const defaultServiceTabs = [
+    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const secondNavTabs = activeService === 'broadband' ? broadbandTabs : defaultServiceTabs;
 
   // Check if user needs onboarding (users without complete profile details)
   useEffect(() => {
@@ -320,6 +329,11 @@ export default function UserDashboard() {
     console.log('🧹 Cleaned up old qualification system localStorage entries');
   }, []);
 
+  // Reset sub-tab when switching top-level service so the sub-nav feels scoped
+  useEffect(() => {
+    setActiveTab('summary');
+  }, [activeService]);
+
 
 
 
@@ -413,11 +427,12 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
-        <div className="px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex items-center space-x-2 h-full">
-            {secondNavTabs.map((tab) => {
+      {/* Tab Navigation: only show when the current service exposes tabs */}
+      {secondNavTabs.length > 0 && (
+        <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
+          <div className="px-4 sm:px-6 lg:px-8 h-full">
+            <div className="flex items-center space-x-2 h-full">
+              {secondNavTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <Button
@@ -440,10 +455,11 @@ export default function UserDashboard() {
                   )}
                 </Button>
               );
-            })}
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
 
       {/* Main Content */}
