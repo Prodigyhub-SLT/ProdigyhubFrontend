@@ -453,9 +453,18 @@ export default function UserDashboard() {
 
       {/* Tab Navigation: only show when the current service exposes tabs */}
       {secondNavTabs.length > 0 && (
-        <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '72px'}}>
-          <div className="px-4 sm:px-6 lg:px-8 h-full">
-            <div className="flex items-center space-x-3 h-full">
+        <div className="bg-white/80 backdrop-blur shadow-md border-b">
+          <div className="px-4 sm:px-6 lg:px-8 py-3">
+            {/* Context header ties sub-nav to its parent */}
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-3 py-2 flex items-center gap-2 shadow-md capitalize">
+                {services.find(s=>s.name.toLowerCase()===activeService)?.icon}
+                <span className="font-semibold tracking-wide">{activeService}</span>
+              </div>
+              <span className="text-sm text-gray-500">section</span>
+            </div>
+            {/* Sub navigation */}
+            <div className="mt-3 flex items-center space-x-3">
               {secondNavTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
