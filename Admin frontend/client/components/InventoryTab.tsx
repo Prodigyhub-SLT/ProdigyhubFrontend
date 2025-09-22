@@ -154,8 +154,10 @@ export default function InventoryTab() {
   };
 
   // Derived user display values
-  const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : '');
-  const avatarUrl = (user as any)?.photoURL || user?.avatar;
+  const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'User'));
+  const avatarUrl = ((user as any)?.photoURL || user?.avatar || '').trim();
+  const [avatarErrored, setAvatarErrored] = useState(false);
+  const showImage = !!avatarUrl && !avatarErrored;
 
   const priceInfo = useMemo(() => {
     const off: any = activePackage?.offering as any;
@@ -244,10 +246,17 @@ export default function InventoryTab() {
             {/* Greeting with user avatar */}
             <div className="flex items-center gap-5 mb-6">
               <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-white/30 shadow-xl">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                {showImage ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    onError={() => setAvatarErrored(true)}
+                  />
                 ) : (
-                  <div className="w-full h-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{firstName?.[0] || 'U'}</div>
+                  <div className="w-full h-full bg-gradient-to-br from-white/25 to-white/5 flex items-center justify-center text-white text-2xl font-bold">
+                    {firstName?.[0]?.toUpperCase() || 'U'}
+                  </div>
                 )}
               </div>
               <div className="leading-tight">
