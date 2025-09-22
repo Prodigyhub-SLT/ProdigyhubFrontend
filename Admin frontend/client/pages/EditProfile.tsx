@@ -34,6 +34,12 @@ export default function EditProfile() {
   const [message, setMessage] = useState('');
   const [dataLoaded, setDataLoaded] = useState(false);
 
+  // Avatar helpers: prefer Google photoURL or stored avatar; fallback to initial
+  const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'User'));
+  const avatarUrl = ((user as any)?.photoURL || user?.avatar || '').trim();
+  const [avatarErrored, setAvatarErrored] = useState(false);
+  const showImage = !!avatarUrl && !avatarErrored;
+
   // Function to generate background color from profile picture
   const generateBackgroundColor = (imageUrl: string) => {
     
@@ -342,28 +348,23 @@ export default function EditProfile() {
            <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
          </div>
 
-        {/* Profile Picture Section */}
+        {/* Profile Picture Section */
         <div className="flex justify-center mb-8">
           <div className="relative">
-                                                   <div 
+              <div 
                 id="profile-picture-container"
-                className="w-20 h-20 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden"
+                className="w-24 h-24 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden"
               >
-                              {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name || 'User'} 
-                    className="w-16 h-16 rounded-full object-cover"
+                {showImage ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user?.name || 'User'}
+                    className="w-full h-full object-cover"
+                    onError={() => setAvatarErrored(true)}
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <svg 
-                      className="w-8 h-8 text-white" 
-                      fill="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500/80 to-purple-600/80 flex items-center justify-center text-white text-3xl font-bold">
+                    {firstName?.[0]?.toUpperCase() || 'U'}
                   </div>
                 )}
              </div>
