@@ -615,8 +615,8 @@ export default function InventoryTab() {
                     className="group rounded-2xl border border-gray-200 bg-white hover:border-blue-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-blue-50 text-blue-700 p-3 shadow-inner">
-                        <Package className="w-6 h-6" />
+                      <div className="rounded-2xl bg-blue-50 text-blue-700 p-3 shadow-inner transition-all duration-300 group-hover:shadow-blue-200 group-hover:scale-110 group-hover:-rotate-3">
+                        <Package className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-gray-900 group-hover:text-blue-700">Packages</div>
@@ -630,8 +630,8 @@ export default function InventoryTab() {
                     className="group rounded-2xl border border-gray-200 bg-white hover:border-indigo-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-indigo-50 text-indigo-700 p-3 shadow-inner">
-                        <ClipboardCheck className="w-6 h-6" />
+                      <div className="rounded-2xl bg-indigo-50 text-indigo-700 p-3 shadow-inner transition-all duration-300 group-hover:shadow-indigo-200 group-hover:scale-110 group-hover:rotate-1">
+                        <ClipboardCheck className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-gray-900 group-hover:text-indigo-700">Qualification</div>
@@ -645,8 +645,8 @@ export default function InventoryTab() {
                     className="group rounded-2xl border border-gray-200 bg-white hover:border-purple-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-purple-50 text-purple-700 p-3 shadow-inner">
-                        <Sliders className="w-6 h-6" />
+                      <div className="rounded-2xl bg-purple-50 text-purple-700 p-3 shadow-inner transition-all duration-300 group-hover:shadow-purple-200 group-hover:scale-110 group-hover:-rotate-2">
+                        <Sliders className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-gray-900 group-hover:text-purple-700">Customize</div>
@@ -660,8 +660,8 @@ export default function InventoryTab() {
                     className="group rounded-2xl border border-gray-200 bg-white hover:border-teal-500/70 hover:shadow-xl p-6 text-left transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-teal-50 text-teal-700 p-3 shadow-inner">
-                        <MessageSquare className="w-6 h-6" />
+                      <div className="rounded-2xl bg-teal-50 text-teal-700 p-3 shadow-inner transition-all duration-300 group-hover:shadow-teal-200 group-hover:scale-110 group-hover:rotate-2">
+                        <MessageSquare className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-gray-900 group-hover:text-teal-700">Messages</div>
@@ -672,8 +672,8 @@ export default function InventoryTab() {
                   {/* Hot Device - placeholder */}
                   <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-orange-50 text-orange-700 p-3">
-                        <Cpu className="w-6 h-6" />
+                      <div className="rounded-2xl bg-orange-50 text-orange-700 p-3 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3">
+                        <Cpu className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-gray-900">Hot Device</div>
@@ -684,8 +684,8 @@ export default function InventoryTab() {
                   {/* Complaints - placeholder */}
                   <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-rose-50 text-rose-700 p-3">
-                        <AlertTriangle className="w-6 h-6" />
+                      <div className="rounded-2xl bg-rose-50 text-rose-700 p-3 transition-all duration-300 group-hover:scale-110 group-hover:rotate-2">
+                        <AlertTriangle className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-gray-900">Complaints</div>
