@@ -261,6 +261,15 @@ export default function InventoryTab() {
                 <Package className="w-6 h-6" />
               </div>
               <h2 className="text-2xl font-bold">Inventory</h2>
+              {/* Small Activate pill near Inventory */}
+              {activePackage && (
+                <Button
+                  size="sm"
+                  className="ml-2 h-7 px-3 bg-emerald-400 text-emerald-900 font-bold rounded-full shadow-md hover:bg-emerald-500"
+                >
+                  Activate
+                </Button>
+              )}
             </div>
             <p className="text-white/90 text-sm md:text-base mb-4">Your currently active package</p>
             {activePackage?.offering?.name && (
@@ -272,12 +281,6 @@ export default function InventoryTab() {
           </div>
           {activePackage && (
             <div className="flex flex-col gap-3 ml-8">
-              {/* Activate button - green */}
-              <Button
-                className="bg-emerald-400 text-emerald-900 font-bold rounded-lg px-6 py-3 w-32 h-12 text-sm shadow-lg hover:bg-emerald-500"
-              >
-                Activate
-              </Button>
               {/* Cancel button - red with X icon */}
               <Button
                 variant="outline"
