@@ -453,41 +453,24 @@ export default function UserDashboard() {
 
       {/* Tab Navigation: only show when the current service exposes tabs */}
       {secondNavTabs.length > 0 && (
-        <div className="bg-white/80 backdrop-blur shadow-md border-b">
-          <div className="px-4 sm:px-6 lg:px-8 py-3">
-            {/* Context header ties sub-nav to its parent */}
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-3 py-2 flex items-center gap-2 shadow-md capitalize">
-                {services.find(s=>s.name.toLowerCase()===activeService)?.icon}
-                <span className="font-semibold tracking-wide">{activeService}</span>
-              </div>
-              <span className="text-sm text-gray-500">section</span>
-            </div>
-            {/* Sub navigation */}
-            <div className="mt-3 flex items-center space-x-3">
+        <div className="bg-gray-100 border-t border-b">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-8 h-12">
               {secondNavTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <Button
-                  key={tab.id}
-                  variant={isActive ? "default" : "outline"}
-                    className={`group relative overflow-hidden px-6 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-white/30'
-                      : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow-md'
-                  }`}
-                    style={{height: '44px'}}
-                  onClick={() => handleTabClick(tab.id)}
-                >
-                  <span className="transition-transform duration-300 group-hover:-translate-y-0.5 mr-2">
-                    {tab.icon}
-                  </span>
-                  <span className="font-semibold tracking-wide">{tab.name}</span>
-                  {isActive && (
-                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
-                  )}
-                </Button>
-              );
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`text-sm sm:text-base whitespace-nowrap transition-colors ${
+                      isActive
+                        ? 'text-gray-900 font-semibold border-b-2 border-blue-600 pb-0.5'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {tab.name}
+                  </button>
+                );
               })}
             </div>
           </div>
