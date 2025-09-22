@@ -171,14 +171,35 @@ export default function UserDashboard() {
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
-  // For other services we can reuse a slimmer set (can be expanded later)
-  const defaultServiceTabs = [
+  const peotvTabs = [
     { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
-  const secondNavTabs = activeService === 'broadband' ? broadbandTabs : defaultServiceTabs;
+  const voiceTabs = [
+    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const mobileTabs = [
+    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const promotionTabs = [
+    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const secondNavTabs =
+    activeService === 'broadband' ? broadbandTabs :
+    activeService === 'peotv' ? peotvTabs :
+    activeService === 'voice' ? voiceTabs :
+    activeService === 'mobile' ? mobileTabs :
+    promotionTabs;
 
   // Check if user needs onboarding (users without complete profile details)
   useEffect(() => {
@@ -401,19 +422,19 @@ export default function UserDashboard() {
       {/* Main Service Navigation */}
       <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
         <div className="px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex items-center space-x-2 h-full">
+          <div className="flex items-center space-x-3 h-full">
             {services.map((service) => {
               const isSvcActive = activeService === service.name.toLowerCase();
               return (
                 <Button
                   key={service.name}
                   variant={isSvcActive ? "default" : "outline"}
-                  className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
+                  className={`group relative overflow-hidden px-5 rounded-xl transition-all duration-300 ${
                     isSvcActive
-                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-white/30'
+                      : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow-md'
                   }`}
-                  style={{height: '40px'}}
+                  style={{height: '44px'}}
                   onClick={() => setActiveService(service.name.toLowerCase())}
                 >
                   <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
@@ -432,21 +453,21 @@ export default function UserDashboard() {
 
       {/* Tab Navigation: only show when the current service exposes tabs */}
       {secondNavTabs.length > 0 && (
-        <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
+        <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '72px'}}>
           <div className="px-4 sm:px-6 lg:px-8 h-full">
-            <div className="flex items-center space-x-2 h-full">
+            <div className="flex items-center space-x-3 h-full">
               {secondNavTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <Button
                   key={tab.id}
                   variant={isActive ? "default" : "outline"}
-                  className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
+                    className={`group relative overflow-hidden px-6 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-white/30'
+                      : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow-md'
                   }`}
-                  style={{height: '40px'}}
+                    style={{height: '44px'}}
                   onClick={() => handleTabClick(tab.id)}
                 >
                   <span className="transition-transform duration-300 group-hover:-translate-y-0.5 mr-2">
