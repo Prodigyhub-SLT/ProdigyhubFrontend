@@ -402,27 +402,30 @@ export default function UserDashboard() {
       <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
         <div className="px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center space-x-2 h-full">
-            {services.map((service) => (
-              <Button
-                key={service.name}
-                variant={service.isActive ? "default" : "outline"}
-                className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
-                  service.isActive 
-                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]' 
-                    : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
-                }`}
-                style={{height: '40px'}}
-                onClick={() => setActiveService(service.name.toLowerCase())}
-              >
-                <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
-                  {service.icon}
-                </span>
-                <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
-                {service.isActive && (
-                  <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
-                )}
-              </Button>
-            ))}
+            {services.map((service) => {
+              const isSvcActive = activeService === service.name.toLowerCase();
+              return (
+                <Button
+                  key={service.name}
+                  variant={isSvcActive ? "default" : "outline"}
+                  className={`group relative overflow-hidden px-6 rounded-full transition-all duration-300 ${
+                    isSvcActive
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
+                      : 'text-gray-700 bg-white/60 border border-gray-200 hover:bg-white hover:shadow-md'
+                  }`}
+                  style={{height: '40px'}}
+                  onClick={() => setActiveService(service.name.toLowerCase())}
+                >
+                  <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                    {service.icon}
+                  </span>
+                  <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
+                  {isSvcActive && (
+                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
+                  )}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
