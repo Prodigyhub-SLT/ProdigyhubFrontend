@@ -87,6 +87,12 @@ export default function NewUserOnboardingPopup({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Avatar helpers for header: set after state inits
+  const initialFirstName = (user?.firstName || user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User');
+  const headerAvatarUrl = ((user as any)?.photoURL || (user as any)?.avatar || '').trim();
+  const [headerAvatarErrored, setHeaderAvatarErrored] = useState(false);
+  const headerShowImage = !!headerAvatarUrl && !headerAvatarErrored;
+
   // Debug logging for user data
   console.log('🔍 NewUserOnboardingPopup - User data:', {
     photoURL: user?.photoURL,
@@ -547,21 +553,17 @@ export default function NewUserOnboardingPopup({
           <div className="relative bg-gradient-to-r from-slate-50 to-gray-50 rounded-t-lg p-6 border-b border-gray-200">
             <div className="text-center space-y-3">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
-                  {user?.photoURL ? (
-                    <img 
-                      src={user.photoURL} 
-                      alt="Profile" 
+                <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-gray-200">
+                  {headerShowImage ? (
+                    <img
+                      src={headerAvatarUrl}
+                      alt="Profile"
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.log('❌ Image failed to load:', user.photoURL);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      onLoad={() => console.log('✅ Image loaded successfully:', user.photoURL)}
+                      onError={() => setHeaderAvatarErrored(true)}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
-                      <User className="w-6 h-6 text-white" />
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500/80 to-purple-600/80 flex items-center justify-center text-white text-xl font-bold">
+                      {(userDetails?.firstName?.[0] || initialFirstName?.[0] || 'U').toUpperCase()}
                     </div>
                   )}
                 </div>
