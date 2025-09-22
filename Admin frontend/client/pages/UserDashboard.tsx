@@ -71,7 +71,7 @@ export default function UserDashboard() {
   const location = useLocation();
   const { user } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState('inventory');
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showOnboardingPopup, setShowOnboardingPopup] = useState(false);
   const [userNeedsOnboarding, setUserNeedsOnboarding] = useState(false);
@@ -163,7 +163,6 @@ export default function UserDashboard() {
 
   // Tab configuration for second navigation bar (per service)
   const broadbandTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'inventory', name: 'Inventory', icon: <Database className="w-4 h-4" /> },
     { id: 'qualification', name: 'Qualification', icon: <Award className="w-4 h-4" /> },
@@ -172,25 +171,22 @@ export default function UserDashboard() {
   ];
 
   const peotvTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
   const voiceTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
   const mobileTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
   const promotionTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
@@ -336,7 +332,7 @@ export default function UserDashboard() {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
     
-    if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
+    if (tabParam && ['packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
       console.log('✅ Tab set from URL parameter:', tabParam);
     }
@@ -352,7 +348,7 @@ export default function UserDashboard() {
 
   // Reset sub-tab when switching top-level service so the sub-nav feels scoped
   useEffect(() => {
-    setActiveTab('summary');
+    setActiveTab('inventory');
   }, [activeService]);
 
 
