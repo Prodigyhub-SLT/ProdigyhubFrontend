@@ -348,7 +348,7 @@ export default function EditProfile() {
            <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
          </div>
 
-        {/* Profile Picture Section */
+        {/* Profile Picture Section */}
         <div className="flex justify-center mb-8">
           <div className="relative">
               <div 
