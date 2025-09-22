@@ -598,7 +598,7 @@ export default function NewUserOnboardingPopup({
                 </div>
               </div>
               <p className="text-gray-500 text-sm">
-                You can complete it later
+                Let us know more about you • Help us provide better service coverage • You can complete it later
               </p>
             </div>
           </div>
