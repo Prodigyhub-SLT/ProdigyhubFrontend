@@ -454,7 +454,7 @@ export default function UserDashboard() {
       {secondNavTabs.length > 0 && (
         <div className="bg-gray-100 border-t border-b">
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-8 h-12">
+            <div className="flex items-center justify-center gap-8 h-12">
               {secondNavTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
