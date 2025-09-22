@@ -265,9 +265,9 @@ export default function InventoryTab() {
               {activePackage && (
                 <Button
                   size="sm"
-                  className="ml-2 h-7 px-3 bg-emerald-400 text-emerald-900 font-bold rounded-full shadow-md hover:bg-emerald-500"
+                  className="ml-2 h-8 px-5 rounded-full bg-white/15 text-white font-semibold border border-white/70 shadow-inner hover:bg-white/20"
                 >
-                  Activate
+                  Active
                 </Button>
               )}
             </div>
