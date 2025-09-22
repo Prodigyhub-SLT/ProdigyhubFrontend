@@ -372,13 +372,42 @@ export default function UserDashboard() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex items-center h-16">
             <div className="flex items-center space-x-4">
               <a href="/" className="block">
                 <img src="/images/slt-log.jpg" alt="SLT" className="h-10 w-auto rounded-lg object-contain" />
               </a>
             </div>
-            
+            {/* Centered main service navigation between logo and title */}
+            <div className="flex-1 flex justify-center">
+              <div className="hidden md:flex items-center space-x-3">
+                {services.map((service) => {
+                  const isSvcActive = activeService === service.name.toLowerCase();
+                  return (
+                    <Button
+                      key={service.name}
+                      variant={isSvcActive ? "default" : "outline"}
+                      className={`group relative overflow-hidden px-5 rounded-xl transition-all duration-300 ${
+                        isSvcActive
+                          ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-white/30'
+                          : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow-md'
+                      }`}
+                      style={{height: '44px'}}
+                      onClick={() => setActiveService(service.name.toLowerCase())}
+                    >
+                      <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                        {service.icon}
+                      </span>
+                      <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
+                      {isSvcActive && (
+                        <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
+                      )}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="flex items-center space-x-4">
               <span className="text-black tracking-normal">SLT Prodigy Hub</span>
               <div 
@@ -419,37 +448,7 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Main Service Navigation */}
-      <div className="bg-white/70 backdrop-blur shadow-md border-b" style={{height: '64px'}}>
-        <div className="px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex items-center space-x-3 h-full">
-            {services.map((service) => {
-              const isSvcActive = activeService === service.name.toLowerCase();
-              return (
-                <Button
-                  key={service.name}
-                  variant={isSvcActive ? "default" : "outline"}
-                  className={`group relative overflow-hidden px-5 rounded-xl transition-all duration-300 ${
-                    isSvcActive
-                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-white/30'
-                      : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow-md'
-                  }`}
-                  style={{height: '44px'}}
-                  onClick={() => setActiveService(service.name.toLowerCase())}
-                >
-                  <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
-                    {service.icon}
-                  </span>
-                  <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
-                  {isSvcActive && (
-                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
-                  )}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      {/* Main Service Navigation moved into header (above) */}
 
       {/* Tab Navigation: only show when the current service exposes tabs */}
       {secondNavTabs.length > 0 && (
