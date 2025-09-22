@@ -213,7 +213,8 @@ export default function UserDashboard() {
             lastName: userData.lastName,
             phoneNumber: userData.phoneNumber,
             nic: userData.nic,
-            address: userData.address
+            address: userData.address,
+            photoURL: user?.avatar || user?.photoURL // Ensure photoURL is preserved
           });
           
           // Check if user has completed onboarding
@@ -277,7 +278,10 @@ export default function UserDashboard() {
         } else {
           // User not found in MongoDB, needs onboarding
           console.log('🆕 User not found in database (status:', response.status, '), needs onboarding');
-          setCompleteUserData(user); // Use basic user data from auth context
+          setCompleteUserData({
+            ...user,
+            photoURL: user?.avatar || user?.photoURL // Ensure photoURL is preserved
+          }); // Use basic user data from auth context
           setUserNeedsOnboarding(true);
           setShowOnboardingPopup(true);
         }
@@ -285,7 +289,10 @@ export default function UserDashboard() {
         console.error('❌ Error checking user onboarding status:', error);
         // On error, assume user needs onboarding for safety
         console.log('⚠️ Falling back to showing onboarding popup due to error');
-        setCompleteUserData(user); // Use basic user data from auth context
+        setCompleteUserData({
+          ...user,
+          photoURL: user?.avatar || user?.photoURL // Ensure photoURL is preserved
+        }); // Use basic user data from auth context
         setUserNeedsOnboarding(true);
         setShowOnboardingPopup(true);
       }

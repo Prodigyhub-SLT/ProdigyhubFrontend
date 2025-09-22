@@ -15,6 +15,7 @@ export interface User {
   department: string;
   lastLogin?: string;
   avatar?: string;
+  photoURL?: string; // Google profile photo URL
   emailVerified?: boolean; // Add email verification status
   authMethod?: 'email' | 'google'; // Track authentication method
   permissions?: string[];
@@ -167,6 +168,7 @@ const createUserFromFirebase = (firebaseUser: any): User => {
               firebaseUser.providerData?.[0]?.photoURL || 
               mockUser.avatar || 
               '/api/placeholder/150/150',
+      photoURL: firebaseUser.photoURL || firebaseUser.providerData?.[0]?.photoURL,
       lastLogin: new Date().toISOString()
     };
   }
@@ -182,6 +184,7 @@ const createUserFromFirebase = (firebaseUser: any): User => {
     department: 'General',
     lastLogin: new Date().toISOString(),
     avatar: firebaseUser.photoURL || '/api/placeholder/150/150',
+    photoURL: firebaseUser.photoURL, // Store the original photoURL
     emailVerified: true, // Google users are pre-verified
     authMethod: 'google', // Track that this user signed in with Google
     permissions: [

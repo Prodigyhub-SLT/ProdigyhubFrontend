@@ -87,6 +87,14 @@ export default function NewUserOnboardingPopup({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Debug logging for user data
+  console.log('🔍 NewUserOnboardingPopup - User data:', {
+    photoURL: user?.photoURL,
+    email: user?.email,
+    name: user?.name,
+    uid: user?.uid
+  });
+
   // Form data states - pre-populate with existing data
   const [userDetails, setUserDetails] = useState<UserDetails>({
     firstName: user?.firstName || user?.name?.split(' ')[0] || '',
@@ -569,6 +577,11 @@ export default function NewUserOnboardingPopup({
                       src={user.photoURL} 
                       alt="Profile" 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.log('❌ Image failed to load:', user.photoURL);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={() => console.log('✅ Image loaded successfully:', user.photoURL)}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
