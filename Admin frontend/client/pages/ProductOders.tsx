@@ -16,7 +16,8 @@ import {
   AlertCircle, 
   Plus, 
   Eye, 
-  Search 
+  Search,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { productOrderingApi, eventManagementApi } from "@/lib/api";
@@ -41,6 +42,8 @@ export default function ProductOrders({
   const [selectedOrderId, setSelectedOrderId] = useState("");
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedOrderForView, setSelectedOrderForView] = useState<ProductOrder | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string>("");
   
   const { toast } = useToast();
 
@@ -206,8 +209,76 @@ export default function ProductOrders({
   const handleViewOrder = (order: ProductOrder) => {
     console.log('🔍 Selected order for view:', order);
     console.log('🔍 Order customerDetails:', order.customerDetails);
-    setSelectedOrderForView(order);
-    setIsViewDialogOpen(true);
+    console.log('🔍 Order productOrderItem:', order.productOrderItem);
+    
+    // Ensure the dialog state is properly reset and set
+    setSelectedOrderForView(null);
+    setTimeout(() => {
+      setSelectedOrderForView(order);
+      setIsViewDialogOpen(true);
+    }, 10);
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    try {
+      console.log('🗑️ Starting deletion for order:', orderId);
+      
+      // Delete the order
+      await productOrderingApi.deleteOrder(orderId);
+      console.log('✅ Order deleted successfully');
+
+      // Create event notification for deletion
+      try {
+        const eventData = {
+          id: `${orderId}-deleted-${Date.now()}`,
+          eventType: 'ProductOrderDeleted',
+          eventTime: new Date().toISOString(),
+          timeOccurred: new Date().toISOString(),
+          correlationId: orderId,
+          domain: 'ProductOrdering',
+          title: 'Order Deletion',
+          description: `Order ${orderId} has been permanently deleted`,
+          priority: 'High',
+          source: {
+            id: orderId,
+            type: 'ProductOrder'
+          },
+          event: {
+            orderId: orderId,
+            deletedAt: new Date().toISOString(),
+            action: 'delete'
+          }
+        };
+
+        await eventManagementApi.createEvent(eventData);
+        console.log('📧 Deletion event notification sent');
+      } catch (eventError) {
+        console.warn('⚠️ Failed to send deletion event notification:', eventError);
+      }
+
+      // Close dialog and refresh data
+      setIsDeleteDialogOpen(false);
+      setOrderToDelete("");
+      onRefreshData();
+
+      toast({
+        title: "✅ Order Deleted",
+        description: `Order ${orderId} has been permanently deleted`,
+      });
+
+    } catch (error) {
+      console.error('❌ Delete failed:', error);
+      toast({
+        title: "❌ Delete Failed",
+        description: error instanceof Error ? error.message : 'Failed to delete order',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    setOrderToDelete(orderId);
+    setIsDeleteDialogOpen(true);
   };
 
   const filteredOrders = orders.filter(order => {
@@ -360,6 +431,15 @@ export default function ProductOrders({
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteOrder(order.id || '')}
+                            title="Delete Order"
+                            className="rounded-lg hover:bg-red-50 hover:text-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                           {order.state === 'acknowledged' && (
                             <Button 
                               variant="ghost" 
@@ -505,7 +585,7 @@ export default function ProductOrders({
             </DialogDescription>
           </DialogHeader>
           
-          {selectedOrderForView && (
+          {selectedOrderForView ? (
             <div className="space-y-8 py-6">
               <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
                 <CardHeader>
@@ -670,6 +750,13 @@ export default function ProductOrders({
                 </CardContent>
               </Card>
             </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                <Package className="w-8 h-8 text-slate-400" />
+              </div>
+              <p className="text-slate-500">Loading order details...</p>
+            </div>
           )}
           
           <div className="flex justify-end mt-8 pt-6 border-t border-slate-100">
@@ -684,6 +771,54 @@ export default function ProductOrders({
               Close
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-2xl">
+          <DialogHeader className="pb-6">
+            <DialogTitle className="flex items-center space-x-3 text-xl">
+              <div className="p-2 rounded-xl bg-red-100">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <span>Delete Order</span>
+            </DialogTitle>
+            <DialogDescription className="text-slate-600 mt-2">
+              Are you sure you want to permanently delete order {orderToDelete?.slice(0, 7)}...? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+              <div className="flex items-center space-x-2 text-red-800">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-semibold">Warning</span>
+              </div>
+              <p className="text-red-700 mt-2 text-sm">
+                This will permanently delete the order and all associated data. This action cannot be reversed.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="pt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setOrderToDelete("");
+              }}
+              className="rounded-xl border-slate-200 hover:bg-slate-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => orderToDelete && deleteOrder(orderToDelete)}
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Delete Order
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
