@@ -74,6 +74,7 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
     window.open('/privacy-policy', '_blank');
   };
 
+
   if (!isOpen) return null;
 
   return (
@@ -143,6 +144,7 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
               <Settings className="w-4 h-4 mr-3 text-blue-200" />
               <span>Settings</span>
             </Button>
+
 
             <Button
               variant="ghost"

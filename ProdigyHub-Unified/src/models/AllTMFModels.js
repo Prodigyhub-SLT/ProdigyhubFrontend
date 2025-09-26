@@ -301,6 +301,7 @@ const CheckProductOfferingQualificationSchema = new mongoose.Schema({
   relatedParty: [{
     id: String,
     name: String,
+    email: String,
     role: String,
     '@type': { type: String, default: 'RelatedPartyRefOrPartyRoleRef' }
   }],
@@ -343,6 +344,7 @@ const QueryProductOfferingQualificationSchema = new mongoose.Schema({
   relatedParty: [{
     id: String,
     name: String,
+    email: String,
     role: String,
     '@type': { type: String, default: 'RelatedPartyRefOrPartyRoleRef' }
   }],
@@ -365,14 +367,15 @@ const UserSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true, default: uuidv4 },
   userId: String, // Firebase UID
   userEmail: String, // Firebase email
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+  firstName: { type: String, required: false }, // Optional for Google users during onboarding
+  lastName: { type: String, required: false }, // Optional for Google users during onboarding
   email: { type: String, required: true, unique: true },
-  phoneNumber: { type: String, required: true },
-  nic: { type: String, required: true }, // Added NIC field
-  password: { type: String, required: true }, // Added password field
+  phoneNumber: { type: String, required: false }, // Optional during initial signup
+  nic: { type: String, required: false }, // Optional during initial signup
+  password: { type: String, required: false }, // Optional password field (not required for Google users)
   address: {
     street: String, // Made optional for basic signup
+    streetAddress: String, // Alternative field name for compatibility
     city: String,   // Made optional for basic signup
     district: String, // Made optional for basic signup
     province: String, // Made optional for basic signup
@@ -401,6 +404,8 @@ const UserSchema = new mongoose.Schema({
     }
   },
   areaData: mongoose.Schema.Types.Mixed, // Reference to area data if found
+  onboardingCompleted: { type: Boolean, default: false }, // Track if user completed onboarding
+  authMethod: { type: String, enum: ['email', 'google'], default: 'email' }, // Track authentication method
   status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -530,6 +535,14 @@ const ProductOrderSchema = new mongoose.Schema({
   agreement: mongoose.Schema.Types.Mixed,
   quote: mongoose.Schema.Types.Mixed,
   productOfferingQualification: mongoose.Schema.Types.Mixed,
+  // Custom field for storing customer details
+  customerDetails: {
+    name: String,
+    email: String,
+    phone: String,
+    nic: String,
+    id: String
+  },
   '@type': { type: String, default: 'ProductOrder' }
 }, {
   timestamps: true,

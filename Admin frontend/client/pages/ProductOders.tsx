@@ -204,6 +204,8 @@ export default function ProductOrders({
   };
 
   const handleViewOrder = (order: ProductOrder) => {
+    console.log('🔍 Selected order for view:', order);
+    console.log('🔍 Order customerDetails:', order.customerDetails);
     setSelectedOrderForView(order);
     setIsViewDialogOpen(true);
   };
@@ -274,6 +276,7 @@ export default function ProductOrders({
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-slate-100/80 via-white to-slate-100/80 border-b border-slate-200/50 hover:bg-slate-100/80">
                   <TableHead className="font-bold text-slate-700 py-4 px-6">Product Name(s)</TableHead>
+                  <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6">Customer</TableHead>
                   <TableHead className="font-bold text-slate-700 py-4 px-6">State</TableHead>
                   <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6 text-center">Priority</TableHead>
                   <TableHead className="hidden lg:table-cell font-bold text-slate-700 py-4 px-6">Order Date</TableHead>
@@ -305,6 +308,25 @@ export default function ProductOrders({
                             </div>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell py-4 px-6">
+                        {order.customerDetails ? (
+                          <div className="space-y-1">
+                            <div className="font-semibold text-slate-900 text-sm">
+                              {order.customerDetails.name || 'Unknown Customer'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {order.customerDetails.email || 'No email'}
+                            </div>
+                            {order.customerDetails.phone && (
+                              <div className="text-xs text-slate-500">
+                                {order.customerDetails.phone}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-slate-400 text-sm">No customer data</div>
+                        )}
                       </TableCell>
                       <TableCell className="py-4 px-6">
                         <Badge className={`${getStateColor(order.state || '')} border px-3 py-1.5 rounded-lg font-medium`}>
@@ -530,6 +552,78 @@ export default function ProductOrders({
                   )}
                 </CardContent>
               </Card>
+
+              {/* Customer Details Section */}
+              {selectedOrderForView.customerDetails && (
+                <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-slate-900">Customer Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Customer Name:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.name || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Email:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.email || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Phone:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.phone || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">NIC:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.customerDetails.nic || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">Customer ID:</span>
+                        <span className="text-sm text-gray-900 font-mono">{selectedOrderForView.customerDetails.id || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-sm font-medium text-gray-600">Order Type:</span>
+                        <span className="text-sm text-gray-900">{selectedOrderForView.category || 'N/A'}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Address Details if available */}
+                    {selectedOrderForView.customerDetails.address && (
+                      <div className="mt-6 p-4 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50">
+                        <Label className="text-slate-700 font-bold text-sm">Address</Label>
+                        <div className="mt-2 p-4 bg-white rounded-lg border border-slate-200/50 shadow-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {selectedOrderForView.customerDetails.address.street && (
+                              <div>
+                                <span className="text-slate-600 font-medium">Street: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.street}</span>
+                              </div>
+                            )}
+                            {selectedOrderForView.customerDetails.address.city && (
+                              <div>
+                                <span className="text-slate-600 font-medium">City: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.city}</span>
+                              </div>
+                            )}
+                            {selectedOrderForView.customerDetails.address.district && (
+                              <div>
+                                <span className="text-slate-600 font-medium">District: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.district}</span>
+                              </div>
+                            )}
+                            {selectedOrderForView.customerDetails.address.province && (
+                              <div>
+                                <span className="text-slate-600 font-medium">Province: </span>
+                                <span className="text-slate-900">{selectedOrderForView.customerDetails.address.province}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
                 <CardHeader>

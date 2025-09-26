@@ -26,6 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   console.log('🔄 ProtectedRoute - Checking auth:', {
     isAuthenticated,
     userRole: user?.role,
+    emailVerified: user?.emailVerified,
     requiredRole,
     pathname: location.pathname
   });
@@ -50,8 +51,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check email verification for non-admin users who signed up with email/password (not Google)
   if (user && user.role !== 'admin' && user.emailVerified !== true) {
-    console.log('❌ User email not verified, redirecting to verification page');
+    console.log('❌ User email not verified, redirecting to verification page', {
+      userRole: user.role,
+      emailVerified: user.emailVerified,
+      email: user.email
+    });
     return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email)}`} replace />;
+  }
+
+  // Log successful email verification check
+  if (user && user.role !== 'admin') {
+    console.log('✅ User authorized, rendering protected content', {
+      emailVerified: user.emailVerified,
+      userRole: user.role
+    });
   }
 
   // Check role-based access

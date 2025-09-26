@@ -315,6 +315,10 @@ class ApiClient {
     }
   }
 
+  async getOfferingById(id: string): Promise<ProductOffering> {
+    return await this.request<ProductOffering>(`/productCatalogManagement/v5/productOffering/${id}`);
+  }
+
   async createOffering(offering: CreateOfferingForm): Promise<ProductOffering> {
     return await this.request<ProductOffering>('/productCatalogManagement/v5/productOffering', {
       method: 'POST',
@@ -593,6 +597,7 @@ export const productCatalogApi = {
   updateSpecification: (id: string, updates: Partial<ProductSpecification>) => api.updateSpecification(id, updates),
   deleteSpecification: (id: string) => api.deleteSpecification(id),
   getOfferings: (params?: QueryParams) => api.getOfferings(params),
+  getOfferingById: (id: string) => api.getOfferingById(id),
   createOffering: (offering: CreateOfferingForm) => api.createOffering(offering),
   updateOffering: (id: string, updates: Partial<ProductOffering>) => api.updateOffering(id, updates),
   deleteOffering: (id: string) => api.deleteOffering(id),

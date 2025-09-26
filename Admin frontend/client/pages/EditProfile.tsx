@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Camera, Lock, User, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, Camera, Lock, User, Mail, Phone, MapPin, Home, Building, Map } from 'lucide-react';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -21,12 +22,26 @@ export default function EditProfile() {
     idNumber: ''
   });
 
+  const [addressData, setAddressData] = useState({
+    street: '',
+    city: '',
+    district: '',
+    province: '',
+    postalCode: ''
+  });
+
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Avatar helpers: prefer Google photoURL or stored avatar; fallback to initial
+  const firstName = user?.firstName || (user?.name ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'User'));
+  const avatarUrl = ((user as any)?.photoURL || user?.avatar || '').trim();
+  const [avatarErrored, setAvatarErrored] = useState(false);
+  const showImage = !!avatarUrl && !avatarErrored;
 
   // Function to generate background color from profile picture
   const generateBackgroundColor = (imageUrl: string) => {
-    console.log('Generating background color for:', imageUrl);
     
     // Create a canvas to analyze the image colors
     const canvas = document.createElement('canvas');
@@ -37,7 +52,6 @@ export default function EditProfile() {
     img.crossOrigin = 'anonymous';
     
     img.onload = () => {
-      console.log('Image loaded, analyzing colors...');
       canvas.width = img.width;
       canvas.height = img.height;
       ctx?.drawImage(img, 0, 0);
@@ -61,30 +75,18 @@ export default function EditProfile() {
           g = Math.round(g / count);
           b = Math.round(b / count);
           
-          console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
-          
           // Apply the color to the page background
           const pageBackground = document.getElementById('page-background');
           if (pageBackground) {
-            // Set CSS custom property for the page background
             pageBackground.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
-            
-            console.log('Page background color applied successfully');
-            console.log('Page background element:', pageBackground);
-            console.log('Generated color:', `rgb(${r}, ${g}, ${b})`);
-          } else {
-            console.log('Page background not found');
           }
         }
       } catch (error) {
-        console.log('Could not analyze image colors:', error);
-        // Fallback: generate a color based on the user's name
         generateFallbackColor();
       }
     };
     
     img.onerror = () => {
-      console.log('Failed to load image for color analysis, using fallback');
       generateFallbackColor();
     };
     
@@ -94,8 +96,6 @@ export default function EditProfile() {
   // Fallback function to generate a color based on user's name
   const generateFallbackColor = () => {
     if (!user?.name) return;
-    
-    console.log('Generating fallback color from user name');
     
     // Generate a consistent color based on the user's name
     let hash = 0;
@@ -108,27 +108,68 @@ export default function EditProfile() {
     const g = Math.abs(hash >> 8) % 200 + 55;
     const b = Math.abs(hash >> 16) % 200 + 55;
     
-    console.log('Fallback color generated:', `rgb(${r}, ${g}, ${b})`);
-    
     // Apply the fallback color to the page background
     const pageBackground = document.getElementById('page-background');
     if (pageBackground) {
-      // Set CSS custom property for the page background
       pageBackground.style.setProperty('--dynamic-bg-color', `rgb(${r}, ${g}, ${b})`);
-      
-      console.log('Fallback page background color applied successfully');
-      console.log('Page background element:', pageBackground);
-      console.log('Generated fallback color:', `rgb(${r}, ${g}, ${b})`);
     }
   };
 
+  // Refresh user profile when component mounts to get latest data from MongoDB
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (user?.uid && refreshUserProfile) {
+        console.log('🔄 EditProfile - Refreshing user profile from MongoDB...');
+        console.log('🔍 EditProfile - Current user address before refresh:', user.address);
+        try {
+          await refreshUserProfile();
+          console.log('✅ EditProfile - User profile refreshed successfully');
+        } catch (error) {
+          console.error('❌ EditProfile - Failed to refresh user profile:', error);
+        }
+      }
+    };
+    
+    loadUserProfile();
+  }, []); // Only run once when component mounts
+  
+  // Also refresh if address data is missing but user exists
+  useEffect(() => {
+    const checkAddressData = async () => {
+      if (user?.uid && (!user.address || Object.values(user.address).every(val => !val)) && refreshUserProfile) {
+        console.log('🔄 EditProfile - Address data missing, refreshing profile...');
+        try {
+          await refreshUserProfile();
+          console.log('✅ EditProfile - Profile refreshed due to missing address data');
+        } catch (error) {
+          console.error('❌ EditProfile - Failed to refresh profile for address data:', error);
+        }
+      }
+    };
+    
+    checkAddressData();
+  }, [user?.uid, user?.address]); // Run when user ID or address changes
+
   useEffect(() => {
     if (user) {
-      // Refresh user profile from MongoDB to get latest data
-      refreshUserProfile();
+      console.log('🔄 EditProfile - Loading user data:', user);
+      console.log('🏠 EditProfile - User address data:', user.address);
       
-      // Split full name into first and last name
-      const nameParts = (user.name || '').split(' ');
+      // Handle both combined name and separate firstName/lastName fields
+      let firstName = '';
+      let lastName = '';
+      
+      if (user.firstName && user.lastName) {
+        // Use separate firstName and lastName fields (from backend response)
+        firstName = user.firstName;
+        lastName = user.lastName;
+      } else if (user.name) {
+        // Split full name into first and last name (legacy format)
+        const nameParts = user.name.split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ') || '';
+      }
+      
       // Parse phone number if it includes country code
       // Check both profile.phone and direct phoneNumber (for backward compatibility)
       let phoneNumber = user.profile?.phone || user.phoneNumber || '';
@@ -146,38 +187,46 @@ export default function EditProfile() {
         }
       }
       
-      setFormData({
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
+      const newFormData = {
+        firstName: firstName,
+        lastName: lastName,
         email: user.email || '',
         phoneNumber: phoneNumber,
         countryCode: countryCode,
         idNumber: user.profile?.nic || user.nic || ''
-      });
+      };
       
+      setFormData(newFormData);
+      console.log('📝 EditProfile - Form data set:', newFormData);
+
+      // Set address data from user profile
+      const newAddressData = {
+        street: user.address?.street || '',
+        city: user.address?.city || '',
+        district: user.address?.district || '',
+        province: user.address?.province || '',
+        postalCode: user.address?.postalCode || ''
+      };
+      
+      setAddressData(newAddressData);
+      console.log('🏠 EditProfile - Address data set:', newAddressData);
+      
+      // Mark data as loaded
+      setDataLoaded(true);
+    }
+  }, [user]); // This will trigger when user data changes
+
+  useEffect(() => {
+    if (user) {
       // Generate background color from existing avatar if available
       if (user.avatar) {
-        console.log('User has avatar, generating background color...');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-          console.log('DOM ready, checking page background...');
-          const pageBg = document.getElementById('page-background');
-          console.log('Page background found:', pageBg);
-          if (pageBg) {
-            console.log('Page background styles before:', pageBg.style.cssText);
-          }
           generateBackgroundColor(user.avatar);
         }, 100);
       } else {
-        console.log('No avatar found for user, generating fallback color');
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-          console.log('DOM ready, checking page background...');
-          const pageBg = document.getElementById('page-background');
-          console.log('Page background found:', pageBg);
-          if (pageBg) {
-            console.log('Page background styles before:', pageBg.style.cssText);
-          }
           generateFallbackColor();
         }, 100);
       }
@@ -191,6 +240,13 @@ export default function EditProfile() {
     }));
   };
 
+  const handleAddressChange = (field: string, value: string) => {
+    setAddressData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -198,18 +254,43 @@ export default function EditProfile() {
 
     try {
       // Update user profile
+      const updateData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phoneNumber: `${formData.countryCode} ${formData.phoneNumber}`,
+        nic: formData.idNumber
+      };
+      
       if (updateUser) {
-        await updateUser({
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
-          email: formData.email,
-          phoneNumber: `${formData.countryCode} ${formData.phoneNumber}`,
-          nic: formData.idNumber
-        });
+        await updateUser(updateData);
         setMessage('Profile updated successfully!');
       }
     } catch (error) {
       setMessage('Failed to update profile. Please try again.');
       console.error('Profile update error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddressSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage('');
+
+    try {
+      // Update user address
+      const updateData = {
+        address: addressData
+      };
+      
+      if (updateUser) {
+        await updateUser(updateData);
+        setMessage('Address updated successfully!');
+      }
+    } catch (error) {
+      console.error('❌ Address update error:', error);
+      setMessage('Failed to update address. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -270,25 +351,20 @@ export default function EditProfile() {
         {/* Profile Picture Section */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-                                                   <div 
+              <div 
                 id="profile-picture-container"
-                className="w-20 h-20 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden"
+                className="w-24 h-24 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden"
               >
-                              {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name || 'User'} 
-                    className="w-16 h-16 rounded-full object-cover"
+                {showImage ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user?.name || 'User'}
+                    className="w-full h-full object-cover"
+                    onError={() => setAvatarErrored(true)}
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <svg 
-                      className="w-8 h-8 text-white" 
-                      fill="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500/80 to-purple-600/80 flex items-center justify-center text-white text-3xl font-bold">
+                    {firstName?.[0]?.toUpperCase() || 'U'}
                   </div>
                 )}
              </div>
@@ -303,157 +379,280 @@ export default function EditProfile() {
           </div>
         </div>
 
-        {/* Main Form Card */}
+        {/* Main Form Card with Tabs */}
         <Card className="shadow-sm border border-gray-200 bg-white">
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Two Column Layout for Main Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* First Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                    First Name
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="firstName"
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter first name"
-                      required
-                    />
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="profile" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Profile Details
+                </TabsTrigger>
+                <TabsTrigger value="address" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Address Details
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Profile Details Tab */}
+              <TabsContent value="profile">
+                <form key={`profile-form-${dataLoaded}`} onSubmit={handleSubmit} className="space-y-6">
+                  {/* Two Column Layout for Main Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* First Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                        First Name
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="firstName"
+                          type="text"
+                          value={formData.firstName}
+                          onChange={(e) => handleInputChange('firstName', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter first name"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Last Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                        Last Name
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="lastName"
+                          type="text"
+                          value={formData.lastName}
+                          onChange={(e) => handleInputChange('lastName', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter last name"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Email
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter email address"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Phone Number */}
+                    <div className="space-y-2">
+                      <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
+                        Phone Number
+                      </Label>
+                      <div className="flex space-x-2">
+                        <Select value={formData.countryCode} onValueChange={(value) => handleInputChange('countryCode', value)}>
+                          <SelectTrigger className="w-20 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="+94">+94</SelectItem>
+                            <SelectItem value="+1">+1</SelectItem>
+                            <SelectItem value="+44">+44</SelectItem>
+                            <SelectItem value="+91">+91</SelectItem>
+                            <SelectItem value="+86">+86</SelectItem>
+                            <SelectItem value="+234">+234</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <div className="relative flex-1">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="phoneNumber"
+                            type="tel"
+                            value={formData.phoneNumber}
+                            onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                            className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                            placeholder="Enter phone number"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Last Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                    Last Name
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="lastName"
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter last name"
-                      required
-                    />
-                  </div>
-                </div>
-
-
-
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter email address"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Phone Number */}
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
-                    Phone Number
-                  </Label>
-                  <div className="flex space-x-2">
-                    <Select value={formData.countryCode} onValueChange={(value) => handleInputChange('countryCode', value)}>
-                      <SelectTrigger className="w-20 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="+94">+94</SelectItem>
-                        <SelectItem value="+1">+1</SelectItem>
-                        <SelectItem value="+44">+44</SelectItem>
-                        <SelectItem value="+91">+91</SelectItem>
-                        <SelectItem value="+86">+86</SelectItem>
-                        <SelectItem value="+234">+234</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <div className="relative flex-1">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  {/* ID Number - Full Width */}
+                  <div className="space-y-2">
+                    <Label htmlFor="idNumber" className="text-sm font-medium text-gray-700">
+                      ID Number
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="phoneNumber"
-                        type="tel"
-                        value={formData.phoneNumber}
-                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                        id="idNumber"
+                        type="text"
+                        value={formData.idNumber}
+                        onChange={(e) => handleInputChange('idNumber', e.target.value)}
                         className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter phone number"
+                        placeholder="Enter ID number"
                         required
                       />
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* ID Number - Full Width */}
-              <div className="space-y-2">
-                <Label htmlFor="idNumber" className="text-sm font-medium text-gray-700">
-                  ID Number
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="idNumber"
-                    type="text"
-                    value={formData.idNumber}
-                    onChange={(e) => handleInputChange('idNumber', e.target.value)}
-                    className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter ID number"
-                    required
-                  />
-                </div>
-              </div>
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                    >
+                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                    
+                    <Button
+                      onClick={handleChangePassword}
+                      variant="outline"
+                      className="flex-1 h-11 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg"
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Change Password
+                    </Button>
+                  </div>
+                </form>
+              </TabsContent>
 
-              {/* Message Display */}
-              {message && (
-                <div className={`p-3 rounded-lg text-sm ${
-                  message.includes('successfully') 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
-                    : 'bg-red-100 text-red-700 border border-red-200'
-                }`}>
-                  {message}
-                </div>
-              )}
+              {/* Address Details Tab */}
+              <TabsContent value="address">
+                <form key={`address-form-${dataLoaded}`} onSubmit={handleAddressSubmit} className="space-y-6">
+                  {/* Address Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Street Address */}
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="street" className="text-sm font-medium text-gray-700">
+                        Street Address
+                      </Label>
+                      <div className="relative">
+                        <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="street"
+                          type="text"
+                          value={addressData.street}
+                          onChange={(e) => handleAddressChange('street', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter street address"
+                        />
+                      </div>
+                    </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
-                >
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
-                
-                <Button
-                  onClick={handleChangePassword}
-                  variant="outline"
-                  className="flex-1 h-11 border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg"
-                >
-                  <Lock className="h-4 w-4 mr-2" />
-                  Change Password
-                </Button>
+                    {/* City */}
+                    <div className="space-y-2">
+                      <Label htmlFor="city" className="text-sm font-medium text-gray-700">
+                        City
+                      </Label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="city"
+                          type="text"
+                          value={addressData.city}
+                          onChange={(e) => handleAddressChange('city', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter city"
+                        />
+                      </div>
+                    </div>
+
+                    {/* District */}
+                    <div className="space-y-2">
+                      <Label htmlFor="district" className="text-sm font-medium text-gray-700">
+                        District
+                      </Label>
+                      <div className="relative">
+                        <Map className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="district"
+                          type="text"
+                          value={addressData.district}
+                          onChange={(e) => handleAddressChange('district', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter district"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Province */}
+                    <div className="space-y-2">
+                      <Label htmlFor="province" className="text-sm font-medium text-gray-700">
+                        Province
+                      </Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="province"
+                          type="text"
+                          value={addressData.province}
+                          onChange={(e) => handleAddressChange('province', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter province"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Postal Code */}
+                    <div className="space-y-2">
+                      <Label htmlFor="postalCode" className="text-sm font-medium text-gray-700">
+                        Postal Code
+                      </Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="postalCode"
+                          type="text"
+                          value={addressData.postalCode}
+                          onChange={(e) => handleAddressChange('postalCode', e.target.value)}
+                          className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Enter postal code"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                    >
+                      {isLoading ? 'Saving...' : 'Save Address'}
+                    </Button>
+                  </div>
+                </form>
+              </TabsContent>
+            </Tabs>
+
+            {/* Message Display */}
+            {message && (
+              <div className={`p-3 rounded-lg text-sm mt-6 ${
+                message.includes('successfully') 
+                  ? 'bg-green-100 text-green-700 border border-green-200' 
+                  : 'bg-red-100 text-red-700 border border-red-200'
+              }`}>
+                {message}
               </div>
-            </form>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -60,6 +60,13 @@ export default function ProductOrderingDashboard() {
       const ordersArray = Array.isArray(ordersData) ? ordersData : [];
       const cancelOrdersArray = Array.isArray(cancelOrdersData) ? cancelOrdersData : [];
 
+      // Debug: Log the fetched orders to see if customerDetails are included
+      console.log('🔍 Fetched orders data:', ordersArray);
+      if (ordersArray.length > 0) {
+        console.log('🔍 First order customerDetails:', ordersArray[0].customerDetails);
+        console.log('🔍 First order keys:', Object.keys(ordersArray[0]));
+      }
+
       // Filter orders: active orders (non-cancelled) go to orders tab
       const activeOrders = ordersArray.filter((order: ProductOrder) => order.state !== 'cancelled');
       // Cancelled orders go to cancellations tab

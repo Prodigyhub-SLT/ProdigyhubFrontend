@@ -8,8 +8,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Search, Package, Wifi, Eye, Filter, X, Tv, BookOpen } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { ProductOffering } from '../../shared/product-order-types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CustomerPackagesTab() {
+  const { user } = useAuth();
   const [offerings, setOfferings] = useState<ProductOffering[]>([]);
   const [filteredOfferings, setFilteredOfferings] = useState<ProductOffering[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +28,25 @@ export default function CustomerPackagesTab() {
   // Spec view modal state
   const [isSpecViewOpen, setIsSpecViewOpen] = useState(false);
   const [selectedOffering, setSelectedOffering] = useState<ProductOffering | null>(null);
+  
+  // Success message state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Track order status for each package
+  const [packageOrderStatus, setPackageOrderStatus] = useState<Record<string, 'none' | 'progress' | 'active' | 'cancelled'>>({});
 
   useEffect(() => {
-    loadOfferings();
+    const initializeData = async () => {
+      await loadOfferings();
+      await checkOrderStatusUpdates();
+    };
+    initializeData();
+  }, [user]);
+
+  // Check for order status updates every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(checkOrderStatusUpdates, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -202,13 +220,307 @@ export default function CustomerPackagesTab() {
     setIsSpecViewOpen(true);
   };
 
+  const handleUpgrade = async (offering: ProductOffering) => {
+    try {
+      setSuccessMessage(null);
+      
+      // Debug: Log user data
+      console.log('🔍 User data in handleUpgrade:', {
+        user: user,
+        name: user?.name,
+        email: user?.email,
+        phoneNumber: user?.phoneNumber,
+        nic: user?.nic,
+        profile: user?.profile
+      });
+      
+      // Always fetch complete user data from MongoDB using email lookup
+      let userData = user;
+      if (user && user.email) {
+        try {
+          const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          console.log('🔍 Looking up user by email:', user.email);
+          
+          const response = await fetch(`${backendURL}/users/email/${encodeURIComponent(user.email)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const mongoUserData = await response.json();
+            console.log('✅ Fetched complete MongoDB user data:', mongoUserData);
+            
+            // Use the complete user data from MongoDB
+            userData = {
+              ...user,
+              // Use MongoDB data for all fields
+              name: mongoUserData.firstName && mongoUserData.lastName 
+                ? `${mongoUserData.firstName} ${mongoUserData.lastName}`.trim()
+                : user.name,
+              firstName: mongoUserData.firstName,
+              lastName: mongoUserData.lastName,
+              phoneNumber: mongoUserData.phoneNumber || '',
+              nic: mongoUserData.nic || '',
+              address: mongoUserData.address,
+              profile: {
+                ...user.profile,
+                phone: mongoUserData.phoneNumber || '',
+                nic: mongoUserData.nic || '',
+              }
+            };
+          } else {
+            console.warn('Failed to fetch user data from MongoDB, using existing data');
+          }
+        } catch (error) {
+          console.warn('Failed to fetch user profile from MongoDB:', error);
+        }
+      }
+      
+      // Import the order creation API
+      const { createOrderWithRetry } = await import('@/lib/api');
+      
+      // Create order data with complete user information
+      const orderData = {
+        category: 'B2C product order',
+        description: `Package upgrade request for ${offering.name} by ${userData?.name || 'Customer'}`,
+        priority: '2', // High priority for upgrades
+        productOrderItem: [{
+          action: 'add' as const,
+          quantity: 1,
+          productOffering: {
+            id: offering.id,
+            name: offering.name,
+            '@type': 'ProductOfferingRef'
+          }
+        }],
+        relatedParty: userData ? [{
+          id: userData.id || userData.uid || 'unknown',
+          name: userData.name || 'Unknown User',
+          role: 'customer',
+          '@type': 'RelatedParty'
+        }] : [],
+        // Store complete customer details in the custom field
+        customerDetails: userData ? {
+          name: userData.name || 'Unknown',
+          email: userData.email || '',
+          phone: userData.phoneNumber || userData.profile?.phone || '',
+          nic: userData.nic || userData.profile?.nic || '',
+          id: userData.id || userData.uid || 'unknown',
+          // Add additional details
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          address: userData.address || null
+        } : undefined,
+        note: [{
+          text: `Customer upgrade request for ${offering.name}. Customer: ${userData?.name || 'Unknown'} (${userData?.email || 'No email'})`,
+          author: 'Customer',
+          date: new Date().toISOString(),
+          '@type': 'Note'
+        }],
+        '@type': 'ProductOrder'
+      };
+
+      // Create the order
+      const order = await createOrderWithRetry(orderData);
+      
+      // Set package status to progress and cancel any existing active packages IMMEDIATELY
+      setPackageOrderStatus(prev => {
+        const newStatus = { ...prev };
+        
+        // Cancel all existing active packages (set them to 'cancelled')
+        Object.keys(newStatus).forEach(packageId => {
+          if (newStatus[packageId] === 'active') {
+            newStatus[packageId] = 'cancelled';
+          }
+        });
+        
+        // Set the new package to progress
+        newStatus[offering.id] = 'progress';
+        
+        return newStatus;
+      });
+      
+      // Show success message
+      setSuccessMessage(`Upgrade order created successfully! Order ID: ${order.id}`);
+      
+      // Immediately check for status updates to ensure consistency
+      setTimeout(() => {
+        checkOrderStatusUpdates();
+      }, 1000);
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error creating upgrade order:', error);
+      setSuccessMessage('Failed to create upgrade order. Please try again.');
+      
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    }
+  };
+
   const closeSpecView = () => {
     setIsSpecViewOpen(false);
     setSelectedOffering(null);
   };
 
+  const checkOrderStatusUpdates = async () => {
+    try {
+      console.log('🔍 Checking order status updates for user:', user?.email);
+      
+      // Get orders for this user
+      const response = await fetch('/api/productOrderingManagement/v4/productOrder');
+      if (response.ok) {
+        const orders = await response.json();
+        const userOrders = orders.filter((order: any) => 
+          order.customerDetails?.email === user?.email
+        );
+        
+        console.log('📋 Found user orders:', userOrders.length, userOrders);
+        
+        // Sort orders by completion date (most recent first)
+        const sortedOrders = userOrders.sort((a: any, b: any) => {
+          const dateA = new Date(a.completionDate || a.orderDate || 0);
+          const dateB = new Date(b.completionDate || b.orderDate || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        // Group orders by package ID and get the most recent order for each package
+        const packageOrders: Record<string, any> = {};
+        sortedOrders.forEach((order: any) => {
+          const productOfferingId = order.productOrderItem?.[0]?.productOffering?.id;
+          if (productOfferingId && !packageOrders[productOfferingId]) {
+            packageOrders[productOfferingId] = order;
+          }
+        });
+        
+        // Track which packages should be active
+        const packageStatuses: Record<string, 'none' | 'progress' | 'active' | 'cancelled'> = {};
+        let hasActivePackage = false;
+        
+        // Process only the most recent order for each package
+        Object.values(packageOrders).forEach((order: any) => {
+          const productOfferingId = order.productOrderItem?.[0]?.productOffering?.id;
+          if (productOfferingId) {
+            let newStatus: 'none' | 'progress' | 'active' | 'cancelled' = 'none';
+            
+            if (order.state === 'acknowledged' || order.state === 'inProgress') {
+              newStatus = 'progress';
+            } else if (order.state === 'completed') {
+              // Only allow one active package at a time
+              if (!hasActivePackage) {
+                newStatus = 'active';
+                hasActivePackage = true;
+              } else {
+                // If there's already an active package, this one should be cancelled
+                newStatus = 'cancelled';
+              }
+            }
+            
+            packageStatuses[productOfferingId] = newStatus;
+            console.log(`📦 Package ${productOfferingId} (${order.productOrderItem?.[0]?.productOffering?.name}) - Status: ${newStatus} (Order state: ${order.state})`);
+          }
+        });
+        
+        console.log('🎯 Final package statuses:', packageStatuses);
+        
+        // Update all package statuses at once
+        setPackageOrderStatus(packageStatuses);
+      } else {
+        console.error('❌ Failed to fetch orders:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error checking order status updates:', error);
+    }
+  };
+
+  const renderUpgradeButton = (offering: ProductOffering) => {
+    const status = packageOrderStatus[offering.id] || 'none';
+    
+    switch (status) {
+      case 'progress':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            disabled
+            className="flex-1 text-white bg-green-400 border-green-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
+          >
+            Progress
+          </Button>
+        );
+      case 'active':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-1 text-white bg-green-400 border-green-400 text-white transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
+            style={{ pointerEvents: 'none' }}
+            onClick={(e) => e.preventDefault()}
+          >
+            Active
+          </Button>
+        );
+      case 'cancelled':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => handleUpgrade(offering)}
+            className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+          >
+            Upgrade
+          </Button>
+        );
+      default:
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => handleUpgrade(offering)}
+            className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+          >
+            Upgrade
+          </Button>
+        );
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {/* Popup Notification - Bottom Right */}
+      {successMessage && (
+        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-2 duration-300">
+          <div className={`p-4 rounded-lg shadow-lg border max-w-sm ${
+            successMessage.includes('successfully') 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  successMessage.includes('successfully') ? 'bg-green-500' : 'bg-red-500'
+                }`}></div>
+                <span className="text-sm font-medium">{successMessage}</span>
+              </div>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="ml-3 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Broadband Packages</h2>
         
@@ -349,7 +661,6 @@ export default function CustomerPackagesTab() {
                         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
                           <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
@@ -400,14 +711,17 @@ export default function CustomerPackagesTab() {
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              View
+                            </Button>
+                            {renderUpgradeButton(offering)}
+                          </div>
                         </div>
                       </Card>
                     );
@@ -436,7 +750,6 @@ export default function CustomerPackagesTab() {
                         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
                           <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
@@ -487,14 +800,17 @@ export default function CustomerPackagesTab() {
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              View
+                            </Button>
+                            {renderUpgradeButton(offering)}
+                          </div>
                         </div>
                       </Card>
                     );
@@ -523,7 +839,6 @@ export default function CustomerPackagesTab() {
                         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-lg font-bold">{offering.name}</h3>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                           </div>
                           <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
                         </div>
@@ -574,14 +889,17 @@ export default function CustomerPackagesTab() {
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            Connection Speed & Terms &gt;
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                            >
+                              View
+                            </Button>
+                            {renderUpgradeButton(offering)}
+                          </div>
                         </div>
                       </Card>
                     );
@@ -595,7 +913,7 @@ export default function CustomerPackagesTab() {
 
       {/* Spec View Modal */}
       <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
           <DialogHeader className="flex-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -641,6 +959,16 @@ export default function CustomerPackagesTab() {
                 </div>
               </div>
 
+              {/* Description */}
+              {selectedOffering.description && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Connection Type & Package Type */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
@@ -655,33 +983,6 @@ export default function CustomerPackagesTab() {
                   </div>
                 </div>
               </div>
-
-              {/* Category Information */}
-              {(selectedOffering as any).subCategory || (selectedOffering as any).subSubCategory || (selectedOffering as any).categoryDescription ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Information</h3>
-                  <div className="space-y-3">
-                    {(selectedOffering as any).subCategory && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Sub Category:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).subCategory}</span>
-                      </div>
-                    )}
-                    {(selectedOffering as any).subSubCategory && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Sub-Sub Category:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).subSubCategory}</span>
-                      </div>
-                    )}
-                    {(selectedOffering as any).categoryDescription && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="font-medium text-gray-700">Category Description:</span>
-                        <span className="text-gray-900">{(selectedOffering as any).categoryDescription}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
 
               {/* Custom Attributes */}
               {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (

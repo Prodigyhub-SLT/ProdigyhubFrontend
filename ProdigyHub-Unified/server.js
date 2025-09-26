@@ -67,11 +67,12 @@ const PORT = process.env.PORT || 3000;
 
 const { getCorsConfig, tmfCorsMiddleware, corsErrorHandler } = require('./src/config/cors');
 // CORS Configuration - CRITICAL: Add this BEFORE your routes
-const corsConfig = getCorsConfig();
-app.use(cors(corsConfig));
+// TEMPORARILY DISABLED - Using second CORS config instead
+// const corsConfig = getCorsConfig();
+// app.use(cors(corsConfig));
 
 // Add enhanced TMF CORS middleware
-app.use(tmfCorsMiddleware);
+// app.use(tmfCorsMiddleware);
 
 // Additional CORS middleware for stubborn browsers
 app.use((req, res, next) => {
@@ -141,10 +142,25 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS - Enhanced for all APIs
+const allowedOrigins = process.env.NODE_ENV === 'production' ? 
+  (process.env.ALLOWED_ORIGINS?.split(',') || [
+    'https://sltprodigyhub.vercel.app',
+    'https://sltprodigyhub-git-thejana-jayalaths-projects.vercel.app',
+    'https://sltprodigyhub-2i58cdit4-jayalaths-projects.vercel.app',
+    'https://prodigyhub.vercel.app',
+    'https://prodigyhubfrontend2-git-main-jayalaths-projects.vercel.app',
+    'https://prodigyhubfrontend2-gx1ki5hml-jayalaths-projects.vercel.app',
+    'https://prodigyhub.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8080'
+  ]) : 
+  ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', '*'];
+
+console.log('🔧 CORS - Using second config with origins:', allowedOrigins);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 
-    process.env.ALLOWED_ORIGINS?.split(',') : 
-    ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', '*'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -1359,6 +1375,7 @@ class TMF679Controller {
 
   async createCheckQualification(req, res) {
     try {
+      console.log('🚀 CREATE CHECK QUALIFICATION CALLED - Starting qualification creation...');
       const { CheckProductOfferingQualification } = require('./src/models/AllTMFModels');
       const qualificationData = {
         ...req.body,
@@ -1367,6 +1384,28 @@ class TMF679Controller {
       
       const qualification = new CheckProductOfferingQualification(qualificationData);
       await qualification.save();
+      console.log('✅ Qualification saved successfully:', qualification.id);
+      
+      // Always attempt to sync address to user collection
+      try {
+        console.log('🔄 Attempting to sync address to user collection...');
+        console.log('Qualification ID:', qualification.id);
+        console.log('Qualification relatedParty:', qualification.relatedParty);
+        
+        const { syncAddressToUser } = require('./src/api/tmf679/utils/addressSyncUtils');
+        const syncSuccess = await syncAddressToUser(qualification);
+        
+        if (syncSuccess) {
+          console.log('✅ Address successfully synced to user collection');
+        } else {
+          console.warn('⚠️ Address sync to user collection failed, but qualification was saved');
+          console.log('Debug info - Qualification notes:', qualification.note);
+        }
+      } catch (syncError) {
+        console.error('❌ Error during address sync to user collection:', syncError);
+        console.error('Stack trace:', syncError.stack);
+        // Don't fail the qualification creation if user sync fails
+      }
       
       res.status(201).json(qualification);
     } catch (error) {
@@ -1480,9 +1519,53 @@ class TMF622Controller {
   async createProductOrder(req, res) {
     try {
       const { ProductOrder } = require('./src/models/AllTMFModels');
+      const body = { ...req.body };
+
+      // Normalize productOrderItem
+      const normalizedItems = Array.isArray(body.productOrderItem) ? body.productOrderItem.map((item) => ({
+        id: item.id || `item-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        action: item.action || 'add',
+        quantity: item.quantity || 1,
+        productOffering: item.productOffering,
+        product: item.product,
+        itemPrice: item.itemPrice || [],
+        itemTotalPrice: item.itemTotalPrice,
+        note: item.note || [],
+        state: 'acknowledged',
+        '@type': 'ProductOrderItem'
+      })) : [];
+
+      // Normalize relatedParty to schema { partyOrPartyRole: { id, name, '@type' }, role }
+      const normalizedRelatedParty = Array.isArray(body.relatedParty) ? body.relatedParty.map((p) => ({
+        partyOrPartyRole: {
+          id: p.id || p.partyOrPartyRole?.id || '',
+          name: p.name || p.partyOrPartyRole?.name || 'Unknown',
+          '@type': p['@referredType'] || p['@type'] || 'Individual'
+        },
+        role: p.role || 'customer',
+        '@type': 'RelatedPartyRefOrPartyRoleRef'
+      })) : [];
+
       const orderData = {
-        ...req.body,
-        '@type': 'ProductOrder'
+        '@type': 'ProductOrder',
+        id: body.id,
+        description: body.description || '',
+        category: body.category || 'B2C product order',
+        priority: body.priority || '4',
+        state: 'acknowledged',
+        requestedStartDate: body.requestedStartDate || new Date().toISOString(),
+        requestedCompletionDate: body.requestedCompletionDate || new Date().toISOString(),
+        note: Array.isArray(body.note) ? body.note : [],
+        productOrderItem: normalizedItems,
+        relatedParty: normalizedRelatedParty,
+        orderTotalPrice: body.orderTotalPrice,
+        payment: body.payment,
+        billingAccount: body.billingAccount,
+        agreement: body.agreement,
+        quote: body.quote,
+        productOfferingQualification: body.productOfferingQualification,
+        // persist custom customer details if provided
+        customerDetails: body.customerDetails
       };
       
       const order = new ProductOrder(orderData);
@@ -1490,6 +1573,7 @@ class TMF622Controller {
       
       res.status(201).json(order);
     } catch (error) {
+      console.error('TMF622 createProductOrder error:', error?.message, error?.stack);
       handleError(res, error, 'create product order');
     }
   }
@@ -2186,6 +2270,10 @@ app.use('/areaManagement/v5', areaManagementRoutes);
 const userRoutes = require('./src/api/users/routes/userRoutes');
 app.use('/users', userRoutes);
 
+// Address Sync API
+const addressSyncRoutes = require('./src/api/tmf679/routes/addressSyncRoutes');
+app.use('/api/sync', addressSyncRoutes);
+
 // TMF622 - Product Ordering Management
 // Product Orders
 app.get('/productOrderingManagement/v4/productOrder', (req, res) => tmf622Controller.getProductOrders(req, res));
@@ -2438,7 +2526,7 @@ async function startServer() {
     const models = require('./src/models/AllTMFModels');
     console.log('✅ MongoDB Models: All TMF API models loaded');
     
-    // Start the server
+    // Start the server - Updated with MongoDB _id lookup fix
     const server = app.listen(PORT, () => {
       console.log('\n' + '='.repeat(70));
       console.log('🚀 ProdigyHub Unified TMF API Backend Started (MongoDB)');

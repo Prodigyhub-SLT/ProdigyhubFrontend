@@ -64,9 +64,14 @@ interface AddressDetails {
 
 interface QualificationTabProps {
   onQualificationComplete?: () => void;
+  user?: {
+    email?: string;
+    name?: string;
+    uid?: string;
+  };
 }
 
-export function QualificationTab({ onQualificationComplete }: QualificationTabProps) {
+export function QualificationTab({ onQualificationComplete, user }: QualificationTabProps) {
   const { toast } = useToast();
   
   const [addressDetails, setAddressDetails] = useState<AddressDetails>({
@@ -229,7 +234,9 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
       note: [
         {
           text: `SLT_LOCATION:${JSON.stringify({
-            address: `${addressDetails.district}, ${addressDetails.province}`,
+            address: `${addressDetails.street}, ${addressDetails.city}, ${addressDetails.district}, ${addressDetails.province}`,
+            street: addressDetails.street,
+            city: addressDetails.city,
             district: addressDetails.district,
             province: addressDetails.province,
             postalCode: addressDetails.postalCode || ''
@@ -262,7 +269,13 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
       ],
       channel: {},
       checkProductOfferingQualificationItem: [],
-      relatedParty: [],
+      relatedParty: [{
+        id: user?.uid || 'user-qualification',
+        name: user ? (user.name || 'Customer') : 'Customer',
+        email: user?.email || 'customer@example.com',
+        role: 'customer',
+        '@type': 'RelatedPartyRefOrPartyRoleRef'
+      }],
       "@baseType": "CheckProductOfferingQualification",
       "@type": "CheckProductOfferingQualification"
     };
@@ -323,7 +336,9 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
         note: [
           {
             text: `SLT_LOCATION:${JSON.stringify({
-              address: `${addressDetails.district}, ${addressDetails.province}`,
+              address: `${addressDetails.street}, ${addressDetails.city}, ${addressDetails.district}, ${addressDetails.province}`,
+              street: addressDetails.street,
+              city: addressDetails.city,
               district: addressDetails.district,
               province: addressDetails.province,
               postalCode: addressDetails.postalCode || ''
@@ -356,7 +371,13 @@ export function QualificationTab({ onQualificationComplete }: QualificationTabPr
         ],
         channel: {},
         checkProductOfferingQualificationItem: [],
-        relatedParty: [],
+        relatedParty: user ? [{
+          id: user.uid || user.id,
+          name: user.name || 'Customer',
+          email: user.email,
+          role: 'customer',
+          '@type': 'RelatedPartyRefOrPartyRoleRef'
+        }] : [],
         "@baseType": "CheckProductOfferingQualification",
         "@type": "CheckProductOfferingQualification"
       };

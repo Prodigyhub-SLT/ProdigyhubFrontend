@@ -105,13 +105,17 @@ const extractConfigurationData = (config: any) => {
   console.log('🔍 Config keys available:', Object.keys(config));
   
   // 🔧 ENHANCED: Always provide all expected fields with proper fallbacks
-  const defaultFields = {
+  const defaultFields: any = {
     category: undefined,
     connectionType: undefined,
     packageType: undefined,
     speedTier: undefined,
     contractTerm: undefined,
     staticIP: undefined,
+    staticIp: undefined,
+    customerEmail: undefined,
+    dataAmount: undefined,
+    notes: undefined,
     entertainmentAddons: [],
     businessType: undefined,
     bandwidthGuarantee: undefined,
@@ -144,9 +148,12 @@ const extractConfigurationData = (config: any) => {
     const characteristics = config.checkProductConfigurationItem[0].productConfiguration.configurationCharacteristic;
     
     for (const char of characteristics) {
-      if (char.name && char.value !== undefined) {
-        console.log(`📋 Found characteristic: ${char.name} = ${char.value}`);
-        defaultFields[char.name] = char.value;
+      const name = char?.name;
+      // Some backends store values under product.productCharacteristic only; here char may lack 'value'
+      const value = (char as any).value ?? (char as any).configurationCharacteristicValue?.[0]?.characteristicValue?.value;
+      if (name && value !== undefined) {
+        console.log(`📋 Found characteristic: ${name} = ${value}`);
+        defaultFields[name] = value;
       }
     }
   }
@@ -248,7 +255,11 @@ const extractConfigurationData = (config: any) => {
     packageType: defaultFields.packageType,
     speedTier: defaultFields.speedTier,
     contractTerm: defaultFields.contractTerm,
-    staticIP: defaultFields.staticIP,
+    staticIP: defaultFields.staticIP ?? defaultFields.staticIp,
+    staticIp: defaultFields.staticIp,
+    customerEmail: defaultFields.customerEmail,
+    dataAmount: defaultFields.dataAmount,
+    notes: defaultFields.notes,
     entertainmentAddons: defaultFields.entertainmentAddons || [],
     
     // Business specific fields
@@ -469,6 +480,9 @@ const SimpleDataDisplay = ({ config }: { config: any }) => {
               <span className="font-medium">Status:</span> {config.status}
             </div>
             <div>
+              <span className="font-medium">Customer Email:</span> {config.customerEmail || 'Not specified'}
+            </div>
+            <div>
               <span className="font-medium">Category:</span> {config.category}
             </div>
             <div>
@@ -481,10 +495,13 @@ const SimpleDataDisplay = ({ config }: { config: any }) => {
               <span className="font-medium">Speed Tier:</span> {config.speedTier || 'Not specified'}
             </div>
             <div>
+              <span className="font-medium">Data Amount:</span> {config.dataAmount || 'Not specified'}
+            </div>
+            <div>
               <span className="font-medium">Contract Term:</span> {config.contractTerm || 'Not specified'}
             </div>
             <div>
-              <span className="font-medium">Static IP:</span> {config.staticIP ? 'Yes' : 'No'}
+              <span className="font-medium">Static IP:</span> {(config.staticIP ?? config.staticIp) ? 'Yes' : 'No'}
             </div>
           </div>
           
@@ -498,6 +515,11 @@ const SimpleDataDisplay = ({ config }: { config: any }) => {
           
           <div className="border-t pt-3">
             <span className="font-medium">Updated:</span> {config.updatedAt ? new Date(config.updatedAt).toLocaleString() : 'N/A'}
+          </div>
+
+          <div className="border-t pt-3">
+            <span className="font-medium">Notes:</span>
+            <div className="mt-1 p-2 bg-gray-50 rounded border text-gray-700 whitespace-pre-wrap">{config.notes || '—'}</div>
           </div>
         </div>
       </div>

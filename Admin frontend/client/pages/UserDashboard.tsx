@@ -9,6 +9,10 @@ import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
+import InventoryTab from '../components/InventoryTab';
+import MessagesTab from '../components/MessagesTab';
+import CustomerCustomizeTab from '../components/CustomerCustomizeTab';
+import NewUserOnboardingPopup from '../components/NewUserOnboardingPopup';
 import { 
   Wifi, 
   Tv, 
@@ -67,15 +71,15 @@ export default function UserDashboard() {
   const location = useLocation();
   const { user } = useAuth();
   const [activeService, setActiveService] = useState('broadband');
-  const [activeTab, setActiveTab] = useState('summary');
-  const [qualificationCompleted, setQualificationCompleted] = useState(false);
-  const [showQualificationAlert, setShowQualificationAlert] = useState(false);
+  const [activeTab, setActiveTab] = useState('inventory');
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [showOnboardingPopup, setShowOnboardingPopup] = useState(false);
+  const [userNeedsOnboarding, setUserNeedsOnboarding] = useState(false);
+  const [completeUserData, setCompleteUserData] = useState<any>(null);
   const profileTriggerRef = useRef<HTMLDivElement>(null);
   
   // Debug log for initial state
   console.log('🚀 UserDashboard mounted with initial state:', { 
-    qualificationCompleted, 
     activeTab,
     urlSearch: location.search
   });
@@ -85,40 +89,28 @@ export default function UserDashboard() {
 
 
   const handleTabClick = (tabId: string) => {
-    console.log('🔍 Tab click attempt:', { tabId, qualificationCompleted, currentTab: activeTab });
-    
-    // Double-check qualification state from localStorage
-    const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    console.log('🔍 localStorage check:', { localStorageQualification, qualificationCompleted, isForceLocked });
-    
-    // Only block access if user is force-locked (new user)
-    if (isForceLocked && tabId !== 'qualification') {
-      // Show message that qualification must be completed first
-      setShowQualificationAlert(true);
-      setTimeout(() => setShowQualificationAlert(false), 5000); // Hide after 5 seconds
-      console.log('🚫 Tab access blocked - user is force-locked (new user)');
-      return;
-    }
-    
-    console.log('✅ Tab access granted');
+    console.log('🔍 Tab click:', { tabId, currentTab: activeTab });
     setActiveTab(tabId);
   };
 
   const handleQualificationComplete = () => {
-    // Check if user is force-locked
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
+    // Qualification completed - no special handling needed since tabs are always accessible
+    console.log('✅ Qualification completed');
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = (userData: any) => {
+    console.log('✅ User onboarding completed:', userData);
+    setUserNeedsOnboarding(false);
+    setShowOnboardingPopup(false);
     
-    if (isForceLocked) {
-      console.log('🎯 Manual qualification completion - unlocking all tabs');
-      setQualificationCompleted(true);
-      localStorage.setItem('qualification_completed', 'true');
-      localStorage.removeItem('force_locked_until_manual_completion'); // Remove force lock
-      // Allow access to other tabs
-      setActiveTab('summary');
-    } else {
-      console.log('⚠️ Qualification completion called but user was not force-locked');
-    }
+    // Update user context if needed
+    // You might want to refresh user data from the backend here
+  };
+
+  // Handle onboarding popup close
+  const handleOnboardingClose = () => {
+    setShowOnboardingPopup(false);
   };
 
   // Mock data for services
@@ -169,9 +161,8 @@ export default function UserDashboard() {
     { name: 'Storage', icon: <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">📦</div>, color: 'bg-blue-600' },
   ];
 
-  // Tab configuration for second navigation bar
-  const secondNavTabs = [
-    { id: 'summary', name: 'Summary', icon: <Home className="w-4 h-4" /> },
+  // Tab configuration for second navigation bar (per service)
+  const broadbandTabs = [
     { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
     { id: 'inventory', name: 'Inventory', icon: <Database className="w-4 h-4" /> },
     { id: 'qualification', name: 'Qualification', icon: <Award className="w-4 h-4" /> },
@@ -179,101 +170,186 @@ export default function UserDashboard() {
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
-  // Handle URL parameters and set initial tab + qualification state
+  const peotvTabs = [
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const voiceTabs = [
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const mobileTabs = [
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const promotionTabs = [
+    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+    { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
+
+  const secondNavTabs =
+    activeService === 'broadband' ? broadbandTabs :
+    activeService === 'peotv' ? peotvTabs :
+    activeService === 'voice' ? voiceTabs :
+    activeService === 'mobile' ? mobileTabs :
+    promotionTabs;
+
+  // Check if user needs onboarding (users without complete profile details)
+  useEffect(() => {
+    const checkUserOnboardingStatus = async () => {
+      if (!user || !user.uid) return;
+
+      // Check for all users who might be missing profile details
+      console.log('🔍 Checking onboarding status for user:', user.uid, 'Auth method:', user.authMethod);
+      try {
+        const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://prodigyhub.onrender.com';
+        console.log('🌐 Backend URL:', backendURL);
+          
+        const response = await fetch(`${backendURL}/users/profile/${user.uid}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('📊 Profile check response status:', response.status);
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('👤 User data from MongoDB:', userData);
+          console.log('🔍 Detailed field check:', {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            phoneNumber: userData.phoneNumber,
+            nic: userData.nic,
+            address: userData.address,
+            addressStreet: userData.address?.street,
+            addressCity: userData.address?.city,
+            addressDistrict: userData.address?.district,
+            addressProvince: userData.address?.province
+          });
+
+          // Store complete user data for the onboarding popup
+          setCompleteUserData({
+            ...user,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            phoneNumber: userData.phoneNumber,
+            nic: userData.nic,
+            address: userData.address,
+            photoURL: user?.avatar || user?.photoURL // Ensure photoURL is preserved
+          });
+          
+          // Check if user has completed onboarding
+          // Be flexible with field checking and handle whitespace
+          const hasUserDetails = !!(
+            (userData.firstName && userData.firstName.trim()) && 
+            (userData.lastName && userData.lastName.trim()) && 
+            (userData.phoneNumber && userData.phoneNumber.trim()) && 
+            (userData.nic && userData.nic.trim())
+          );
+          
+          const hasAddressDetails = !!(userData.address && 
+            (userData.address.street && userData.address.street.trim()) && 
+            (userData.address.city && userData.address.city.trim()) && 
+            (userData.address.district && userData.address.district.trim()) && 
+            (userData.address.province && userData.address.province.trim())
+          );
+          
+          // User needs onboarding if they are missing EITHER user details OR address details
+          // AND onboardingCompleted is not true
+          const needsOnboarding = !userData.onboardingCompleted && (!hasUserDetails || !hasAddressDetails);
+          const isExistingCompleteUser = hasUserDetails && hasAddressDetails;
+            
+          console.log('🔍 Onboarding check details:', {
+            onboardingCompleted: userData.onboardingCompleted,
+            hasUserDetails,
+            hasAddressDetails,
+            isExistingCompleteUser,
+            needsOnboarding
+          });
+          
+          if (needsOnboarding) {
+            console.log('🆕 User needs onboarding');
+            setUserNeedsOnboarding(true);
+            setShowOnboardingPopup(true);
+          } else {
+            console.log('✅ User has completed onboarding');
+            setUserNeedsOnboarding(false);
+            
+            // If this is an existing complete user but onboardingCompleted is not set,
+            // update it in the backend to avoid future checks
+            if (isExistingCompleteUser && !userData.onboardingCompleted) {
+              console.log('🔄 Marking existing complete user as onboarding completed');
+              try {
+                await fetch(`${backendURL}/users/profile`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    uid: user.uid,
+                    onboardingCompleted: true
+                  })
+                });
+                console.log('✅ Updated onboardingCompleted flag for existing user');
+              } catch (error) {
+                console.warn('⚠️ Failed to update onboardingCompleted flag:', error);
+              }
+            }
+          }
+        } else {
+          // User not found in MongoDB, needs onboarding
+          console.log('🆕 User not found in database (status:', response.status, '), needs onboarding');
+          setCompleteUserData({
+            ...user,
+            photoURL: user?.avatar || user?.photoURL // Ensure photoURL is preserved
+          }); // Use basic user data from auth context
+          setUserNeedsOnboarding(true);
+          setShowOnboardingPopup(true);
+        }
+      } catch (error) {
+        console.error('❌ Error checking user onboarding status:', error);
+        // On error, assume user needs onboarding for safety
+        console.log('⚠️ Falling back to showing onboarding popup due to error');
+        setCompleteUserData({
+          ...user,
+          photoURL: user?.avatar || user?.photoURL // Ensure photoURL is preserved
+        }); // Use basic user data from auth context
+        setUserNeedsOnboarding(true);
+        setShowOnboardingPopup(true);
+      }
+    };
+
+    checkUserOnboardingStatus();
+  }, [user]);
+
+  // Handle URL parameters for tab selection
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
-    const fromSignup = urlParams.get('from') === 'signup';
     
-    // Check qualification status from localStorage
-    const hasCompletedQualification = localStorage.getItem('qualification_completed') === 'true';
-    const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-    
-    if (tabParam && ['summary', 'packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
+    if (tabParam && ['packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
-      
-      // Only apply force lock for NEW users coming from signup
-      if (tabParam === 'qualification' && fromSignup) {
-        // FORCE LOCKED STATE for new users coming to qualification tab from signup
-        localStorage.removeItem('qualification_completed');
-        setQualificationCompleted(false);
-        console.log('🔒 FORCED LOCK: New user from signup redirected to qualification tab - tabs will be locked until completion');
-        
-        // Add a flag to prevent any automatic unlocking
-        localStorage.setItem('force_locked_until_manual_completion', 'true');
-      } else if (tabParam === 'qualification' && !fromSignup) {
-        // Existing user visiting qualification tab - don't force lock
-        setQualificationCompleted(hasCompletedQualification);
-        console.log('✅ Existing user visiting qualification tab - no force lock applied');
-      } else {
-        // Other tabs - respect existing qualification state
-        setQualificationCompleted(hasCompletedQualification);
-        if (hasCompletedQualification) {
-          console.log('✅ User accessing other tab with completed qualification');
-        } else if (isForceLocked) {
-          console.log('🔒 User accessing other tab but is force-locked (new user)');
-        } else {
-          console.log('🔒 User accessing other tab without completed qualification - will be blocked');
-        }
-      }
-    } else {
-      // No tab parameter - check if user is force-locked (new user) or existing user
-      if (isForceLocked) {
-        // Check if this is actually a new user or an existing user with stale flag
-        // If user has no from=signup parameter, they're an existing user signing in
-        const isFromSignup = urlParams.get('from') === 'signup';
-        
-        if (!isFromSignup) {
-          // Existing user signing in - clear the force lock flag and allow access
-          localStorage.removeItem('force_locked_until_manual_completion');
-          setQualificationCompleted(true);
-          console.log('✅ No tab parameter - existing user signing in, cleared force lock flag and allowing access to all tabs');
-        } else {
-          // User is force-locked (new user) - keep tabs locked
-          setQualificationCompleted(false);
-          console.log('🔒 No tab parameter - user is force-locked (new user)');
-        }
-      } else {
-        // Existing user - allow access to all tabs regardless of qualification status
-        setQualificationCompleted(true);
-        console.log('✅ No tab parameter - existing user, allowing access to all tabs');
-      }
+      console.log('✅ Tab set from URL parameter:', tabParam);
     }
   }, [location.search]);
 
-  // Monitor qualification state changes
+  // Clean up old qualification system localStorage entries
   useEffect(() => {
-    console.log('🔄 Qualification state changed:', { 
-      qualificationCompleted, 
-      activeTab,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
-  }, [qualificationCompleted, activeTab]);
+    // Remove old qualification system localStorage entries
+    localStorage.removeItem('qualification_completed');
+    localStorage.removeItem('force_locked_until_manual_completion');
+    console.log('🧹 Cleaned up old qualification system localStorage entries');
+  }, []);
 
-  // Periodic check to ensure qualification state is correct for new users
+  // Reset sub-tab when switching top-level service so the sub-nav feels scoped
   useEffect(() => {
-    const interval = setInterval(() => {
-      const localStorageQualification = localStorage.getItem('qualification_completed') === 'true';
-      const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-      
-      // If user is force-locked, ensure tabs stay locked regardless of other state
-      if (isForceLocked && qualificationCompleted) {
-        console.log('🚨 FORCE LOCK VIOLATION: User is force-locked but tabs are unlocked! Forcing locked state.');
-        setQualificationCompleted(false);
-        localStorage.removeItem('qualification_completed'); // Remove any qualification completion
-        return;
-      }
-      
-      // If we're on qualification tab and localStorage says not completed, ensure state is locked
-      if (activeTab === 'qualification' && !localStorageQualification && qualificationCompleted) {
-        console.log('🚨 WARNING: Qualification state mismatch detected! Forcing locked state.');
-        setQualificationCompleted(false);
-      }
-    }, 1000); // Check every second
-
-    return () => clearInterval(interval);
-  }, [activeTab, qualificationCompleted]);
+    setActiveTab('inventory');
+  }, [activeService]);
 
 
 
@@ -291,26 +367,45 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">SLT</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">SLTMOBITEL</h1>
-                  <p className="text-sm text-gray-600">The Connection</p>
-                </div>
+              <a href="/" className="block">
+                <img src="/images/slt-log.jpg" alt="SLT" className="h-10 w-auto rounded-lg object-contain" />
+              </a>
+            </div>
+            {/* Centered main service navigation between logo and title */}
+            <div className="flex-1 flex justify-center">
+              <div className="hidden md:flex items-center space-x-3">
+                {services.map((service) => {
+                  const isSvcActive = activeService === service.name.toLowerCase();
+                  return (
+                    <Button
+                      key={service.name}
+                      variant={isSvcActive ? "default" : "outline"}
+                      className={`group relative overflow-hidden px-5 rounded-xl transition-all duration-300 ${
+                        isSvcActive
+                          ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-white/30'
+                          : 'text-gray-700 bg-white/70 border border-gray-200 hover:bg-white hover:shadow-md'
+                      }`}
+                      style={{height: '44px'}}
+                      onClick={() => setActiveService(service.name.toLowerCase())}
+                    >
+                      <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
+                        {service.icon}
+                      </span>
+                      <span className="ml-2 font-semibold tracking-wide">{service.name}</span>
+                      {isSvcActive && (
+                        <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10"></span>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">My SLT Portal</span>
-              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
-                <span className="text-gray-700 font-medium">0372298622</span>
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              </div>
+              <span className="text-black tracking-normal">SLT Prodigy Hub</span>
               <div 
                 ref={profileTriggerRef}
                 className="relative cursor-pointer"
@@ -349,75 +444,37 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Main Service Navigation */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-2 py-4">
-            {services.map((service) => (
-              <Button
-                key={service.name}
-                variant={service.isActive ? "default" : "outline"}
-                className={`px-6 py-3 ${
-                  service.isActive 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-                onClick={() => setActiveService(service.name.toLowerCase())}
-              >
-                {service.icon}
-                <span className="ml-2">{service.name}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Main Service Navigation moved into header (above) */}
 
-      {/* Second Navigation Bar */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 py-3">
-            {secondNavTabs.map((tab) => {
-              const isForceLocked = localStorage.getItem('force_locked_until_manual_completion') === 'true';
-              const isLocked = isForceLocked && tab.id !== 'qualification';
-              return (
-                <Button
-                  key={tab.id}
-                  variant={activeTab === tab.id ? "default" : "ghost"}
-                  className={`px-4 py-2 ${
-                    activeTab === tab.id 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : isLocked
-                      ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-600 hover:text-blue-700 hover:bg-blue-100'
-                  }`}
-                  onClick={() => handleTabClick(tab.id)}
-                  disabled={isLocked}
-                  title={isLocked ? 'Complete qualification first' : `Go to ${tab.name}`}
-                >
-                  {tab.icon}
-                  <span className="ml-2">{tab.name}</span>
-                  {isLocked && <span className="ml-1 text-xs">🔒</span>}
-                </Button>
-              );
-            })}
+      {/* Tab Navigation: only show when the current service exposes tabs */}
+      {secondNavTabs.length > 0 && (
+        <div className="bg-gray-100 border-t border-b">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center gap-8 h-12">
+              {secondNavTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`text-sm sm:text-base whitespace-nowrap transition-colors ${
+                      isActive
+                        ? 'text-gray-900 font-semibold border-b-2 border-blue-600 pb-0.5'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {tab.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* Qualification Required Alert */}
-      {showQualificationAlert && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Alert className="border-orange-200 bg-orange-50 text-orange-800">
-            <AlertDescription className="text-sm">
-              🔒 Please complete the qualification process first before accessing other tabs. 
-              Complete your address details and infrastructure check in the Qualification tab.
-            </AlertDescription>
-          </Alert>
         </div>
       )}
 
+
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Content */}
         {activeTab === 'summary' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -636,42 +693,34 @@ export default function UserDashboard() {
 
         {/* Other tabs content can be added here */}
         {activeTab === 'inventory' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Inventory</CardTitle>
-                <CardDescription className="text-gray-600">Inventory management features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <InventoryTab />
         )}
 
         {activeTab === 'qualification' && (
-          <QualificationTab onQualificationComplete={handleQualificationComplete} />
+          <QualificationTab 
+            onQualificationComplete={handleQualificationComplete} 
+            user={user}
+          />
         )}
 
         {activeTab === 'customize' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Customize</CardTitle>
-                <CardDescription className="text-gray-600">Customization features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <CustomerCustomizeTab />
         )}
 
         {activeTab === 'messages' && (
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-800">Messages</CardTitle>
-                <CardDescription className="text-gray-600">Messaging features coming soon...</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          <MessagesTab user={user} />
         )}
       </div>
+
+      {/* New User Onboarding Popup */}
+      {completeUserData && (
+        <NewUserOnboardingPopup
+          isOpen={showOnboardingPopup}
+          onClose={handleOnboardingClose}
+          user={completeUserData}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
     </div>
   );
 }
