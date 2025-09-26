@@ -1086,36 +1086,194 @@ export default function InventoryTab() {
           </DialogHeader>
           
           {selectedOrderForView ? (
-            <div className="space-y-6 py-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
-                  <h4 className="text-blue-700 font-bold text-sm">Order ID</h4>
-                  <p className="text-sm font-mono bg-white p-3 rounded-lg border border-blue-200/50 mt-2 shadow-sm">
-                    {selectedOrderForView.id || 'N/A'}
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/50">
-                  <h4 className="text-emerald-700 font-bold text-sm">Status</h4>
-                  <div className="mt-3">
-                    <Badge className={`${selectedOrderForView.state === 'completed' ? 'bg-green-100 text-green-800' : selectedOrderForView.state === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} border px-4 py-2`}>
-                      <span className="capitalize font-semibold">{selectedOrderForView.state || 'unknown'}</span>
-                    </Badge>
+            <div className="space-y-8 py-6">
+              {/* Order Overview Section */}
+              <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900 flex items-center gap-3">
+                    <Package className="w-5 h-5 text-blue-600" />
+                    Order Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
+                      <h4 className="text-blue-700 font-bold text-sm">Order ID</h4>
+                      <p className="text-sm font-mono bg-white p-3 rounded-lg border border-blue-200/50 mt-2 shadow-sm">
+                        {selectedOrderForView.id || 'N/A'}
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/50">
+                      <h4 className="text-emerald-700 font-bold text-sm">Status</h4>
+                      <div className="mt-3">
+                        <Badge className={`${selectedOrderForView.state === 'completed' ? 'bg-green-100 text-green-800' : selectedOrderForView.state === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} border px-4 py-2`}>
+                          <span className="capitalize font-semibold">{selectedOrderForView.state || 'unknown'}</span>
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
+                      <h4 className="text-purple-700 font-bold text-sm">Serial Number</h4>
+                      <p className="text-sm font-mono bg-white p-3 rounded-lg border border-purple-200/50 mt-2 shadow-sm">
+                        AUTO-{selectedOrderForView.id}-1
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/50">
-                  <h4 className="text-amber-700 font-bold text-sm">Product</h4>
-                  <p className="text-sm font-bold text-slate-900 mt-2">
-                    {selectedOrderForView.productOrderItem?.[0]?.productOffering?.name || 'N/A'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50">
-                <h4 className="text-slate-700 font-bold text-sm">Order Date</h4>
-                <p className="text-sm mt-2 p-4 bg-white rounded-lg border border-slate-200/50 shadow-sm">
-                  {selectedOrderForView.orderDate ? new Date(selectedOrderForView.orderDate).toLocaleDateString() : 'N/A'}
-                </p>
-              </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/50">
+                      <h4 className="text-amber-700 font-bold text-sm">Order Date</h4>
+                      <p className="text-sm font-bold text-slate-900 mt-2">
+                        {selectedOrderForView.orderDate ? new Date(selectedOrderForView.orderDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        }) : 'N/A'}
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200/50">
+                      <h4 className="text-cyan-700 font-bold text-sm">Completion Date</h4>
+                      <p className="text-sm font-bold text-slate-900 mt-2">
+                        {selectedOrderForView.completionDate ? new Date(selectedOrderForView.completionDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        }) : 'Not completed yet'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Package Details Section */}
+              <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900 flex items-center gap-3">
+                    <Zap className="w-5 h-5 text-orange-600" />
+                    Package Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const offering = offerings.find(o => o.id === selectedOrderForView.productOrderItem?.[0]?.productOffering?.id);
+                    const packageName = offering?.name || selectedOrderForView.productOrderItem?.[0]?.productOffering?.name || 'Unknown Package';
+                    const packageDescription = offering?.description || 'No description available';
+                    
+                    return (
+                      <div className="space-y-6">
+                        <div className="p-6 rounded-xl bg-gradient-to-br from-orange-50 to-red-50/50 border border-orange-200/50">
+                          <h4 className="text-orange-700 font-bold text-lg mb-3">Package Name</h4>
+                          <p className="text-xl font-bold text-slate-900 mb-2">{packageName}</p>
+                          <p className="text-sm text-slate-600">{packageDescription}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100/50 border border-green-200/50">
+                            <h4 className="text-green-700 font-bold text-sm">Package ID</h4>
+                            <p className="text-sm font-mono bg-white p-3 rounded-lg border border-green-200/50 mt-2 shadow-sm">
+                              {offering?.id || selectedOrderForView.productOrderItem?.[0]?.productOffering?.id || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-100/50 border border-indigo-200/50">
+                            <h4 className="text-indigo-700 font-bold text-sm">Package Type</h4>
+                            <p className="text-sm font-bold text-slate-900 mt-2">
+                              {offering?.category?.name || 'Standard Package'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Package Specifications */}
+                        {offering?.productSpecification && (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-gray-100/50 border border-slate-200/50">
+                            <h4 className="text-slate-700 font-bold text-sm mb-3">Package Specifications</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {(() => {
+                                const spec = offering.productSpecification;
+                                const characteristics = spec?.characteristic || spec?.productSpecCharacteristic || [];
+                                const specs = Array.isArray(characteristics) 
+                                  ? characteristics.slice(0, 6).map((c: any, index: number) => (
+                                      <div key={index} className="bg-white p-3 rounded-lg border border-slate-200/50 shadow-sm">
+                                        <span className="text-xs text-slate-600 font-medium">{c?.name || c?.id || `Feature ${index + 1}`}</span>
+                                        <p className="text-sm font-semibold text-slate-900 mt-1">
+                                          {c?.value || c?.defaultValue || 'Included'}
+                                        </p>
+                                      </div>
+                                    ))
+                                  : [];
+                                return specs.length > 0 ? specs : (
+                                  <div className="col-span-full bg-white p-3 rounded-lg border border-slate-200/50 shadow-sm text-center text-slate-500">
+                                    No specifications available
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+
+              {/* Customer Information Section */}
+              <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900 flex items-center gap-3">
+                    <Cpu className="w-5 h-5 text-green-600" />
+                    Customer Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
+                      <h4 className="text-blue-700 font-bold text-sm">Customer Email</h4>
+                      <p className="text-sm font-bold text-slate-900 mt-2">
+                        {selectedOrderForView.customerDetails?.email || user?.email || 'N/A'}
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
+                      <h4 className="text-purple-700 font-bold text-sm">Order Category</h4>
+                      <p className="text-sm font-bold text-slate-900 mt-2">
+                        {offerings.find(o => o.id === selectedOrderForView.productOrderItem?.[0]?.productOffering?.id)?.category?.name || 'SLT Package'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Additional Order Information */}
+              <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900 flex items-center gap-3">
+                    <ClipboardCheck className="w-5 h-5 text-indigo-600" />
+                    Additional Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                      <span className="text-sm font-medium text-gray-600">Order Processing Time:</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {selectedOrderForView.orderDate && selectedOrderForView.completionDate 
+                          ? `${Math.ceil((new Date(selectedOrderForView.completionDate).getTime() - new Date(selectedOrderForView.orderDate).getTime()) / (1000 * 60 * 60 * 24))} days`
+                          : 'In progress'
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                      <span className="text-sm font-medium text-gray-600">Order Priority:</span>
+                      <Badge className="bg-blue-100 text-blue-800">Standard</Badge>
+                    </div>
+                    <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                      <span className="text-sm font-medium text-gray-600">Service Provider:</span>
+                      <span className="text-sm font-bold text-gray-900">Sri Lanka Telecom</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3">
+                      <span className="text-sm font-medium text-gray-600">Order Source:</span>
+                      <span className="text-sm font-bold text-gray-900">ProdigyHub Portal</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <div className="text-center py-16">
