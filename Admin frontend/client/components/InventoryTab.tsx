@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { productCatalogApi, productOrderingApi } from '@/lib/api';
+import { productCatalogApi, productOrderingApi, eventManagementApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Package, Zap, X, ArrowUpRight, Eye, Trash2, ClipboardCheck, Sliders, MessageSquare, Cpu, AlertTriangle } from 'lucide-react';
 
 type OrderState = 'acknowledged' | 'inProgress' | 'completed' | 'failed' | 'cancelled';
@@ -35,6 +36,7 @@ interface ProductOffering {
 export default function InventoryTab() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<ProductOrder[]>([]);
   const [offerings, setOfferings] = useState<ProductOffering[]>([]);
@@ -42,6 +44,10 @@ export default function InventoryTab() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedOrderForView, setSelectedOrderForView] = useState<ProductOrder | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
@@ -212,6 +218,76 @@ export default function InventoryTab() {
 
     return { connectionType, packageType, dataBundle } as { connectionType?: string; packageType?: string; dataBundle?: string };
   }, [activePackage]);
+
+  // Handler functions for view and delete actions
+  const handleViewOrder = (order: ProductOrder) => {
+    console.log('🔍 Selected order for view:', order);
+    setSelectedOrderForView(order);
+    setIsViewDialogOpen(true);
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    try {
+      console.log('🗑️ Starting deletion for order:', orderId);
+      
+      // Delete the order
+      await productOrderingApi.deleteOrder(orderId);
+      console.log('✅ Order deleted successfully');
+
+      // Create event notification for deletion
+      try {
+        const eventData = {
+          id: `${orderId}-deleted-${Date.now()}`,
+          eventType: 'ProductOrderDeleted',
+          eventTime: new Date().toISOString(),
+          timeOccurred: new Date().toISOString(),
+          correlationId: orderId,
+          domain: 'ProductOrdering',
+          title: 'Order Deletion',
+          description: `Order ${orderId} has been permanently deleted from user inventory`,
+          priority: 'High',
+          source: {
+            id: orderId,
+            type: 'ProductOrder'
+          },
+          event: {
+            orderId: orderId,
+            deletedAt: new Date().toISOString(),
+            action: 'delete',
+            userEmail: user?.email
+          }
+        };
+
+        await eventManagementApi.createEvent(eventData);
+        console.log('📧 Deletion event notification sent');
+      } catch (eventError) {
+        console.warn('⚠️ Failed to send deletion event notification:', eventError);
+      }
+
+      // Update local state
+      setOrders(prev => prev.filter(order => order.id !== orderId));
+      setIsDeleteDialogOpen(false);
+      setOrderToDelete("");
+
+      toast({
+        title: "✅ Order Deleted",
+        description: `Order ${orderId} has been permanently deleted`,
+      });
+
+    } catch (error) {
+      console.error('❌ Delete failed:', error);
+      toast({
+        title: "❌ Delete Failed",
+        description: error instanceof Error ? error.message : 'Failed to delete order',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    setOrderToDelete(orderId);
+    setIsDeleteDialogOpen(true);
+  };
 
   if (loading) {
     return (
@@ -886,9 +962,8 @@ export default function InventoryTab() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                console.log('View details:', order.id);
-                              }}
+                              onClick={() => handleViewOrder(order)}
+                              title="View Order Details"
                               className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group/btn"
                             >
                               <Eye className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
@@ -896,11 +971,8 @@ export default function InventoryTab() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                if (confirm('Are you sure you want to delete this order record?')) {
-                                  console.log('Delete order:', order.id);
-                                }
-                              }}
+                              onClick={() => handleDeleteOrder(order.id)}
+                              title="Delete Order"
                               className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group/btn"
                             >
                               <Trash2 className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
@@ -991,6 +1063,127 @@ export default function InventoryTab() {
               disabled={!!cancellingOrderId}
             >
               {cancellingOrderId ? 'Cancelling...' : 'Submit Cancellation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Order Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-2xl">
+          <DialogHeader className="border-b border-slate-100 pb-6">
+            <DialogTitle className="flex items-center space-x-3 text-2xl">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100">
+                <Package className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                Order Details
+              </span>
+            </DialogTitle>
+            <DialogDescription className="text-slate-600 mt-2">
+              Complete information about this product order
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOrderForView ? (
+            <div className="space-y-6 py-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
+                  <h4 className="text-blue-700 font-bold text-sm">Order ID</h4>
+                  <p className="text-sm font-mono bg-white p-3 rounded-lg border border-blue-200/50 mt-2 shadow-sm">
+                    {selectedOrderForView.id || 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/50">
+                  <h4 className="text-emerald-700 font-bold text-sm">Status</h4>
+                  <div className="mt-3">
+                    <Badge className={`${selectedOrderForView.state === 'completed' ? 'bg-green-100 text-green-800' : selectedOrderForView.state === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} border px-4 py-2`}>
+                      <span className="capitalize font-semibold">{selectedOrderForView.state || 'unknown'}</span>
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/50">
+                  <h4 className="text-amber-700 font-bold text-sm">Product</h4>
+                  <p className="text-sm font-bold text-slate-900 mt-2">
+                    {selectedOrderForView.productOrderItem?.[0]?.productOffering?.name || 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50">
+                <h4 className="text-slate-700 font-bold text-sm">Order Date</h4>
+                <p className="text-sm mt-2 p-4 bg-white rounded-lg border border-slate-200/50 shadow-sm">
+                  {selectedOrderForView.orderDate ? new Date(selectedOrderForView.orderDate).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                <Package className="w-8 h-8 text-slate-400" />
+              </div>
+              <p className="text-slate-500">Loading order details...</p>
+            </div>
+          )}
+          
+          <div className="flex justify-end mt-8 pt-6 border-t border-slate-100">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsViewDialogOpen(false);
+                setSelectedOrderForView(null);
+              }}
+              className="rounded-xl border-slate-200 hover:bg-slate-50 px-8 py-2"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-2xl">
+          <DialogHeader className="pb-6">
+            <DialogTitle className="flex items-center space-x-3 text-xl">
+              <div className="p-2 rounded-xl bg-red-100">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <span>Delete Order</span>
+            </DialogTitle>
+            <DialogDescription className="text-slate-600 mt-2">
+              Are you sure you want to permanently delete order {orderToDelete?.slice(0, 7)}...? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+              <div className="flex items-center space-x-2 text-red-800">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-semibold">Warning</span>
+              </div>
+              <p className="text-red-700 mt-2 text-sm">
+                This will permanently delete the order from your inventory. This action cannot be reversed.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="pt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setOrderToDelete("");
+              }}
+              className="rounded-xl border-slate-200 hover:bg-slate-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => orderToDelete && deleteOrder(orderToDelete)}
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Delete Order
             </Button>
           </DialogFooter>
         </DialogContent>
