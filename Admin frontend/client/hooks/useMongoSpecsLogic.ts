@@ -122,6 +122,23 @@ if ((spec as any).productSpecCharacteristic) {
   // Function to automatically create spec when offering is created
   const createSpecForOffering = async (offeringName: string, offeringCategory: string, offeringDescription: string) => {
     try {
+      // CHECK FOR EXISTING SPEC WITH SAME NAME TO AVOID DUPLICATES
+      try {
+        const existingSpec = mongoSpecs.find((spec: any) => spec.name === offeringName);
+        
+        if (existingSpec) {
+          console.log('✅ Found existing specification with same name, reusing:', existingSpec.id);
+          toast({
+            title: "ℹ️ Existing Spec Found",
+            description: `Specification "${offeringName}" already exists. Reusing existing spec instead of creating duplicate.`,
+          });
+          return existingSpec;
+        }
+      } catch (checkError) {
+        console.warn('⚠️ Could not check for existing specs:', checkError);
+        // Continue with creation if check fails
+      }
+      
       const specData = {
         name: offeringName, // Same name as offering
         description: `Product specification for ${offeringName}. ${offeringDescription}`,

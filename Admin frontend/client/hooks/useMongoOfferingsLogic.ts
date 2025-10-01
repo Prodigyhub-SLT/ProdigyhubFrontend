@@ -283,6 +283,24 @@ export const useMongoOfferingsLogic = () => {
     try {
       console.log('🔄 Auto-creating specification for offering:', offeringName);
       
+      // CHECK FOR EXISTING SPEC WITH SAME NAME TO AVOID DUPLICATES
+      try {
+        const existingSpecs = await productCatalogApi.getSpecifications();
+        const existingSpec = existingSpecs.find((spec: any) => spec.name === offeringName);
+        
+        if (existingSpec) {
+          console.log('✅ Found existing specification with same name, reusing:', existingSpec.id);
+          toast({
+            title: "ℹ️ Existing Spec Found",
+            description: `Specification "${offeringName}" already exists. Linking to existing spec instead of creating duplicate.`,
+          });
+          return existingSpec;
+        }
+      } catch (checkError) {
+        console.warn('⚠️ Could not check for existing specs:', checkError);
+        // Continue with creation if check fails
+      }
+      
       // Get category default characteristics
       const getCategoryDefaultCharacteristics = (category: string) => {
         const baseId = Date.now();
