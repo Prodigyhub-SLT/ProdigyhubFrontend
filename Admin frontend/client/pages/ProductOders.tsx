@@ -16,7 +16,8 @@ import {
   AlertCircle, 
   Plus, 
   Eye, 
-  Search 
+  Search,
+  User
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { productOrderingApi, eventManagementApi } from "@/lib/api";
@@ -530,6 +531,85 @@ export default function ProductOrders({
                   )}
                 </CardContent>
               </Card>
+
+              {/* Customer Details Section */}
+              {((selectedOrderForView as any).customerDetails || selectedOrderForView.relatedParty?.length > 0) && (
+                <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-purple-50/30">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-slate-900 flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-purple-100">
+                        <User className="w-5 h-5 text-purple-600" />
+                      </div>
+                      Customer Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(selectedOrderForView as any).customerDetails ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {(selectedOrderForView as any).customerDetails.name && (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-200/50">
+                            <Label className="text-purple-700 font-bold text-sm">Customer Name</Label>
+                            <p className="text-sm font-semibold text-slate-900 mt-2">
+                              {(selectedOrderForView as any).customerDetails.name}
+                            </p>
+                          </div>
+                        )}
+                        {(selectedOrderForView as any).customerDetails.email && (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-200/50">
+                            <Label className="text-blue-700 font-bold text-sm">Email</Label>
+                            <p className="text-sm font-mono bg-white p-2 rounded-lg border border-blue-200/50 mt-2 shadow-sm">
+                              {(selectedOrderForView as any).customerDetails.email}
+                            </p>
+                          </div>
+                        )}
+                        {(selectedOrderForView as any).customerDetails.phone && (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-white border border-green-200/50">
+                            <Label className="text-green-700 font-bold text-sm">Phone</Label>
+                            <p className="text-sm font-mono bg-white p-2 rounded-lg border border-green-200/50 mt-2 shadow-sm">
+                              {(selectedOrderForView as any).customerDetails.phone}
+                            </p>
+                          </div>
+                        )}
+                        {(selectedOrderForView as any).customerDetails.nic && (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-white border border-amber-200/50">
+                            <Label className="text-amber-700 font-bold text-sm">NIC</Label>
+                            <p className="text-sm font-mono bg-white p-2 rounded-lg border border-amber-200/50 mt-2 shadow-sm">
+                              {(selectedOrderForView as any).customerDetails.nic}
+                            </p>
+                          </div>
+                        )}
+                        {(selectedOrderForView as any).customerDetails.id && (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50">
+                            <Label className="text-slate-700 font-bold text-sm">Customer ID</Label>
+                            <p className="text-sm font-mono bg-white p-2 rounded-lg border border-slate-200/50 mt-2 shadow-sm">
+                              {(selectedOrderForView as any).customerDetails.id}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : selectedOrderForView.relatedParty && selectedOrderForView.relatedParty.length > 0 ? (
+                      <div className="space-y-4">
+                        {selectedOrderForView.relatedParty.map((party, index) => (
+                          <div key={index} className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-200/50">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-purple-700 font-bold text-sm">Name</Label>
+                                <p className="text-sm font-semibold text-slate-900 mt-2">{party.name || 'N/A'}</p>
+                              </div>
+                              <div>
+                                <Label className="text-purple-700 font-bold text-sm">Role</Label>
+                                <Badge className="mt-2 capitalize">{party.role || 'N/A'}</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 text-center py-4">No customer information available</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="border-slate-200/50 shadow-lg rounded-xl bg-gradient-to-br from-white to-slate-50/50">
                 <CardHeader>
