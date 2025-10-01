@@ -456,7 +456,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                           return (
                             <button
                               key={item.href}
-                              onClick={() => handleSearchResultClick('page', item)}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSearchResultClick('page', item);
+                              }}
                               className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-left"
                             >
                               <Icon className="h-4 w-4 text-gray-500" />
@@ -484,7 +487,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                           return (
                             <button
                               key={tab.tab}
-                              onClick={() => handleSearchResultClick('tab', tab)}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSearchResultClick('tab', tab);
+                              }}
                               className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-left"
                             >
                               <Icon className="h-4 w-4 text-blue-600" />
