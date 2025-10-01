@@ -275,6 +275,7 @@ export default function ProductOrders({
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-slate-100/80 via-white to-slate-100/80 border-b border-slate-200/50 hover:bg-slate-100/80">
                   <TableHead className="font-bold text-slate-700 py-4 px-6">Product Name(s)</TableHead>
+                  <TableHead className="hidden xl:table-cell font-bold text-slate-700 py-4 px-6">Customer</TableHead>
                   <TableHead className="font-bold text-slate-700 py-4 px-6">State</TableHead>
                   <TableHead className="hidden md:table-cell font-bold text-slate-700 py-4 px-6 text-center">Priority</TableHead>
                   <TableHead className="hidden lg:table-cell font-bold text-slate-700 py-4 px-6">Order Date</TableHead>
@@ -285,6 +286,12 @@ export default function ProductOrders({
                 {filteredOrders.map((order, index) => {
                   const productNames = getAllProductNames(order);
                   const displayName = getProductNames(order);
+                  
+                  // Get customer info
+                  const customerDetails = (order as any).customerDetails;
+                  const relatedParty = order.relatedParty?.find((p: any) => p.role === 'customer');
+                  const customerName = customerDetails?.name || relatedParty?.name || 'N/A';
+                  const customerEmail = customerDetails?.email || 'N/A';
                   
                   return (
                     <TableRow 
@@ -303,6 +310,19 @@ export default function ProductOrders({
                           {productNames.length > 1 && (
                             <div className="text-xs text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded-full border border-blue-200">
                               {productNames.length} products total
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell py-4 px-6">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-purple-600" />
+                            <span className="font-semibold text-slate-900">{customerName}</span>
+                          </div>
+                          {customerEmail !== 'N/A' && (
+                            <div className="text-xs text-slate-500 font-mono bg-purple-50 inline-block px-2 py-1 rounded-md">
+                              {customerEmail}
                             </div>
                           )}
                         </div>
