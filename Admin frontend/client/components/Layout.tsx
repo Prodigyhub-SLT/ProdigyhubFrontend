@@ -122,8 +122,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [lifecycleEvents, setLifecycleEvents] = useState<OrderEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+
+  // Product Catalog tabs for search
+  const catalogTabs = [
+    { name: 'Offerings', tab: 'offerings', icon: Package, description: 'Product offerings management' },
+    { name: 'Specs', tab: 'specs', icon: BookOpen, description: 'Product specifications' },
+    { name: 'Prices', tab: 'prices', icon: ShoppingCart, description: 'Offers pricing' },
+    { name: 'Categories', tab: 'categories', icon: SettingsIcon, description: 'Category management' },
+    { name: 'Overview', tab: 'overview', icon: Activity, description: 'Catalog overview' }
+  ];
 
   const handleLogout = () => {
     logout();
@@ -140,6 +150,41 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
     return location.pathname.startsWith(href);
   };
+
+  // Search functionality
+  const getSearchResults = () => {
+    if (!searchQuery.trim()) return { pages: [], tabs: [] };
+
+    const query = searchQuery.toLowerCase();
+    
+    // Search through navigation items
+    const matchingPages = filteredNavItems.filter(item =>
+      item.name.toLowerCase().includes(query) ||
+      item.description.toLowerCase().includes(query)
+    );
+
+    // Search through catalog tabs
+    const matchingTabs = catalogTabs.filter(tab =>
+      tab.name.toLowerCase().includes(query) ||
+      tab.description.toLowerCase().includes(query)
+    );
+
+    return { pages: matchingPages, tabs: matchingTabs };
+  };
+
+  const handleSearchResultClick = (type: 'page' | 'tab', item: any) => {
+    if (type === 'page') {
+      navigate(item.href);
+    } else if (type === 'tab') {
+      // Navigate to Product Catalog and set the tab
+      navigate(`/admin/catalog?tab=${item.tab}`);
+    }
+    setSearchQuery('');
+    setShowSearchResults(false);
+  };
+
+  const searchResults = getSearchResults();
+  const hasSearchResults = searchResults.pages.length > 0 || searchResults.tabs.length > 0;
 
   const generateLifecycleEvents = (orders: any[]): OrderEvent[] => {
     const events: OrderEvent[] = [];
@@ -375,11 +420,95 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
                 <Input
                   type="search"
-                  placeholder="Search APIs, orders, events..."
-                  className="pl-10 pr-4"
+                  placeholder="Search pages, tabs, offerings..."
+                  className="pl-10 pr-10"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchResults(e.target.value.trim().length > 0);
+                  }}
+                  onFocus={() => searchQuery.trim() && setShowSearchResults(true)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSearchResults(false);
+                    }}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+
+                {/* Search Results Dropdown */}
+                {showSearchResults && hasSearchResults && (
+                  <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto">
+                    {/* Navigation Pages */}
+                    {searchResults.pages.length > 0 && (
+                      <div className="p-2">
+                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Pages
+                        </div>
+                        {searchResults.pages.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <button
+                              key={item.href}
+                              onClick={() => handleSearchResultClick('page', item)}
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-left"
+                            >
+                              <Icon className="h-4 w-4 text-gray-500" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm text-gray-900">{item.name}</div>
+                                <div className="text-xs text-gray-500 truncate">{item.description}</div>
+                              </div>
+                              {item.badge && (
+                                <Badge variant="secondary" className="text-xs">{item.badge}</Badge>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Product Catalog Tabs */}
+                    {searchResults.tabs.length > 0 && (
+                      <div className="p-2 border-t border-gray-200">
+                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Product Catalog Tabs
+                        </div>
+                        {searchResults.tabs.map((tab) => {
+                          const Icon = tab.icon;
+                          return (
+                            <button
+                              key={tab.tab}
+                              onClick={() => handleSearchResultClick('tab', tab)}
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-left"
+                            >
+                              <Icon className="h-4 w-4 text-blue-600" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm text-gray-900">{tab.name}</div>
+                                <div className="text-xs text-gray-500 truncate">{tab.description}</div>
+                              </div>
+                              <Badge variant="outline" className="text-xs border-blue-200 text-blue-700">
+                                Catalog
+                              </Badge>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* No Results */}
+                {showSearchResults && !hasSearchResults && searchQuery.trim() && (
+                  <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50 p-4 text-center text-sm text-gray-500">
+                    No results found for "{searchQuery}"
+                  </div>
+                )}
               </div>
             </div>
 

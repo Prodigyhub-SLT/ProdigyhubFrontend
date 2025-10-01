@@ -1,5 +1,6 @@
 // ProductCatalogDashboard.tsx - UPDATED WITH AUTO-REFRESH
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,8 @@ import type {
 } from "@shared/product-order-types";
 
 export default function ProductCatalogDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   // Use custom hooks for state management
   const {
     stats,
@@ -75,6 +78,17 @@ export default function ProductCatalogDashboard() {
     setCreateDialogType,
     setActiveTab
   } = useProductCatalogState();
+
+  // Handle URL parameter for tab switching
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['overview', 'offerings', 'specs', 'prices', 'categories'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+      // Clear the URL parameter after setting the tab
+      searchParams.delete('tab');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setActiveTab, setSearchParams]);
 
   // MongoDB Offerings Logic
   const {
