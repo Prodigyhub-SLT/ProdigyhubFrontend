@@ -80,10 +80,13 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
     const offeringStatus = offering.lifecycleStatus || '';
     const offeringCategory = getCategoryLabel(offering.category) || '';
 
-    const matchesSearch = offeringName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // If no search term, only apply status and category filters
+    const matchesSearch = !searchTerm || 
+                         offeringName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          offeringDescription.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || offeringStatus === statusFilter;
     const matchesCategory = categoryFilter === 'all' || offeringCategory === categoryFilter;
+    
     return matchesSearch && matchesStatus && matchesCategory;
   });
 

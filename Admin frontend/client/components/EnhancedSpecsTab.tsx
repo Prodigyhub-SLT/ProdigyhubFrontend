@@ -72,10 +72,13 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
     const specStatus = spec.lifecycleStatus || '';
     const specCategory = spec.category || '';
 
-    const matchesSearch = specName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // If no search term, only apply status and category filters
+    const matchesSearch = !searchTerm ||
+                         specName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          specDescription.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || specStatus === statusFilter;
     const matchesCategory = categoryFilter === 'all' || specCategory === categoryFilter;
+    
     return matchesSearch && matchesStatus && matchesCategory;
   });
 

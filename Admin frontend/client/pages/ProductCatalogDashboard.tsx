@@ -198,13 +198,6 @@ export default function ProductCatalogDashboard() {
     }));
   }, [mongoSpecs, mongoOfferings, setStats]);
 
-  // Clear search term when switching tabs for better UX
-  useEffect(() => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setCategoryFilter('all');
-  }, [activeTab]);
-
   // ENHANCED: Create offering with auto-spec creation and refresh
   const handleCreateOffering = async () => {
     try {
