@@ -69,6 +69,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
   // Ensure mongoOfferings is always an array
   const safeMongoOfferings = Array.isArray(mongoOfferings) ? mongoOfferings : [];
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [offeringToDelete, setOfferingToDelete] = useState<MongoProductOffering | null>(null);
 
   const filteredMongoOfferings = safeMongoOfferings.filter(offering => {
     // Ensure offering has required properties
@@ -229,7 +230,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => deleteMongoOffering(offering.id)}
+                    onClick={() => setOfferingToDelete(offering)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -398,6 +399,53 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete All {safeMongoOfferings.length} Offerings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Single Offering Confirmation Dialog */}
+      <Dialog open={!!offeringToDelete} onOpenChange={(open) => !open && setOfferingToDelete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              Delete Offering
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{offeringToDelete?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                <div className="text-sm text-red-800">
+                  <p className="font-medium mb-1">Warning:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>The offering will be permanently deleted</li>
+                    <li>Linked specification and price will also be deleted</li>
+                    <li>This action cannot be undone</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOfferingToDelete(null)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                if (offeringToDelete) {
+                  deleteMongoOffering(offeringToDelete.id);
+                  setOfferingToDelete(null);
+                }
+              }}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Offering
             </Button>
           </DialogFooter>
         </DialogContent>
