@@ -101,7 +101,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     
     console.log('🔍 Starting filtering with:', { activeTab, filters, broadbandFilters });
     console.log('🔍 Total offerings to filter:', filtered.length);
-    
+
     // Debug: Log all offerings and their detected categories
     console.log('🔍 All offerings with categories:', filtered.map(offering => ({
       name: offering.name,
@@ -365,6 +365,18 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     return 'unknown';
   };
 
+  const getPeoTvSubCategoryGroup = (offering: ProductOffering): 'peocharges' | 'peopackages' | 'other' => {
+    const subCategory = (offering as any).subCategory || '';
+    
+    if (subCategory.toLowerCase().includes('peocharges')) {
+      return 'peocharges';
+    } else if (subCategory.toLowerCase().includes('peopackages')) {
+      return 'peopackages';
+    }
+    
+    return 'other';
+  };
+
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(categoryName.toLowerCase());
     setActiveTab(categoryName.toLowerCase());
@@ -535,7 +547,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                   <SelectValue placeholder="Sub-Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Sub-Categories</SelectItem>
+                  <SelectItem value="all">All PEO-TV Packages</SelectItem>
                   <SelectItem value="peocharges">PEO Charges</SelectItem>
                   <SelectItem value="peopackages">PEO Packages</SelectItem>
                 </SelectContent>
@@ -795,15 +807,250 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           ) : activeTab === 'peo-tv' ? (
             // PEO-TV specific display
             <div className="space-y-10 max-w-6xl mx-auto">
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
-                    <Tv className="w-4 h-4 text-white" />
+              {peoTvFilters.subCategory === 'all' ? (
+                // Grouped display when "All PEO-TV Packages" is selected
+                <>
+                  {/* PEO Charges Section */}
+                  {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').length > 0 && (
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                          <Tv className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900">PEO Charges</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').map((offering) => {
+                          const price = getOfferingPrice(offering);
+                          const category = getOfferingCategory(offering);
+                          const specs = getOfferingSpecs(offering);
+                          
+                          // Extract features and includes from custom attributes
+                          const features = (offering as any).customAttributes?.find((attr: any) => 
+                            attr.name.toLowerCase().includes('feature') || attr.name.toLowerCase().includes('service')
+                          )?.value || '';
+                          const includes = (offering as any).customAttributes?.find((attr: any) => 
+                            attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
+                          )?.value || '';
+                          
+                          return (
+                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-xs flex flex-col">
+                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                    <Tv className="w-6 h-6 text-white" />
+                                  </div>
+                                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                                </div>
+                                <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
+                                <p className="text-xs text-orange-100 opacity-90 mb-3">{offering.description || 'No description available'}</p>
+                              </div>
+
+                              <div className="p-4 bg-white flex-1">
+                                <div className="mb-3">
+                                  <Badge variant="outline" className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                    PEO-TV
+                                  </Badge>
+                                </div>
+                                
+                                {/* Key features */}
+                                {features && (
+                                  <div className="mb-4">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
+                                    <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
+                                      {features}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Included equipment */}
+                                {includes && (
+                                  <div className="mb-4">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
+                                    <div className="space-y-1">
+                                      {includes.split(',').map((item: string, index: number) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                          <span className="text-sm text-gray-600">{item.trim()}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Other custom attributes */}
+                                {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                                  <div className="space-y-2">
+                                    {(offering as any).customAttributes
+                                      .filter((attr: any) => 
+                                        !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
+                                        !attr.name.toLowerCase().includes('feature') &&
+                                        !attr.name.toLowerCase().includes('include') &&
+                                        !attr.name.toLowerCase().includes('equipment') &&
+                                        attr.name.trim() !== '' &&
+                                        attr.value.trim() !== ''
+                                      )
+                                      .map((attr: any, index: number) => (
+                                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                          <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                          <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                        </div>
+                                      ))
+                                    }
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                                <div className="text-center mb-2">
+                                  <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
+                                  <div className="text-2xl font-bold">
+                                    {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleViewSpec(offering)}
+                                  className="w-full text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                                >
+                                  View Details &gt;
+                                </Button>
+                              </div>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* PEO Packages Section */}
+                  {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').length > 0 && (
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                          <Tv className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900">PEO Packages</h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').map((offering) => {
+                          const price = getOfferingPrice(offering);
+                          const category = getOfferingCategory(offering);
+                          const specs = getOfferingSpecs(offering);
+                          
+                          // Extract features and includes from custom attributes
+                          const features = (offering as any).customAttributes?.find((attr: any) => 
+                            attr.name.toLowerCase().includes('feature') || attr.name.toLowerCase().includes('service')
+                          )?.value || '';
+                          const includes = (offering as any).customAttributes?.find((attr: any) => 
+                            attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
+                          )?.value || '';
+                          
+                          return (
+                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-xs flex flex-col">
+                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                    <Tv className="w-6 h-6 text-white" />
+                                  </div>
+                                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                                </div>
+                                <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
+                                <p className="text-xs text-orange-100 opacity-90 mb-3">{offering.description || 'No description available'}</p>
+                              </div>
+
+                              <div className="p-4 bg-white flex-1">
+                                <div className="mb-3">
+                                  <Badge variant="outline" className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                    PEO-TV
+                                  </Badge>
+                                </div>
+                                
+                                {/* Key features */}
+                                {features && (
+                                  <div className="mb-4">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
+                                    <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
+                                      {features}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Included equipment */}
+                                {includes && (
+                                  <div className="mb-4">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
+                                    <div className="space-y-1">
+                                      {includes.split(',').map((item: string, index: number) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                          <span className="text-sm text-gray-600">{item.trim()}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Other custom attributes */}
+                                {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                                  <div className="space-y-2">
+                                    {(offering as any).customAttributes
+                                      .filter((attr: any) => 
+                                        !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
+                                        !attr.name.toLowerCase().includes('feature') &&
+                                        !attr.name.toLowerCase().includes('include') &&
+                                        !attr.name.toLowerCase().includes('equipment') &&
+                                        attr.name.trim() !== '' &&
+                                        attr.value.trim() !== ''
+                                      )
+                                      .map((attr: any, index: number) => (
+                                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                          <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                          <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                        </div>
+                                      ))
+                                    }
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                                <div className="text-center mb-2">
+                                  <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
+                                  <div className="text-2xl font-bold">
+                                    {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                                  </div>
+                                </div>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleViewSpec(offering)}
+                                  className="w-full text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                                >
+                                  View Details &gt;
+                                </Button>
+                              </div>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+                </>
+              ) : (
+                // Single grid display when specific filter is selected
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                      <Tv className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">PEO-TV Packages</h2>
+                    <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">PEO-TV Packages</h2>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredOfferings.map((offering) => {
                     const price = getOfferingPrice(offering);
                     const category = getOfferingCategory(offering);
@@ -904,8 +1151,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                       </Card>
                     );
                   })}
-                </div>
-              </section>
+                  </div>
+                </section>
+              )}
             </div>
           ) : (
             // Regular grid display for other categories
