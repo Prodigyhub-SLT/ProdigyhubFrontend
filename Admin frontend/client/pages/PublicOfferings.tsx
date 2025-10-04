@@ -60,6 +60,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     dataBundle: 'all'
   });
 
+  const [peoTvFilters, setPeoTvFilters] = useState({
+    subCategory: 'all'
+  });
+
   // Spec view modal state
   const [isSpecViewOpen, setIsSpecViewOpen] = useState(false);
   const [selectedOffering, setSelectedOffering] = useState<ProductOffering | null>(null);
@@ -71,7 +75,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
   useEffect(() => {
     filterOfferings();
-  }, [offerings, filters, broadbandFilters, activeTab]);
+  }, [offerings, filters, broadbandFilters, peoTvFilters, activeTab]);
 
   const loadOfferings = async () => {
     try {
@@ -216,6 +220,24 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           const normalizedDataBundle = broadbandFilters.dataBundle.replace(' ', '');
           return categoryDescription.includes(normalizedDataBundle);
         });
+      }
+    }
+
+    // Apply PEO-TV specific filters
+    if (activeTab === 'peo-tv') {
+      console.log('🔍 Applying PEO-TV filters to:', filtered.length, 'offerings');
+      
+      // Sub-category filter (peocharges, peopackages)
+      if (peoTvFilters.subCategory !== 'all') {
+        filtered = filtered.filter(offering => {
+          const subCategory = (offering as any).subCategory || '';
+          const matches = subCategory.toLowerCase().includes(peoTvFilters.subCategory.toLowerCase());
+          if (!matches) {
+            console.log('❌ PEO-TV sub-category filter failed for:', offering.name, 'Expected:', peoTvFilters.subCategory, 'Got:', subCategory);
+          }
+          return matches;
+        });
+        console.log('🔍 After PEO-TV sub-category filter:', filtered.length);
       }
     }
 
@@ -392,6 +414,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         subSubCategory: 'all',
         searchTerm: ''
       });
+      setPeoTvFilters({
+        subCategory: 'all'
+      });
     }
   };
 
@@ -494,6 +519,30 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
              activeTab === 'peo-tv' ? 'PEO-TV Packages' : 'Products'}
           </h1>
         </div>
+
+        {/* PEO-TV Specific Filters */}
+        {activeTab === 'peo-tv' && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="flex flex-wrap gap-3 items-center">
+              <span className="text-sm font-medium text-gray-700">Filter By:</span>
+              
+              {/* Sub-Category Filter */}
+              <Select 
+                value={peoTvFilters.subCategory} 
+                onValueChange={(value) => setPeoTvFilters(prev => ({ ...prev, subCategory: value }))}
+              >
+                <SelectTrigger className="w-48 bg-orange-600 text-white border-orange-600 rounded-full">
+                  <SelectValue placeholder="Sub-Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sub-Categories</SelectItem>
+                  <SelectItem value="peocharges">PEO Charges</SelectItem>
+                  <SelectItem value="peopackages">PEO Packages</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
 
         {/* Broadband Specific Filters */}
         {activeTab === 'broadband' && (
