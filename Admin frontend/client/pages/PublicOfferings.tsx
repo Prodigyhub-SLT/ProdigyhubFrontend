@@ -427,14 +427,14 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       };
     }
     
-    // Default light orange theme for other packages
+    // Default orange theme for other packages
     return {
-      gradient: 'from-orange-300 to-orange-500',
-      shadow: 'shadow-orange-300/10',
-      badge: 'from-orange-300 to-orange-500',
-      bullet: 'bg-orange-300',
+      gradient: 'from-orange-500 to-red-600',
+      shadow: 'shadow-orange-500/10',
+      badge: 'from-orange-500 to-red-600',
+      bullet: 'bg-orange-500',
       features: 'bg-orange-50',
-      hover: 'hover:bg-orange-400'
+      hover: 'hover:bg-orange-600'
     };
   };
 
