@@ -769,7 +769,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     )?.value || '';
                     
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-sm flex flex-col">
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-xs flex flex-col">
                         <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
                           <div className="flex items-center justify-between mb-3">
                             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
