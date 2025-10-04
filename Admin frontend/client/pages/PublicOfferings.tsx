@@ -754,7 +754,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                   <h2 className="text-2xl font-bold text-gray-900">PEO-TV Packages</h2>
                   <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
                   {filteredOfferings.map((offering) => {
                     const price = getOfferingPrice(offering);
                     const category = getOfferingCategory(offering);
@@ -769,56 +769,58 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     )?.value || '';
                     
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-sm flex flex-col">
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl w-80 h-auto flex flex-col">
                         {/* Header with circular badge and service icons */}
                         <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 relative">
-                          <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-start justify-between mb-6">
                             {/* Circular badge */}
-                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                              <Tv className="w-8 h-8 text-white" />
+                            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                              <Tv className="w-10 h-10 text-white" />
                             </div>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold px-3 py-1">ACTIVE</Badge>
                           </div>
                           
-                          <h3 className="text-xl font-bold mb-2">{offering.name}</h3>
-                          <p className="text-sm text-orange-100 opacity-90 mb-4">{offering.description || 'No description available'}</p>
+                          <h3 className="text-2xl font-bold mb-3 leading-tight">{offering.name}</h3>
+                          <p className="text-sm text-orange-100 opacity-90 mb-6 leading-relaxed">{offering.description || 'No description available'}</p>
                           
                           {/* Service icons row */}
-                          <div className="flex items-center gap-4 mb-4">
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-5 h-5 text-white" />
-                              <span className="text-sm text-orange-100">Voice</span>
+                          <div className="flex items-center justify-center gap-6">
+                            <div className="flex flex-col items-center gap-1">
+                              <Phone className="w-6 h-6 text-white" />
+                              <span className="text-xs text-orange-100 font-medium">Voice</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Wifi className="w-5 h-5 text-white" />
-                              <span className="text-sm text-orange-100">Broadband</span>
+                            <div className="flex flex-col items-center gap-1">
+                              <Wifi className="w-6 h-6 text-white" />
+                              <span className="text-xs text-orange-100 font-medium">Broadband</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Tv className="w-5 h-5 text-white" />
-                              <span className="text-sm text-orange-100">PEOTV</span>
+                            <div className="flex flex-col items-center gap-1">
+                              <Tv className="w-6 h-6 text-white" />
+                              <span className="text-xs text-orange-100 font-medium">PEOTV</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Main content area */}
-                        <div className="p-6 bg-white flex-1">
+                        <div className="p-6 bg-white flex-1 min-h-0">
                           {/* Key features */}
                           {features && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
-                              <p className="text-sm text-gray-600 bg-orange-50 p-3 rounded-lg">{features}</p>
+                            <div className="mb-6">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Key Features</h4>
+                              <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                                <p className="text-sm text-gray-700 leading-relaxed">{features}</p>
+                              </div>
                             </div>
                           )}
 
                           {/* Included equipment - Vertical list */}
                           {includes && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
-                              <div className="space-y-2">
+                            <div className="mb-6">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Included Equipment</h4>
+                              <div className="space-y-3">
                                 {includes.split(',').map((item: string, index: number) => (
-                                  <div key={index} className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                    <span className="text-sm text-gray-600">{item.trim()}</span>
+                                  <div key={index} className="flex items-start gap-3">
+                                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <span className="text-sm text-gray-600 leading-relaxed">{item.trim()}</span>
                                   </div>
                                 ))}
                               </div>
@@ -827,7 +829,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                           {/* Other custom attributes - Vertical list */}
                           {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {(offering as any).customAttributes
                                 .filter((attr: any) => 
                                   !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
@@ -838,11 +840,11 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   attr.value.trim() !== ''
                                 )
                                 .map((attr: any, index: number) => (
-                                  <div key={index} className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                    <span className="text-sm text-gray-600">
-                                      <span className="font-medium">{attr.name}:</span> {attr.value}
-                                    </span>
+                                  <div key={index} className="flex items-start gap-3">
+                                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div className="text-sm text-gray-600 leading-relaxed">
+                                      <span className="font-medium text-gray-800">{attr.name}:</span> {attr.value}
+                                    </div>
                                   </div>
                                 ))
                               }
