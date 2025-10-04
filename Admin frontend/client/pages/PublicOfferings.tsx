@@ -754,7 +754,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                   <h2 className="text-2xl font-bold text-gray-900">PEO-TV Packages</h2>
                   <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+                <div className="space-y-6 max-w-4xl mx-auto">
                   {filteredOfferings.map((offering) => {
                     const price = getOfferingPrice(offering);
                     const category = getOfferingCategory(offering);
@@ -769,63 +769,70 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     )?.value || '';
                     
                     return (
-                      <Card key={offering.id} className="hover:shadow-lg transition-all duration-300 overflow-hidden bg-white border border-gray-200 rounded-xl w-72 h-auto flex flex-col">
-                        {/* Header */}
-                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <Card key={offering.id} className="hover:shadow-lg transition-all duration-300 overflow-hidden bg-gradient-to-r from-orange-500 to-red-600 rounded-xl w-full h-32 flex items-center">
+                        {/* Left - Circular Badge */}
+                        <div className="flex-shrink-0 ml-6">
+                          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                            <Tv className="w-8 h-8 text-white" />
+                          </div>
+                        </div>
+
+                        {/* Middle Left - Service Icon */}
+                        <div className="flex-shrink-0 ml-8">
+                          <div className="flex flex-col items-center">
+                            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-2">
                               <Tv className="w-6 h-6 text-white" />
                             </div>
-                            <Badge className="bg-green-500 text-white text-xs px-2 py-1">ACTIVE</Badge>
+                            <span className="text-xs text-white font-medium">PEOTV</span>
                           </div>
-                          <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
-                          <p className="text-xs text-orange-100 mb-3">{offering.description || 'No description available'}</p>
                         </div>
 
-                        {/* Content */}
-                        <div className="p-4 bg-white flex-1">
-                          {/* Key features */}
-                          {features && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
-                              <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
-                                {features}
-                              </div>
+                        {/* Middle Center - Package Info */}
+                        <div className="flex-1 ml-8">
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <h3 className="text-lg font-bold text-white mb-1">{offering.name}</h3>
+                              <p className="text-sm text-orange-100">{offering.description || 'Available for Home or Office'}</p>
                             </div>
-                          )}
-
-                          {/* Included equipment */}
-                          {includes && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
-                              <div className="space-y-1">
-                                {includes.split(',').map((item: string, index: number) => (
-                                  <div key={index} className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-                                    <span className="text-sm text-gray-600">{item.trim()}</span>
-                                  </div>
-                                ))}
-                              </div>
+                            <div className="text-center">
+                              <span className="text-sm text-white font-medium">Home</span>
+                              <span className="text-sm text-white mx-2">OR</span>
+                              <span className="text-sm text-white font-medium">Office</span>
                             </div>
-                          )}
+                          </div>
                         </div>
 
-                        {/* Footer */}
-                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-                          <div className="text-center">
-                            <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
-                            <div className="text-2xl font-bold mb-3">
-                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                        {/* Middle Right - Included Equipment */}
+                        <div className="flex-shrink-0 ml-8">
+                          <div className="text-sm text-white">
+                            <div className="font-medium mb-2">Included Equipment:</div>
+                            <div className="space-y-1">
+                              {includes ? includes.split(',').map((item: string, index: number) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                  <span className="text-xs">{item.trim()}</span>
+                                </div>
+                              )) : (
+                                <div className="text-xs">Fibre ONT, PEOTV STB</div>
+                              )}
                             </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleViewSpec(offering)}
-                              className="w-full text-white hover:bg-orange-600 text-xs py-1"
-                            >
-                              View Details &gt;
-                            </Button>
                           </div>
+                        </div>
+
+                        {/* Right - Pricing */}
+                        <div className="flex-shrink-0 mr-6 text-center">
+                          <div className="text-sm text-orange-100 mb-1">Monthly Rental</div>
+                          <div className="text-2xl font-bold text-white mb-2">
+                            {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewSpec(offering)}
+                            className="text-white hover:bg-white/20 text-xs px-4 py-1 border border-white/30"
+                          >
+                            View Details &gt;
+                          </Button>
                         </div>
                       </Card>
                     );
