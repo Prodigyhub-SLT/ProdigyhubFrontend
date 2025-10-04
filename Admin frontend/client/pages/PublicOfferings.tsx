@@ -377,6 +377,67 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     return 'other';
   };
 
+  const getPeoPackageColors = (offering: ProductOffering) => {
+    const name = offering.name?.toLowerCase() || '';
+    
+    if (name.includes('titanium')) {
+      return {
+        gradient: 'from-gray-600 to-gray-800',
+        shadow: 'shadow-gray-500/10',
+        badge: 'from-gray-500 to-gray-700',
+        bullet: 'bg-gray-500',
+        features: 'bg-gray-50',
+        hover: 'hover:bg-gray-600'
+      };
+    } else if (name.includes('platinum')) {
+      return {
+        gradient: 'from-gray-400 to-gray-600',
+        shadow: 'shadow-gray-400/10',
+        badge: 'from-gray-400 to-gray-600',
+        bullet: 'bg-gray-400',
+        features: 'bg-gray-50',
+        hover: 'hover:bg-gray-500'
+      };
+    } else if (name.includes('gold')) {
+      return {
+        gradient: 'from-yellow-500 to-yellow-700',
+        shadow: 'shadow-yellow-500/10',
+        badge: 'from-yellow-500 to-yellow-700',
+        bullet: 'bg-yellow-500',
+        features: 'bg-yellow-50',
+        hover: 'hover:bg-yellow-600'
+      };
+    } else if (name.includes('silver plus')) {
+      return {
+        gradient: 'from-gray-300 to-gray-500',
+        shadow: 'shadow-gray-300/10',
+        badge: 'from-gray-300 to-gray-500',
+        bullet: 'bg-gray-300',
+        features: 'bg-gray-50',
+        hover: 'hover:bg-gray-400'
+      };
+    } else if (name.includes('silver')) {
+      return {
+        gradient: 'from-gray-200 to-gray-400',
+        shadow: 'shadow-gray-200/10',
+        badge: 'from-gray-200 to-gray-400',
+        bullet: 'bg-gray-200',
+        features: 'bg-gray-50',
+        hover: 'hover:bg-gray-300'
+      };
+    }
+    
+    // Default orange theme for other packages
+    return {
+      gradient: 'from-orange-500 to-red-600',
+      shadow: 'shadow-orange-500/10',
+      badge: 'from-orange-500 to-red-600',
+      bullet: 'bg-orange-500',
+      features: 'bg-orange-50',
+      hover: 'hover:bg-orange-600'
+    };
+  };
+
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(categoryName.toLowerCase());
     setActiveTab(categoryName.toLowerCase());
@@ -825,6 +886,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           const price = getOfferingPrice(offering);
                           const category = getOfferingCategory(offering);
                           const specs = getOfferingSpecs(offering);
+                          const colors = getPeoPackageColors(offering);
                           
                           // Extract features and includes from custom attributes
                           const features = (offering as any).customAttributes?.find((attr: any) => 
@@ -835,8 +897,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           )?.value || '';
                           
                           return (
-                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-xs flex flex-col">
-                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                            <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl max-w-xs flex flex-col`}>
+                              <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                                     <Tv className="w-6 h-6 text-white" />
@@ -844,12 +906,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                                 </div>
                                 <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
-                                <p className="text-xs text-orange-100 opacity-90 mb-3">{offering.description || 'No description available'}</p>
+                                <p className="text-xs text-white/80 opacity-90 mb-3">{offering.description || 'No description available'}</p>
                               </div>
 
                               <div className="p-4 bg-white flex-1">
                                 <div className="mb-3">
-                                  <Badge variant="outline" className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                  <Badge variant="outline" className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm`}>
                                     PEO-TV
                                   </Badge>
                                 </div>
@@ -858,7 +920,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                 {features && (
                                   <div className="mb-4">
                                     <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
-                                    <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
+                                    <div className={`${colors.features} p-3 rounded text-sm text-gray-600`}>
                                       {features}
                                     </div>
                                   </div>
@@ -871,7 +933,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                     <div className="space-y-1">
                                       {includes.split(',').map((item: string, index: number) => (
                                         <div key={index} className="flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                          <div className={`w-1.5 h-1.5 ${colors.bullet} rounded-full`}></div>
                                           <span className="text-sm text-gray-600">{item.trim()}</span>
                                         </div>
                                       ))}
@@ -902,9 +964,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                 )}
                               </div>
 
-                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                              <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
                                 <div className="text-center mb-2">
-                                  <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
+                                  <div className="text-xs text-white/80 mb-1">Monthly Rental</div>
                                   <div className="text-2xl font-bold">
                                     {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                                   </div>
@@ -913,7 +975,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   variant="ghost" 
                                   size="sm" 
                                   onClick={() => handleViewSpec(offering)}
-                                  className="w-full text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                                  className={`w-full text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm`}
                                 >
                                   View Details &gt;
                                 </Button>
@@ -1051,106 +1113,107 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredOfferings.map((offering) => {
-                    const price = getOfferingPrice(offering);
-                    const category = getOfferingCategory(offering);
-                    const specs = getOfferingSpecs(offering);
-                    
-                    // Extract features and includes from custom attributes
-                    const features = (offering as any).customAttributes?.find((attr: any) => 
-                      attr.name.toLowerCase().includes('feature') || attr.name.toLowerCase().includes('service')
-                    )?.value || '';
-                    const includes = (offering as any).customAttributes?.find((attr: any) => 
-                      attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
-                    )?.value || '';
-                    
-                    return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-xs flex flex-col">
-                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                              <Tv className="w-6 h-6 text-white" />
-                            </div>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                {filteredOfferings.map((offering) => {
+                  const price = getOfferingPrice(offering);
+                  const category = getOfferingCategory(offering);
+                  const specs = getOfferingSpecs(offering);
+                  const colors = getPeoPackageColors(offering);
+                  
+                  // Extract features and includes from custom attributes
+                  const features = (offering as any).customAttributes?.find((attr: any) => 
+                    attr.name.toLowerCase().includes('feature') || attr.name.toLowerCase().includes('service')
+                  )?.value || '';
+                  const includes = (offering as any).customAttributes?.find((attr: any) => 
+                    attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
+                  )?.value || '';
+                  
+                  return (
+                    <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl max-w-xs flex flex-col`}>
+                      <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                            <Tv className="w-6 h-6 text-white" />
                           </div>
-                          <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
-                          <p className="text-xs text-orange-100 opacity-90 mb-3">{offering.description || 'No description available'}</p>
+                          <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
                         </div>
+                        <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
+                        <p className="text-xs text-white/80 opacity-90 mb-3">{offering.description || 'No description available'}</p>
+                      </div>
 
-                        <div className="p-4 bg-white flex-1">
-                          <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                              PEO-TV
-                            </Badge>
-                          </div>
-                          
-                          {/* Key features */}
-                          {features && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
-                              <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
-                                {features}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Included equipment */}
-                          {includes && (
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
-                              <div className="space-y-1">
-                                {includes.split(',').map((item: string, index: number) => (
-                                  <div key={index} className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-                                    <span className="text-sm text-gray-600">{item.trim()}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Other custom attributes */}
-                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                            <div className="space-y-2">
-                              {(offering as any).customAttributes
-                                .filter((attr: any) => 
-                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
-                                  !attr.name.toLowerCase().includes('feature') &&
-                                  !attr.name.toLowerCase().includes('include') &&
-                                  !attr.name.toLowerCase().includes('equipment') &&
-                                  attr.name.trim() !== '' &&
-                                  attr.value.trim() !== ''
-                                )
-                                .map((attr: any, index: number) => (
-                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
-                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
-                                  </div>
-                                ))
-                              }
-                            </div>
-                          )}
+                      <div className="p-4 bg-white flex-1">
+                        <div className="mb-3">
+                          <Badge variant="outline" className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm`}>
+                            PEO-TV
+                          </Badge>
                         </div>
-
-                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-                          <div className="text-center mb-2">
-                            <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
-                            <div className="text-2xl font-bold">
-                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                        
+                        {/* Key features */}
+                        {features && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
+                            <div className={`${colors.features} p-3 rounded text-sm text-gray-600`}>
+                              {features}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                          >
-                            View Details &gt;
-                          </Button>
+                        )}
+
+                        {/* Included equipment */}
+                        {includes && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
+                            <div className="space-y-1">
+                              {includes.split(',').map((item: string, index: number) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <div className={`w-1.5 h-1.5 ${colors.bullet} rounded-full`}></div>
+                                  <span className="text-sm text-gray-600">{item.trim()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Other custom attributes */}
+                        {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                          <div className="space-y-2">
+                            {(offering as any).customAttributes
+                              .filter((attr: any) => 
+                                !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
+                                !attr.name.toLowerCase().includes('feature') &&
+                                !attr.name.toLowerCase().includes('include') &&
+                                !attr.name.toLowerCase().includes('equipment') &&
+                                attr.name.trim() !== '' &&
+                                attr.value.trim() !== ''
+                              )
+                              .map((attr: any, index: number) => (
+                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                  <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                  <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                </div>
+                              ))
+                            }
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
+                        <div className="text-center mb-2">
+                          <div className="text-xs text-white/80 mb-1">Monthly Rental</div>
+                          <div className="text-2xl font-bold">
+                            {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                          </div>
                         </div>
-                      </Card>
-                    );
-                  })}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewSpec(offering)}
+                          className={`w-full text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm`}
+                        >
+                          View Details &gt;
+                        </Button>
+                      </div>
+                    </Card>
+                  );
+                })}
                   </div>
                 </section>
               )}
