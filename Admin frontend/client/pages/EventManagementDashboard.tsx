@@ -25,7 +25,8 @@ import {
   Search,
   Calendar,
   ArrowRight,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { eventManagementApi, productOrderingApi } from "@/lib/api";
@@ -96,6 +97,7 @@ export default function EventManagementDashboard() {
   const [stateFilter, setStateFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
+  const [deletedEvents, setDeletedEvents] = useState<Set<string>>(new Set());
   
   const { toast } = useToast();
 
@@ -343,13 +345,31 @@ export default function EventManagementDashboard() {
     }
   };
 
+  const deleteEvent = (eventId: string) => {
+    setDeletedEvents(prev => new Set([...prev, eventId]));
+    toast({
+      title: "Event Deleted",
+      description: "The event has been deleted successfully.",
+    });
+  };
+
+  const deleteAllEvents = () => {
+    const allEventIds = new Set(orderEvents.map(event => event.id));
+    setDeletedEvents(allEventIds);
+    toast({
+      title: "All Events Deleted",
+      description: "All events have been deleted successfully.",
+    });
+  };
+
   const filteredOrderEvents = orderEvents.filter(event => {
     const matchesSearch = event.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesState = stateFilter === 'all' || event.currentState === stateFilter;
     const matchesPriority = priorityFilter === 'all' || event.priority === priorityFilter;
-    return matchesSearch && matchesState && matchesPriority;
+    const notDeleted = !deletedEvents.has(event.id);
+    return matchesSearch && matchesState && matchesPriority && notDeleted;
   });
 
   return (
@@ -426,13 +446,28 @@ export default function EventManagementDashboard() {
           {/* Events Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Product Order Lifecycle Events
-              </CardTitle>
-              <CardDescription>
-                Real-time tracking of order state changes from acknowledgment to completion
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Product Order Lifecycle Events
+                  </CardTitle>
+                  <CardDescription>
+                    Real-time tracking of order state changes from acknowledgment to completion
+                  </CardDescription>
+                </div>
+                {filteredOrderEvents.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={deleteAllEvents}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete All Events
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -456,6 +491,18 @@ export default function EventManagementDashboard() {
                           <Badge className={getStateColor(event.currentState)}>
                             {event.currentState.toUpperCase()}
                           </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteEvent(event.id);
+                            }}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            title="Delete event"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                       
