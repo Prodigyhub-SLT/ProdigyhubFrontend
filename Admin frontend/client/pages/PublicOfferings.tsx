@@ -769,65 +769,54 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     )?.value || '';
                     
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl w-full h-56 flex items-center">
-                        {/* Left - Circular Badge */}
-                        <div className="flex-shrink-0 ml-8">
-                          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-                            <Tv className="w-10 h-10 text-white" />
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl w-full h-64 flex items-center p-8">
+                        {/* Left Section - Large TV Icon */}
+                        <div className="flex-shrink-0 mr-8">
+                          <div className="w-28 h-28 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                            <Tv className="w-14 h-14 text-white" />
                           </div>
                         </div>
 
-                        {/* Middle Left - Service Icons */}
-                        <div className="flex-shrink-0 ml-8">
-                          <div className="flex items-center gap-3 mb-3">
+                        {/* Middle Section - Service Icons and Title */}
+                        <div className="flex-shrink-0 mr-8">
+                          <div className="flex items-center gap-4 mb-4">
                             <Phone className="w-6 h-6 text-white" />
                             <Wifi className="w-6 h-6 text-white" />
                             <Tv className="w-6 h-6 text-white" />
                           </div>
-                          <div className="text-sm text-white font-medium">Voice, Broadband & PEOTV</div>
+                          <div className="text-lg text-white font-semibold mb-2">Voice, Broadband & PEOTV</div>
+                          <h3 className="text-3xl font-bold text-white leading-tight">{offering.name}</h3>
+                          <p className="text-lg text-orange-100 mt-2">{offering.description || 'No monthly rental charge'}</p>
                         </div>
 
-                        {/* Middle Center - Package Info */}
-                        <div className="flex-1 ml-8">
-                          <div className="space-y-3">
-                            <h3 className="text-2xl font-bold text-white">{offering.name}</h3>
-                            <p className="text-base text-orange-100">{offering.description || 'Available for Home or Office'}</p>
-                            
-                            {/* Key Features */}
-                            {features && (
-                              <div className="bg-white/10 p-3 rounded-lg">
-                                <span className="text-sm font-medium text-white">Key Features: </span>
-                                <span className="text-sm text-orange-100">{features}</span>
-                              </div>
-                            )}
-
-                            <div className="flex items-center gap-3 text-sm text-white">
-                              <span className="font-medium">Home</span>
-                              <span>OR</span>
-                              <span className="font-medium">Office</span>
+                        {/* Center Section - Key Features and Equipment */}
+                        <div className="flex-1 flex gap-8">
+                          {/* Key Features Box */}
+                          {features && (
+                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 flex-1">
+                              <h4 className="text-lg font-bold text-white mb-3">Key Features:</h4>
+                              <p className="text-base text-white leading-relaxed">{features}</p>
                             </div>
-                          </div>
-                        </div>
+                          )}
 
-                        {/* Middle Right - Included Equipment */}
-                        <div className="flex-shrink-0 ml-8">
-                          <div className="text-sm text-white">
-                            <div className="font-medium mb-3 text-base">Included Equipment:</div>
-                            <div className="space-y-2">
+                          {/* Included Equipment */}
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold text-white mb-3">Included Equipment:</h4>
+                            <div className="space-y-3">
                               {includes ? includes.split(',').map((item: string, index: number) => (
                                 <div key={index} className="flex items-center gap-3">
-                                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                                  <span className="text-sm">{item.trim()}</span>
+                                  <div className="w-2.5 h-2.5 bg-white rounded-full flex-shrink-0"></div>
+                                  <span className="text-base text-white">{item.trim()}</span>
                                 </div>
                               )) : (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                    <span className="text-sm">Fibre ONT</span>
+                                    <div className="w-2.5 h-2.5 bg-white rounded-full flex-shrink-0"></div>
+                                    <span className="text-base text-white">Fibre ONT</span>
                                   </div>
                                   <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                    <span className="text-sm">PEOTV STB and Telephone</span>
+                                    <div className="w-2.5 h-2.5 bg-white rounded-full flex-shrink-0"></div>
+                                    <span className="text-base text-white">PEOTV STB and Telephone</span>
                                   </div>
                                 </div>
                               )}
@@ -835,17 +824,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           </div>
                         </div>
 
-                        {/* Right - Pricing */}
-                        <div className="flex-shrink-0 mr-8 text-center">
-                          <div className="text-sm text-orange-100 mb-2">Monthly Rental</div>
-                          <div className="text-3xl font-bold text-white mb-4">
+                        {/* Right Section - Pricing and Button */}
+                        <div className="flex-shrink-0 text-center ml-8">
+                          <div className="text-lg text-orange-100 mb-3">Monthly Rental</div>
+                          <div className="text-5xl font-bold text-white mb-6">
                             {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                           </div>
                           <Button 
                             variant="ghost" 
-                            size="sm" 
+                            size="lg" 
                             onClick={() => handleViewSpec(offering)}
-                            className="text-white hover:bg-white/20 text-sm px-6 py-2 border border-white/30 rounded-lg font-medium"
+                            className="text-white hover:bg-white/20 text-lg px-8 py-3 border-2 border-white/30 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
                           >
                             View Details &gt;
                           </Button>
