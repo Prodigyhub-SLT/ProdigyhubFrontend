@@ -769,77 +769,65 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     )?.value || '';
                     
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl w-full h-48 flex items-center">
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl w-full max-w-5xl mx-auto h-40 flex items-center">
                         {/* Left - Circular Badge */}
-                        <div className="flex-shrink-0 ml-8">
-                          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-                            <Tv className="w-10 h-10 text-white" />
+                        <div className="flex-shrink-0 ml-6">
+                          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
+                            <Tv className="w-8 h-8 text-white" />
                           </div>
                         </div>
 
                         {/* Middle Left - Service Icons */}
-                        <div className="flex-shrink-0 ml-8">
-                          <div className="flex flex-col items-center space-y-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <Phone className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <Wifi className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <Tv className="w-5 h-5 text-white" />
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-sm text-white font-medium">Voice, Broadband & PEOTV</span>
-                            </div>
+                        <div className="flex-shrink-0 ml-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Phone className="w-4 h-4 text-white" />
+                            <Wifi className="w-4 h-4 text-white" />
+                            <Tv className="w-4 h-4 text-white" />
                           </div>
+                          <div className="text-xs text-white font-medium">Voice, Broadband & PEOTV</div>
                         </div>
 
                         {/* Middle Center - Package Info */}
-                        <div className="flex-1 ml-8">
-                          <div className="space-y-3">
-                            <div>
-                              <h3 className="text-2xl font-bold text-white mb-2">{offering.name}</h3>
-                              <p className="text-sm text-orange-100 mb-3">{offering.description || 'Available for Home or Office'}</p>
-                            </div>
+                        <div className="flex-1 ml-6">
+                          <div className="space-y-2">
+                            <h3 className="text-xl font-bold text-white">{offering.name}</h3>
+                            <p className="text-sm text-orange-100">{offering.description || 'Available for Home or Office'}</p>
                             
                             {/* Key Features */}
                             {features && (
-                              <div className="bg-white/10 p-3 rounded-lg">
-                                <div className="text-sm font-medium text-white mb-1">Key Features:</div>
-                                <div className="text-sm text-orange-100">{features}</div>
+                              <div className="bg-white/10 p-2 rounded text-xs">
+                                <span className="font-medium text-white">Key Features: </span>
+                                <span className="text-orange-100">{features}</span>
                               </div>
                             )}
 
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm text-white font-medium">Home</span>
-                              <span className="text-sm text-white">OR</span>
-                              <span className="text-sm text-white font-medium">Office</span>
+                            <div className="flex items-center gap-2 text-xs text-white">
+                              <span className="font-medium">Home</span>
+                              <span>OR</span>
+                              <span className="font-medium">Office</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Middle Right - Included Equipment */}
-                        <div className="flex-shrink-0 ml-8">
-                          <div className="text-sm text-white">
-                            <div className="font-medium mb-3 text-lg">Included Equipment:</div>
-                            <div className="space-y-2">
+                        <div className="flex-shrink-0 ml-6">
+                          <div className="text-xs text-white">
+                            <div className="font-medium mb-2">Included Equipment:</div>
+                            <div className="space-y-1">
                               {includes ? includes.split(',').map((item: string, index: number) => (
-                                <div key={index} className="flex items-center gap-3">
-                                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                                  <span className="text-sm">{item.trim()}</span>
+                                <div key={index} className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                  <span className="text-xs">{item.trim()}</span>
                                 </div>
                               )) : (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                    <span className="text-sm">Fibre ONT</span>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    <span className="text-xs">Fibre ONT</span>
                                   </div>
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                    <span className="text-sm">PEOTV STB and Telephone</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    <span className="text-xs">PEOTV STB and Telephone</span>
                                   </div>
                                 </div>
                               )}
@@ -848,16 +836,16 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         </div>
 
                         {/* Right - Pricing */}
-                        <div className="flex-shrink-0 mr-8 text-center">
-                          <div className="text-sm text-orange-100 mb-2">Monthly Rental</div>
-                          <div className="text-3xl font-bold text-white mb-4">
+                        <div className="flex-shrink-0 mr-6 text-center">
+                          <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
+                          <div className="text-2xl font-bold text-white mb-2">
                             {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                           </div>
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => handleViewSpec(offering)}
-                            className="text-white hover:bg-white/20 text-sm px-6 py-2 border border-white/30 rounded-lg font-medium"
+                            className="text-white hover:bg-white/20 text-xs px-4 py-1 border border-white/30 rounded"
                           >
                             View Details &gt;
                           </Button>
