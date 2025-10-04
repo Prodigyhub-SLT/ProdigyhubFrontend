@@ -97,6 +97,14 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     
     console.log('🔍 Starting filtering with:', { activeTab, filters, broadbandFilters });
     console.log('🔍 Total offerings to filter:', filtered.length);
+    
+    // Debug: Log all offerings and their detected categories
+    console.log('🔍 All offerings with categories:', filtered.map(offering => ({
+      name: offering.name,
+      category: offering.category,
+      categoryDescription: (offering as any).categoryDescription,
+      detectedCategory: getOfferingCategory(offering)
+    })));
 
     // Filter by active tab (main category)
     if (activeTab !== 'all') {
@@ -105,6 +113,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         const matches = category.toLowerCase() === activeTab.toLowerCase();
         if (!matches) {
           console.log('❌ Tab filter failed for:', offering.name, 'Expected:', activeTab, 'Got:', category);
+        } else {
+          console.log('✅ Tab filter passed for:', offering.name, 'Category:', category);
         }
         return matches;
       });
@@ -243,17 +253,47 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   };
 
   const getOfferingCategory = (offering: ProductOffering) => {
+    // First, check the category array (this is the most reliable source)
     if (Array.isArray(offering.category) && offering.category.length > 0) {
-      return offering.category[0].name || offering.category[0].id || 'Other';
+      const categoryName = offering.category[0].name || offering.category[0].id || '';
+      // Normalize the category name for comparison
+      const normalizedName = categoryName.toLowerCase().replace(/\s+/g, '');
+      
+      if (normalizedName.includes('broadband')) {
+        return 'Broadband';
+      } else if (normalizedName.includes('peotv') || normalizedName.includes('peo-tv') || normalizedName.includes('peotv')) {
+        return 'PEO-TV';
+      }
+      
+      return categoryName; // Return the original name if it doesn't match our known categories
     } else if (typeof offering.category === 'object' && offering.category) {
-      return (offering.category as any).name || (offering.category as any).id || 'Other';
+      const categoryName = (offering.category as any).name || (offering.category as any).id || '';
+      const normalizedName = categoryName.toLowerCase().replace(/\s+/g, '');
+      
+      if (normalizedName.includes('broadband')) {
+        return 'Broadband';
+      } else if (normalizedName.includes('peotv') || normalizedName.includes('peo-tv') || normalizedName.includes('peotv')) {
+        return 'PEO-TV';
+      }
+      
+      return categoryName;
     } else if (typeof offering.category === 'string') {
+      const normalizedName = offering.category.toLowerCase().replace(/\s+/g, '');
+      
+      if (normalizedName.includes('broadband')) {
+        return 'Broadband';
+      } else if (normalizedName.includes('peotv') || normalizedName.includes('peo-tv') || normalizedName.includes('peotv')) {
+        return 'PEO-TV';
+      }
+      
       return offering.category;
     }
     
-    // Check categoryDescription for PEO-TV offerings
+    // Fallback: Check categoryDescription for PEO-TV offerings
     const categoryDescription = (offering as any).categoryDescription || '';
-    if (categoryDescription.includes('PEOTV') || categoryDescription.includes('PEO-TV')) {
+    if (categoryDescription.toLowerCase().includes('peo tv') || 
+        categoryDescription.toLowerCase().includes('peotv') || 
+        categoryDescription.toLowerCase().includes('peo-tv')) {
       return 'PEO-TV';
     }
     
