@@ -810,18 +810,18 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
               {peoTvFilters.subCategory === 'all' ? (
                 // Grouped display when "All PEO-TV Packages" is selected
                 <>
-                  {/* PEO Charges Section */}
-                  {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').length > 0 && (
+                  {/* PEO Packages Section */}
+                  {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').length > 0 && (
                     <section>
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
                           <Tv className="w-4 h-4 text-white" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900">PEO Charges</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">PEO Packages</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').map((offering) => {
+                        {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').map((offering) => {
                           const price = getOfferingPrice(offering);
                           const category = getOfferingCategory(offering);
                           const specs = getOfferingSpecs(offering);
@@ -925,18 +925,18 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     </section>
                   )}
 
-                  {/* PEO Packages Section */}
-                  {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').length > 0 && (
+                  {/* PEO Charges Section */}
+                  {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').length > 0 && (
                     <section>
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
                           <Tv className="w-4 h-4 text-white" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900">PEO Packages</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">PEO Charges</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').map((offering) => {
+                        {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').map((offering) => {
                           const price = getOfferingPrice(offering);
                           const category = getOfferingCategory(offering);
                           const specs = getOfferingSpecs(offering);
