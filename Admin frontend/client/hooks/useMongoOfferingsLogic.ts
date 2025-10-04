@@ -602,27 +602,62 @@ export const useMongoOfferingsLogic = () => {
       let subSubCategoryValues: string[] = [];
       let categoryDescription = '';
 
+      console.log('🔍 Form data hierarchical category:', formData.hierarchicalCategory);
+      console.log('🔍 Form data subCategory:', formData.subCategory);
+      console.log('🔍 Form data subSubCategory:', formData.subSubCategory);
+
       if (formData.hierarchicalCategory && formData.hierarchicalCategory.subCategories) {
+        console.log('🔍 Processing hierarchical sub-categories:', formData.hierarchicalCategory.subCategories);
+        
         // Extract ALL selected sub-categories and their selected sub-sub-categories
         formData.hierarchicalCategory.subCategories.forEach(subCat => {
-          if (subCat.subCategory && subCat.subSubCategories && subCat.subSubCategories.length > 0) {
+          console.log('🔍 Processing sub-category:', subCat);
+          
+          if (subCat.subCategory) {
             const subCategoryName = subCat.subCategory.name || subCat.subCategory.id || '';
-            const subSubCategoryValue = subCat.subSubCategories[0].name || subCat.subSubCategories[0].id || '';
+            console.log('🔍 Sub-category name:', subCategoryName);
             
-            if (subCategoryName && subSubCategoryValue) {
+            if (subCategoryName) {
               subCategoryNames.push(subCategoryName);
-              subSubCategoryValues.push(subSubCategoryValue);
+              
+              // Handle sub-sub-categories
+              if (subCat.subSubCategories && subCat.subSubCategories.length > 0) {
+                const subSubCategoryValue = subCat.subSubCategories[0].name || subCat.subSubCategories[0].id || '';
+                console.log('🔍 Sub-sub-category value:', subSubCategoryValue);
+                
+                if (subSubCategoryValue) {
+                  subSubCategoryValues.push(subSubCategoryValue);
+                }
+              } else {
+                // If no sub-sub-categories selected, use the sub-category name as fallback
+                subSubCategoryValues.push(subCategoryName);
+              }
             }
           }
         });
       }
 
-      // Fallback to form data if hierarchical data is not available
+      console.log('🔍 Extracted sub-category names:', subCategoryNames);
+      console.log('🔍 Extracted sub-sub-category values:', subSubCategoryValues);
+
+      // Only use fallback if we have absolutely no data
+      if (subCategoryNames.length === 0 && formData.subCategory && formData.subCategory !== 'Other') {
+        subCategoryNames = [formData.subCategory];
+        console.log('🔍 Using form data sub-category as fallback:', formData.subCategory);
+      }
+      if (subSubCategoryValues.length === 0 && formData.subSubCategory && formData.subSubCategory !== 'Other') {
+        subSubCategoryValues = [formData.subSubCategory];
+        console.log('🔍 Using form data sub-sub-category as fallback:', formData.subSubCategory);
+      }
+
+      // Final fallback to "Other" only if we have no data at all
       if (subCategoryNames.length === 0) {
-        subCategoryNames = [formData.subCategory || 'Other'];
+        subCategoryNames = ['Other'];
+        console.log('🔍 Final fallback to Other for sub-category');
       }
       if (subSubCategoryValues.length === 0) {
-        subSubCategoryValues = [formData.subSubCategory || 'Other'];
+        subSubCategoryValues = ['Other'];
+        console.log('🔍 Final fallback to Other for sub-sub-category');
       }
 
       // Create comprehensive category description with all selections
@@ -887,27 +922,62 @@ export const useMongoOfferingsLogic = () => {
       let subSubCategoryValues: string[] = [];
       let categoryDescription = '';
 
+      console.log('🔍 Form data hierarchical category:', formData.hierarchicalCategory);
+      console.log('🔍 Form data subCategory:', formData.subCategory);
+      console.log('🔍 Form data subSubCategory:', formData.subSubCategory);
+
       if (formData.hierarchicalCategory && formData.hierarchicalCategory.subCategories) {
+        console.log('🔍 Processing hierarchical sub-categories:', formData.hierarchicalCategory.subCategories);
+        
         // Extract ALL selected sub-categories and their selected sub-sub-categories
         formData.hierarchicalCategory.subCategories.forEach(subCat => {
-          if (subCat.subCategory && subCat.subSubCategories && subCat.subSubCategories.length > 0) {
+          console.log('🔍 Processing sub-category:', subCat);
+          
+          if (subCat.subCategory) {
             const subCategoryName = subCat.subCategory.name || subCat.subCategory.id || '';
-            const subSubCategoryValue = subCat.subSubCategories[0].name || subCat.subSubCategories[0].id || '';
+            console.log('🔍 Sub-category name:', subCategoryName);
             
-            if (subCategoryName && subSubCategoryValue) {
+            if (subCategoryName) {
               subCategoryNames.push(subCategoryName);
-              subSubCategoryValues.push(subSubCategoryValue);
+              
+              // Handle sub-sub-categories
+              if (subCat.subSubCategories && subCat.subSubCategories.length > 0) {
+                const subSubCategoryValue = subCat.subSubCategories[0].name || subCat.subSubCategories[0].id || '';
+                console.log('🔍 Sub-sub-category value:', subSubCategoryValue);
+                
+                if (subSubCategoryValue) {
+                  subSubCategoryValues.push(subSubCategoryValue);
+                }
+              } else {
+                // If no sub-sub-categories selected, use the sub-category name as fallback
+                subSubCategoryValues.push(subCategoryName);
+              }
             }
           }
         });
       }
 
-      // Fallback to form data if hierarchical data is not available
+      console.log('🔍 Extracted sub-category names:', subCategoryNames);
+      console.log('🔍 Extracted sub-sub-category values:', subSubCategoryValues);
+
+      // Only use fallback if we have absolutely no data
+      if (subCategoryNames.length === 0 && formData.subCategory && formData.subCategory !== 'Other') {
+        subCategoryNames = [formData.subCategory];
+        console.log('🔍 Using form data sub-category as fallback:', formData.subCategory);
+      }
+      if (subSubCategoryValues.length === 0 && formData.subSubCategory && formData.subSubCategory !== 'Other') {
+        subSubCategoryValues = [formData.subSubCategory];
+        console.log('🔍 Using form data sub-sub-category as fallback:', formData.subSubCategory);
+      }
+
+      // Final fallback to "Other" only if we have no data at all
       if (subCategoryNames.length === 0) {
-        subCategoryNames = [formData.subCategory || 'Other'];
+        subCategoryNames = ['Other'];
+        console.log('🔍 Final fallback to Other for sub-category');
       }
       if (subSubCategoryValues.length === 0) {
-        subSubCategoryValues = [formData.subSubCategory || 'Other'];
+        subSubCategoryValues = ['Other'];
+        console.log('🔍 Final fallback to Other for sub-sub-category');
       }
 
       // Create comprehensive category description with all selections
