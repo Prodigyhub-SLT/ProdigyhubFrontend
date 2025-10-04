@@ -41,6 +41,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const [filteredOfferings, setFilteredOfferings] = useState<ProductOffering[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('broadband');
+  const [activeTab, setActiveTab] = useState<string>('broadband');
   
   // Filter states
   const [filters, setFilters] = useState<FilterState>({
@@ -69,7 +70,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
   useEffect(() => {
     filterOfferings();
-  }, [offerings, filters, broadbandFilters]);
+  }, [offerings, filters, broadbandFilters, activeTab]);
 
   const loadOfferings = async () => {
     try {
@@ -93,20 +94,20 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   const filterOfferings = () => {
     let filtered = [...offerings];
     
-    console.log('🔍 Starting filtering with:', { filters, broadbandFilters });
+    console.log('🔍 Starting filtering with:', { activeTab, filters, broadbandFilters });
     console.log('🔍 Total offerings to filter:', filtered.length);
 
-    // Filter by main category
-    if (filters.mainCategory !== 'all') {
+    // Filter by active tab (main category)
+    if (activeTab !== 'all') {
       filtered = filtered.filter(offering => {
         const category = getOfferingCategory(offering);
-        const matches = category.toLowerCase() === filters.mainCategory.toLowerCase();
+        const matches = category.toLowerCase() === activeTab.toLowerCase();
         if (!matches) {
-          console.log('❌ Main category filter failed for:', offering.name, 'Expected:', filters.mainCategory, 'Got:', category);
+          console.log('❌ Tab filter failed for:', offering.name, 'Expected:', activeTab, 'Got:', category);
         }
         return matches;
       });
-      console.log('🔍 After main category filter:', filtered.length);
+      console.log('🔍 After tab filter:', filtered.length);
     }
 
     // Filter by sub category
@@ -249,6 +250,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       return offering.category;
     }
     
+    // Check categoryDescription for PEO-TV offerings
+    const categoryDescription = (offering as any).categoryDescription || '';
+    if (categoryDescription.includes('PEOTV') || categoryDescription.includes('PEO-TV')) {
+      return 'PEO-TV';
+    }
+    
     // Fallback: Check if it's a Broadband offering based on name or description
     const name = (offering.name || '').toLowerCase();
     const description = (offering.description || '').toLowerCase();
@@ -297,6 +304,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(categoryName.toLowerCase());
+    setActiveTab(categoryName.toLowerCase());
     if (categoryName === 'Broadband') {
       setFilters({
         mainCategory: 'Broadband',
@@ -313,6 +321,32 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     } else {
       setFilters({
         mainCategory: categoryName,
+        subCategory: 'all',
+        subSubCategory: 'all',
+        searchTerm: ''
+      });
+    }
+  };
+
+  const handleTabChange = (tabValue: string) => {
+    setActiveTab(tabValue);
+    setSelectedCategory(tabValue);
+    if (tabValue === 'broadband') {
+      setFilters({
+        mainCategory: 'Broadband',
+        subCategory: 'all',
+        subSubCategory: 'all',
+        searchTerm: ''
+      });
+      setBroadbandFilters({
+        connectionType: 'all',
+        packageUsageType: 'all',
+        packageType: 'all',
+        dataBundle: 'all'
+      });
+    } else if (tabValue === 'peo-tv') {
+      setFilters({
+        mainCategory: 'PEO-TV',
         subCategory: 'all',
         subSubCategory: 'all',
         searchTerm: ''
@@ -379,37 +413,28 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
         </div>
       </header>
 
-      {/* Category Navigation */}
+      {/* Tab Navigation */}
       <div className="bg-gradient-to-r from-white/80 via-blue-50/30 to-purple-50/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-30 shadow-lg shadow-blue-500/5">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-2">
-              {categoryNavItems.map((item) => {
-                const Icon = item.icon;
-                const isSelected = selectedCategory === item.name.toLowerCase();
-                return (
-                  <Button
-                    key={item.name}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCategorySelect(item.name)}
-                    className={`whitespace-nowrap font-medium transition-all duration-300 relative group px-4 py-2 min-w-fit rounded-xl ${
-                      isSelected 
-                        ? `bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/25` 
-                        : 'text-gray-700 hover:text-gray-900 hover:bg-white/20 backdrop-blur-sm'
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 mr-2 transition-all duration-300 flex-shrink-0 ${
-                      isSelected ? 'text-white' : `${item.color} group-hover:scale-110 group-hover:rotate-12`
-                    }`} />
-                    <span className="flex-shrink-0">{item.name}</span>
-                    <ChevronDown className={`w-3 h-3 ml-2 transition-all duration-300 flex-shrink-0 ${
-                      isSelected ? 'rotate-180' : ''
-                    }`} />
-                  </Button>
-                );
-              })}
-            </div>
+          <div className="flex items-center justify-center py-4">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-2xl">
+              <TabsList className="grid w-full grid-cols-2 bg-white/50 backdrop-blur-sm border border-white/20">
+                <TabsTrigger 
+                  value="broadband" 
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+                >
+                  <Wifi className="w-4 h-4" />
+                  Broadband
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="peo-tv" 
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+                >
+                  <Tv className="w-4 h-4" />
+                  PEO-TV
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         </div>
       </div>
@@ -421,16 +446,16 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           <div className="text-sm text-gray-600 mb-2">
             <Link to="/" className="hover:text-blue-600">Home</Link>
             <span className="mx-2">»</span>
-            <span>{categoryNavItems.find(item => item.name.toLowerCase() === selectedCategory)?.name || selectedCategory}</span>
+            <span>{activeTab === 'broadband' ? 'Broadband' : activeTab === 'peo-tv' ? 'PEO-TV' : activeTab}</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {selectedCategory === 'broadband' ? 'Broadband Packages' :
-             categoryNavItems.find(item => item.name.toLowerCase() === selectedCategory)?.name + ' Packages' || 'Products'}
+            {activeTab === 'broadband' ? 'Broadband Packages' :
+             activeTab === 'peo-tv' ? 'PEO-TV Packages' : 'Products'}
           </h1>
         </div>
 
         {/* Broadband Specific Filters */}
-        {selectedCategory === 'broadband' && (
+        {activeTab === 'broadband' && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="flex flex-wrap gap-3 items-center">
               <span className="text-sm font-medium text-gray-700">Filter By:</span>
@@ -547,7 +572,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
            </div>
         ) : (
           // Always show grouped display for broadband category
-          (selectedCategory === 'broadband') ? (
+          (activeTab === 'broadband') ? (
             <div className="space-y-10 max-w-6xl mx-auto">
               {/* Group 1: Data/PEOTV & Voice Packages */}
               <section>
@@ -677,8 +702,95 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 </div>
               </section>
             </div>
+          ) : activeTab === 'peo-tv' ? (
+            // PEO-TV specific display
+            <div className="space-y-10 max-w-6xl mx-auto">
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                    <Tv className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">PEO-TV Packages</h2>
+                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredOfferings.map((offering) => {
+                    const price = getOfferingPrice(offering);
+                    const category = getOfferingCategory(offering);
+                    const specs = getOfferingSpecs(offering);
+                    return (
+                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-red-500/10 rounded-2xl max-w-xs flex flex-col">
+                        <div className="bg-gradient-to-r from-red-600 to-pink-800 text-white p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-lg font-bold">{offering.name}</h3>
+                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                          </div>
+                          <p className="text-xs text-red-100 opacity-90">{offering.description || 'No description available'}</p>
+                        </div>
+                        <div className="p-3 bg-white flex-1">
+                          <div className="mb-3">
+                            <Badge variant="outline" className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                              {getOfferingCategory(offering).toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 mb-3">
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <div className="text-xs text-gray-600 mb-1">Connection Type</div>
+                              <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-sm font-medium text-gray-600">Package Type</span>
+                              <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
+                            </div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
+                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                <span className="text-sm font-medium text-gray-600">Data Bundle</span>
+                                <span className="text-sm text-gray-900 font-semibold">
+                                  {(offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance')?.value || 'N/A'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                            <div className="space-y-2">
+                              {(offering as any).customAttributes
+                                .filter((attr: any) => 
+                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
+                                )
+                                .map((attr: any, index: number) => (
+                                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                                    <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-gradient-to-r from-red-600 to-pink-800 text-white p-3 mt-auto">
+                          <div className="text-center mb-2">
+                            <div className="text-xs text-red-100 mb-1">Monthly Rental</div>
+                            <div className="text-2xl font-bold">
+                              {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewSpec(offering)}
+                            className="w-full text-white hover:bg-red-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+                          >
+                            Connection Speed & Terms &gt;
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
           ) : (
-            // Regular grid display
+            // Regular grid display for other categories
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
               {filteredOfferings.map((offering) => {
                 const price = getOfferingPrice(offering);
