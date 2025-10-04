@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Activity, 
   Zap, 
@@ -98,6 +99,10 @@ export default function EventManagementDashboard() {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
   const [deletedEvents, setDeletedEvents] = useState<Set<string>>(new Set());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const { toast } = useToast();
 
@@ -345,21 +350,84 @@ export default function EventManagementDashboard() {
     }
   };
 
-  const deleteEvent = (eventId: string) => {
-    setDeletedEvents(prev => new Set([...prev, eventId]));
-    toast({
-      title: "Event Deleted",
-      description: "The event has been deleted successfully.",
-    });
+  const openDeleteDialog = (eventId: string) => {
+    setEventToDelete(eventId);
+    setIsDeleteDialogOpen(true);
   };
 
-  const deleteAllEvents = () => {
-    const allEventIds = new Set(orderEvents.map(event => event.id));
-    setDeletedEvents(allEventIds);
-    toast({
-      title: "All Events Deleted",
-      description: "All events have been deleted successfully.",
-    });
+  const openDeleteAllDialog = () => {
+    setIsDeleteAllDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setEventToDelete(null);
+  };
+
+  const closeDeleteAllDialog = () => {
+    setIsDeleteAllDialogOpen(false);
+  };
+
+  const deleteEvent = async (eventId: string) => {
+    setIsDeleting(true);
+    try {
+      // Find the event to get the order ID for database deletion
+      const event = orderEvents.find(e => e.id === eventId);
+      if (event) {
+        // Delete from database using the order ID
+        await productOrderingApi.deleteOrder(event.orderId);
+      }
+      
+      // Remove from local state
+      setDeletedEvents(prev => new Set([...prev, eventId]));
+      setOrderEvents(prev => prev.filter(e => e.id !== eventId));
+      
+      toast({
+        title: "Event Deleted",
+        description: "The event has been deleted successfully from the database.",
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete event from database. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      closeDeleteDialog();
+    }
+  };
+
+  const deleteAllEvents = async () => {
+    setIsDeleting(true);
+    try {
+      // Delete all orders from database
+      const deletePromises = orderEvents.map(event => 
+        productOrderingApi.deleteOrder(event.orderId)
+      );
+      await Promise.all(deletePromises);
+      
+      // Clear all events from local state
+      const allEventIds = new Set(orderEvents.map(event => event.id));
+      setDeletedEvents(allEventIds);
+      setOrderEvents([]);
+      
+      toast({
+        title: "All Events Deleted",
+        description: "All events have been deleted successfully from the database.",
+      });
+    } catch (error) {
+      console.error('Error deleting all events:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete some events from database. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      closeDeleteAllDialog();
+    }
   };
 
   const filteredOrderEvents = orderEvents.filter(event => {
@@ -460,7 +528,7 @@ export default function EventManagementDashboard() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={deleteAllEvents}
+                    onClick={openDeleteAllDialog}
                     className="flex items-center gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -496,7 +564,7 @@ export default function EventManagementDashboard() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteEvent(event.id);
+                              openDeleteDialog(event.id);
                             }}
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                             title="Delete event"
@@ -559,6 +627,82 @@ export default function EventManagementDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Delete Event Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Delete Event
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this event? This action cannot be undone and will permanently remove the event from the database.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeDeleteDialog}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => eventToDelete && deleteEvent(eventToDelete)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Event'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete All Events Confirmation Dialog */}
+      <Dialog open={isDeleteAllDialogOpen} onOpenChange={setIsDeleteAllDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Delete All Events
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete all {filteredOrderEvents.length} events? This action cannot be undone and will permanently remove all events from the database.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeDeleteAllDialog}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={deleteAllEvents}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Deleting All...
+                </>
+              ) : (
+                'Delete All Events'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
