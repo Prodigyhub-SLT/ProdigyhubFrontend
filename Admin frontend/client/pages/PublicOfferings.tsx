@@ -769,105 +769,63 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                     )?.value || '';
                     
                     return (
-                      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl w-80 h-auto flex flex-col">
-                        {/* Header with circular badge and service icons */}
-                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 relative">
-                          <div className="flex items-start justify-between mb-6">
-                            {/* Circular badge */}
-                            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30">
-                              <Tv className="w-10 h-10 text-white" />
-                            </div>
-                            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold px-3 py-1">ACTIVE</Badge>
-                          </div>
-                          
-                          <h3 className="text-2xl font-bold mb-3 leading-tight">{offering.name}</h3>
-                          <p className="text-sm text-orange-100 opacity-90 mb-6 leading-relaxed">{offering.description || 'No description available'}</p>
-                          
-                          {/* Service icons row */}
-                          <div className="flex items-center justify-center gap-6">
-                            <div className="flex flex-col items-center gap-1">
-                              <Phone className="w-6 h-6 text-white" />
-                              <span className="text-xs text-orange-100 font-medium">Voice</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
-                              <Wifi className="w-6 h-6 text-white" />
-                              <span className="text-xs text-orange-100 font-medium">Broadband</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
+                      <Card key={offering.id} className="hover:shadow-lg transition-all duration-300 overflow-hidden bg-white border border-gray-200 rounded-xl w-72 h-auto flex flex-col">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                               <Tv className="w-6 h-6 text-white" />
-                              <span className="text-xs text-orange-100 font-medium">PEOTV</span>
                             </div>
+                            <Badge className="bg-green-500 text-white text-xs px-2 py-1">ACTIVE</Badge>
                           </div>
+                          <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
+                          <p className="text-xs text-orange-100 mb-3">{offering.description || 'No description available'}</p>
                         </div>
 
-                        {/* Main content area */}
-                        <div className="p-6 bg-white flex-1 min-h-0">
+                        {/* Content */}
+                        <div className="p-4 bg-white flex-1">
                           {/* Key features */}
                           {features && (
-                            <div className="mb-6">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Key Features</h4>
-                              <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
-                                <p className="text-sm text-gray-700 leading-relaxed">{features}</p>
+                            <div className="mb-4">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
+                              <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
+                                {features}
                               </div>
                             </div>
                           )}
 
-                          {/* Included equipment - Vertical list */}
+                          {/* Included equipment */}
                           {includes && (
-                            <div className="mb-6">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Included Equipment</h4>
-                              <div className="space-y-3">
+                            <div className="mb-4">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
+                              <div className="space-y-1">
                                 {includes.split(',').map((item: string, index: number) => (
-                                  <div key={index} className="flex items-start gap-3">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <span className="text-sm text-gray-600 leading-relaxed">{item.trim()}</span>
+                                  <div key={index} className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                                    <span className="text-sm text-gray-600">{item.trim()}</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           )}
-
-                          {/* Other custom attributes - Vertical list */}
-                          {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                            <div className="space-y-3">
-                              {(offering as any).customAttributes
-                                .filter((attr: any) => 
-                                  !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
-                                  !attr.name.toLowerCase().includes('feature') &&
-                                  !attr.name.toLowerCase().includes('include') &&
-                                  !attr.name.toLowerCase().includes('equipment') &&
-                                  attr.name.trim() !== '' &&
-                                  attr.value.trim() !== ''
-                                )
-                                .map((attr: any, index: number) => (
-                                  <div key={index} className="flex items-start gap-3">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div className="text-sm text-gray-600 leading-relaxed">
-                                      <span className="font-medium text-gray-800">{attr.name}:</span> {attr.value}
-                                    </div>
-                                  </div>
-                                ))
-                              }
-                            </div>
-                          )}
                         </div>
 
-                        {/* Footer with pricing */}
-                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6">
-                          <div className="text-center mb-4">
-                            <div className="text-sm text-orange-100 mb-1">Monthly Rental</div>
-                            <div className="text-3xl font-bold">
+                        {/* Footer */}
+                        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+                          <div className="text-center">
+                            <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
+                            <div className="text-2xl font-bold mb-3">
                               {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                             </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleViewSpec(offering)}
+                              className="w-full text-white hover:bg-orange-600 text-xs py-1"
+                            >
+                              View Details &gt;
+                            </Button>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleViewSpec(offering)}
-                            className="w-full text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20 text-sm"
-                          >
-                            View Details & Terms &gt;
-                          </Button>
                         </div>
                       </Card>
                     );
