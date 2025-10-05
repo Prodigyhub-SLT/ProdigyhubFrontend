@@ -1086,7 +1086,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                                   {/* Right Column - Pricing Badge */}
                                   <div className="flex flex-col items-center justify-center mr-8">
-                                    <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
+                                    <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
                                       <div className="text-xs font-medium mb-1">Monthly</div>
                                       <div className="text-base font-bold">
                                         {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
