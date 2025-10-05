@@ -1037,7 +1037,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   </div>
 
                                   {/* Middle Column - Features and Equipment */}
-                                  <div className="flex-1 space-y-2">
+                                  <div className="flex-1 space-y-2 pl-4">
                                     {/* Description */}
                                     <p className="text-gray-700 text-sm">
                                       {offering.description || 'Applicable for existing Fibre or Megaline connections'}
@@ -1086,9 +1086,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                                   {/* Right Column - Pricing Badge */}
                                   <div className="flex flex-col items-center justify-center">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
-                                      <div className="text-xs font-medium mb-0.5">Monthly</div>
-                                      <div className="text-sm font-bold">
+                                    <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
+                                      <div className="text-xs font-medium mb-1">Monthly</div>
+                                      <div className="text-base font-bold">
                                         {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                                       </div>
                                     </div>
