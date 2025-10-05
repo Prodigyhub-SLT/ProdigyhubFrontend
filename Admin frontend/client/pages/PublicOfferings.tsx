@@ -1027,29 +1027,29 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                               {/* Main Content Area - White Background */}
                               <div className="p-4 bg-white">
-                                <div className="flex items-center gap-6 min-h-[160px]">
-                                  {/* Left Column - PEO-TV Badge and Icon */}
-                                  <div className="flex flex-col items-center justify-center gap-3">
-                                    <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-                                      <Tv className="w-10 h-10 text-white" />
+                                <div className="flex items-start gap-6 min-h-[160px]">
+                                  {/* Left Column - PEO-TV Text and Icon */}
+                                  <div className="flex flex-col gap-3">
+                                    <div>
+                                      <h3 className="text-2xl font-bold text-gray-900">PEOTV</h3>
+                                      <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center mt-2">
+                                        <Tv className="w-8 h-8 text-white" />
+                                      </div>
                                     </div>
-                                    <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full">
-                                      PEO-TV
-                                    </Badge>
                                   </div>
 
                                   {/* Middle Column - Features and Equipment */}
                                   <div className="flex-1 space-y-3">
                                     {/* Description */}
-                                    <p className="text-gray-700 text-sm text-center">
+                                    <p className="text-gray-700 text-sm">
                                       {offering.description || 'Applicable for existing Fibre or Megaline connections'}
                                     </p>
 
                                     {/* Key Features */}
                                     {features && (
                                       <div>
-                                        <h4 className="text-base font-semibold text-gray-800 mb-2 text-center">Key Features</h4>
-                                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 mx-auto text-center">
+                                        <h4 className="text-base font-semibold text-gray-800 mb-2">Key Features</h4>
+                                        <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 w-fit">
                                           <p className="text-gray-700 text-sm">{features}</p>
                                         </div>
                                       </div>
@@ -1058,15 +1058,8 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                     {/* Included Equipment */}
                                     {includes && (
                                       <div>
-                                        <h4 className="text-base font-semibold text-gray-800 mb-2 text-center">Included Equipment</h4>
-                                        <div className="space-y-1">
-                                          {includes.split(',').map((item: string, index: number) => (
-                                            <div key={index} className="flex items-center justify-center gap-2">
-                                              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-                                              <span className="text-gray-700 text-sm">{item.trim()}</span>
-                                            </div>
-                                          ))}
-                                        </div>
+                                        <h4 className="text-base font-semibold text-gray-800 mb-2">Included Equipment</h4>
+                                        <p className="text-gray-700 text-sm">{includes}</p>
                                       </div>
                                     )}
 
