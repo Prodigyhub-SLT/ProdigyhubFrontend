@@ -997,7 +997,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         <h2 className="text-2xl font-bold text-gray-900">PEO Charges</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-6 max-w-6xl mx-auto">
                         {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').map((offering) => {
                           const price = getOfferingPrice(offering);
                           const category = getOfferingCategory(offering);
@@ -1012,88 +1012,119 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           )?.value || '';
                           
                           return (
-                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl max-w-xs flex flex-col">
-                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                    <Tv className="w-6 h-6 text-white" />
+                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-orange-500/10 rounded-2xl">
+                              {/* Top Header - Orange Background */}
+                              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <Badge className="bg-green-500 text-white border-0 text-sm font-semibold px-3 py-1 rounded-full">
+                                      ACTIVE
+                                    </Badge>
                                   </div>
-                                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                                  <h3 className="text-2xl font-bold">{offering.name}</h3>
                                 </div>
-                                <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
-                                <p className="text-xs text-orange-100 opacity-90 mb-3">{offering.description || 'No description available'}</p>
                               </div>
 
-                              <div className="p-4 bg-white flex-1">
-                                <div className="mb-3">
-                                  <Badge variant="outline" className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                                    PEO-TV
-                                  </Badge>
+                              {/* Main Content Area - White Background */}
+                              <div className="p-6 bg-white">
+                                <div className="flex items-start gap-8">
+                                  {/* Left Column - PEO-TV Badge and Icon */}
+                                  <div className="flex flex-col items-center gap-4">
+                                    <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                                      <Tv className="w-8 h-8 text-white" />
+                                    </div>
+                                    <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-sm font-bold px-4 py-2 rounded-full">
+                                      PEO-TV
+                                    </Badge>
+                                  </div>
+
+                                  {/* Middle Column - Features and Equipment */}
+                                  <div className="flex-1 space-y-6">
+                                    {/* Description */}
+                                    <p className="text-gray-700 text-base">
+                                      {offering.description || 'Applicable for existing Fibre or Megaline connections'}
+                                    </p>
+
+                                    {/* Key Features */}
+                                    {features && (
+                                      <div>
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">Key Features</h4>
+                                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                          <p className="text-gray-700">{features}</p>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Included Equipment */}
+                                    {includes && (
+                                      <div>
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">Included Equipment</h4>
+                                        <div className="space-y-2">
+                                          {includes.split(',').map((item: string, index: number) => (
+                                            <div key={index} className="flex items-center gap-3">
+                                              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                              <span className="text-gray-700">{item.trim()}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Other custom attributes */}
+                                    {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                                      <div className="space-y-3">
+                                        {(offering as any).customAttributes
+                                          .filter((attr: any) => 
+                                            !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
+                                            !attr.name.toLowerCase().includes('feature') &&
+                                            !attr.name.toLowerCase().includes('include') &&
+                                            !attr.name.toLowerCase().includes('equipment') &&
+                                            attr.name.trim() !== '' &&
+                                            attr.value.trim() !== ''
+                                          )
+                                          .map((attr: any, index: number) => (
+                                            <div key={index} className="flex justify-between items-center py-3 border-b border-gray-100">
+                                              <span className="text-gray-600 font-medium">{attr.name}</span>
+                                              <span className="text-gray-900 font-semibold">{attr.value}</span>
+                                            </div>
+                                          ))
+                                        }
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Right Column - Pricing Badge */}
+                                  <div className="flex flex-col items-center">
+                                    <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
+                                      <div className="text-xs font-medium mb-1">Monthly Rental</div>
+                                      <div className="text-xl font-bold">
+                                        {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                                
-                                {/* Key features */}
-                                {features && (
-                                  <div className="mb-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
-                                    <div className="bg-orange-50 p-3 rounded text-sm text-gray-600">
-                                      {features}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Included equipment */}
-                                {includes && (
-                                  <div className="mb-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
-                                    <div className="space-y-1">
-                                      {includes.split(',').map((item: string, index: number) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-                                          <span className="text-sm text-gray-600">{item.trim()}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Other custom attributes */}
-                                {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                                  <div className="space-y-2">
-                                    {(offering as any).customAttributes
-                                      .filter((attr: any) => 
-                                        !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
-                                        !attr.name.toLowerCase().includes('feature') &&
-                                        !attr.name.toLowerCase().includes('include') &&
-                                        !attr.name.toLowerCase().includes('equipment') &&
-                                        attr.name.trim() !== '' &&
-                                        attr.value.trim() !== ''
-                                      )
-                                      .map((attr: any, index: number) => (
-                                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                          <span className="text-sm font-medium text-gray-600">{attr.name}</span>
-                                          <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
-                                        </div>
-                                      ))
-                                    }
-                                  </div>
-                                )}
                               </div>
 
+                              {/* Bottom Action Bar - Orange Background */}
                               <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-                                <div className="text-center mb-2">
-                                  <div className="text-xs text-orange-100 mb-1">Monthly Rental</div>
-                                  <div className="text-2xl font-bold">
-                                    {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
-                                  </div>
+                                <div className="flex gap-4">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="lg" 
+                                    onClick={() => handleViewSpec(offering)}
+                                    className="flex-1 text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-3 font-medium border border-white/20"
+                                  >
+                                    View Details
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="lg" 
+                                    onClick={() => handleViewSpec(offering)}
+                                    className="flex-1 text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-3 font-medium border border-white/20"
+                                  >
+                                    View Channels
+                                  </Button>
                                 </div>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => handleViewSpec(offering)}
-                                  className="w-full text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
-                                >
-                                  View Details &gt;
-                                </Button>
                               </div>
                             </Card>
                           );
