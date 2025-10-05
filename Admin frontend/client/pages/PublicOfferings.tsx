@@ -1033,7 +1033,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                     <div className="w-24 h-24 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
                                       <Tv className="w-12 h-12 text-white" />
                                     </div>
-                                    <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-3 py-1 rounded-full">
+                                    <Badge className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full">
                                       PEO-TV
                                     </Badge>
                                   </div>
