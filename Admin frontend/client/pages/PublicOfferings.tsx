@@ -1037,36 +1037,33 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   </div>
 
                                   {/* Middle Column - Features and Equipment */}
-                                  <div className="flex-1 space-y-1">
+                                  <div className="flex-1 space-y-2">
                                     {/* Description */}
-                                    <p className="text-gray-700 text-xs text-center">
+                                    <p className="text-gray-700 text-sm">
                                       {offering.description || 'Applicable for existing Fibre or Megaline connections'}
                                     </p>
 
-                                    {/* Key Features and Equipment on same line */}
-                                    <div className="flex justify-center items-center gap-4">
-                                      {/* Key Features */}
-                                      {features && (
-                                        <div className="text-center">
-                                          <h4 className="text-sm font-semibold text-gray-800 mb-1">Key Features</h4>
-                                          <div className="bg-gray-100 border border-gray-300 rounded p-1.5 mx-auto w-fit">
-                                            <p className="text-gray-700 text-xs">{features}</p>
-                                          </div>
+                                    {/* Key Features */}
+                                    {features && (
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-gray-800 mb-1">Key Features</h4>
+                                        <div className="bg-gray-100 border border-gray-300 rounded p-2 w-fit">
+                                          <p className="text-gray-700 text-sm">{features}</p>
                                         </div>
-                                      )}
+                                      </div>
+                                    )}
 
-                                      {/* Included Equipment */}
-                                      {includes && (
-                                        <div className="text-center">
-                                          <h4 className="text-sm font-semibold text-gray-800 mb-1">Included Equipment</h4>
-                                          <p className="text-gray-700 text-xs">{includes}</p>
-                                        </div>
-                                      )}
-                                    </div>
+                                    {/* Included Equipment */}
+                                    {includes && (
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-gray-800 mb-1">Included Equipment</h4>
+                                        <p className="text-gray-700 text-sm">{includes}</p>
+                                      </div>
+                                    )}
 
                                     {/* Other custom attributes */}
                                     {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                                      <div className="text-center">
+                                      <div className="space-y-1">
                                         {(offering as any).customAttributes
                                           .filter((attr: any) => 
                                             !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
@@ -1077,17 +1074,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                             attr.value.trim() !== ''
                                           )
                                           .map((attr: any, index: number) => (
-                                            <span key={index} className="text-gray-600 font-medium text-xs">
-                                              {attr.name}: <span className="text-gray-900 font-semibold">{attr.value}</span>
-                                              {index < (offering as any).customAttributes.filter((a: any) => 
-                                                !['Connection Type', 'Package Type', 'Data Allowance'].includes(a.name) &&
-                                                !a.name.toLowerCase().includes('feature') &&
-                                                !a.name.toLowerCase().includes('include') &&
-                                                !a.name.toLowerCase().includes('equipment') &&
-                                                a.name.trim() !== '' &&
-                                                a.value.trim() !== ''
-                                              ).length - 1 && ' • '}
-                                            </span>
+                                            <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100">
+                                              <span className="text-gray-600 font-medium text-xs">{attr.name}</span>
+                                              <span className="text-gray-900 font-semibold text-xs">{attr.value}</span>
+                                            </div>
                                           ))
                                         }
                                       </div>
