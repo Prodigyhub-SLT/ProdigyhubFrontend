@@ -1029,7 +1029,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                               <div className="p-3 bg-white">
                                 <div className="flex items-center gap-4 h-44">
                                   {/* Left Column - PEO-TV Text and Icon */}
-                                  <div className="flex flex-col items-center gap-1">
+                                  <div className="flex flex-col items-center gap-1 ml-6">
                                     <h3 className="text-2xl font-bold text-gray-900">PEOTV</h3>
                                     <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center">
                                       <Tv className="w-8 h-8 text-white" />
