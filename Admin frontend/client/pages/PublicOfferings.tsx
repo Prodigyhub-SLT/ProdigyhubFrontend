@@ -391,12 +391,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       };
     } else if (name.includes('platinum')) {
       return {
-        gradient: 'from-pink-400 to-purple-600',
-        shadow: 'shadow-pink-400/10',
-        badge: 'from-pink-400 to-purple-600',
-        bullet: 'bg-pink-400',
-        features: 'bg-pink-50',
-        hover: 'hover:bg-pink-500'
+        gradient: 'from-pink-500 to-purple-700',
+        shadow: 'shadow-pink-500/20',
+        badge: 'from-pink-500 to-purple-700',
+        bullet: 'bg-pink-500',
+        features: 'bg-pink-100',
+        hover: 'hover:bg-pink-600'
       };
     } else if (name.includes('gold')) {
       return {
