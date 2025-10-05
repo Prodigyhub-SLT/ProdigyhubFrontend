@@ -1049,7 +1049,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                     {features && (
                                       <div>
                                         <h4 className="text-lg font-semibold text-gray-800 mb-3">Key Features</h4>
-                                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 w-fit">
                                           <p className="text-gray-700">{features}</p>
                                         </div>
                                       </div>
