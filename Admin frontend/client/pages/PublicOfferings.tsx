@@ -1027,9 +1027,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                               {/* Main Content Area - White Background */}
                               <div className="p-6 bg-white">
-                                <div className="flex items-start gap-8">
+                                <div className="flex items-center gap-8 min-h-[300px]">
                                   {/* Left Column - PEO-TV Badge and Icon */}
-                                  <div className="flex flex-col items-center gap-4">
+                                  <div className="flex flex-col items-center justify-center gap-4">
                                     <div className="w-24 h-24 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
                                       <Tv className="w-12 h-12 text-white" />
                                     </div>
@@ -1094,7 +1094,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   </div>
 
                                   {/* Right Column - Pricing Badge */}
-                                  <div className="flex flex-col items-center justify-center h-full">
+                                  <div className="flex flex-col items-center justify-center">
                                     <div className="w-40 h-40 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
                                       <div className="text-sm font-medium mb-2">Monthly Rental</div>
                                       <div className="text-2xl font-bold">
