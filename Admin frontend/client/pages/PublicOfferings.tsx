@@ -409,12 +409,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       };
     } else if (name.includes('silver plus')) {
       return {
-        gradient: 'from-gray-300 to-gray-500',
-        shadow: 'shadow-gray-300/10',
-        badge: 'from-gray-300 to-gray-500',
-        bullet: 'bg-gray-300',
+        gradient: 'from-gray-400 to-gray-600',
+        shadow: 'shadow-gray-400/10',
+        badge: 'from-gray-400 to-gray-600',
+        bullet: 'bg-gray-400',
         features: 'bg-gray-50',
-        hover: 'hover:bg-gray-400'
+        hover: 'hover:bg-gray-500'
       };
     } else if (name.includes('silver')) {
       return {
