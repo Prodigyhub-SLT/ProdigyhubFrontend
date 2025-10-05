@@ -997,7 +997,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         <h2 className="text-2xl font-bold text-gray-900">PEO Charges</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
-                      <div className="space-y-6 max-w-6xl mx-auto">
+                      <div className="space-y-6 max-w-4xl mx-auto">
                         {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peocharges').map((offering) => {
                           const price = getOfferingPrice(offering);
                           const category = getOfferingCategory(offering);
