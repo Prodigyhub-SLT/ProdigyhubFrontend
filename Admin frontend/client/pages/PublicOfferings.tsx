@@ -1026,44 +1026,47 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                               </div>
 
                               {/* Main Content Area - White Background */}
-                              <div className="p-4 bg-white">
-                                <div className="flex items-center gap-6 h-32">
+                              <div className="p-3 bg-white">
+                                <div className="flex items-center gap-4 h-24">
                                   {/* Left Column - PEO-TV Text and Icon */}
-                                  <div className="flex flex-col items-center gap-2">
-                                    <h3 className="text-2xl font-bold text-gray-900">PEOTV</h3>
-                                    <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center">
-                                      <Tv className="w-8 h-8 text-white" />
+                                  <div className="flex flex-col items-center gap-1">
+                                    <h3 className="text-xl font-bold text-gray-900">PEOTV</h3>
+                                    <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center">
+                                      <Tv className="w-6 h-6 text-white" />
                                     </div>
                                   </div>
 
                                   {/* Middle Column - Features and Equipment */}
-                                  <div className="flex-1 space-y-2">
+                                  <div className="flex-1 space-y-1">
                                     {/* Description */}
-                                    <p className="text-gray-700 text-sm text-center">
+                                    <p className="text-gray-700 text-xs text-center">
                                       {offering.description || 'Applicable for existing Fibre or Megaline connections'}
                                     </p>
 
-                                    {/* Key Features */}
-                                    {features && (
-                                      <div className="text-center">
-                                        <h4 className="text-base font-semibold text-gray-800 mb-1">Key Features</h4>
-                                        <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 mx-auto w-fit">
-                                          <p className="text-gray-700 text-sm">{features}</p>
+                                    {/* Key Features and Equipment on same line */}
+                                    <div className="flex justify-center items-center gap-4">
+                                      {/* Key Features */}
+                                      {features && (
+                                        <div className="text-center">
+                                          <h4 className="text-sm font-semibold text-gray-800 mb-1">Key Features</h4>
+                                          <div className="bg-gray-100 border border-gray-300 rounded p-1.5 mx-auto w-fit">
+                                            <p className="text-gray-700 text-xs">{features}</p>
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
 
-                                    {/* Included Equipment */}
-                                    {includes && (
-                                      <div className="text-center">
-                                        <h4 className="text-base font-semibold text-gray-800 mb-1">Included Equipment</h4>
-                                        <p className="text-gray-700 text-sm">{includes}</p>
-                                      </div>
-                                    )}
+                                      {/* Included Equipment */}
+                                      {includes && (
+                                        <div className="text-center">
+                                          <h4 className="text-sm font-semibold text-gray-800 mb-1">Included Equipment</h4>
+                                          <p className="text-gray-700 text-xs">{includes}</p>
+                                        </div>
+                                      )}
+                                    </div>
 
                                     {/* Other custom attributes */}
                                     {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                                      <div className="space-y-1 text-center">
+                                      <div className="text-center">
                                         {(offering as any).customAttributes
                                           .filter((attr: any) => 
                                             !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
@@ -1074,10 +1077,17 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                             attr.value.trim() !== ''
                                           )
                                           .map((attr: any, index: number) => (
-                                            <div key={index} className="flex justify-center items-center gap-2">
-                                              <span className="text-gray-600 font-medium text-sm">{attr.name}:</span>
-                                              <span className="text-gray-900 font-semibold text-sm">{attr.value}</span>
-                                            </div>
+                                            <span key={index} className="text-gray-600 font-medium text-xs">
+                                              {attr.name}: <span className="text-gray-900 font-semibold">{attr.value}</span>
+                                              {index < (offering as any).customAttributes.filter((a: any) => 
+                                                !['Connection Type', 'Package Type', 'Data Allowance'].includes(a.name) &&
+                                                !a.name.toLowerCase().includes('feature') &&
+                                                !a.name.toLowerCase().includes('include') &&
+                                                !a.name.toLowerCase().includes('equipment') &&
+                                                a.name.trim() !== '' &&
+                                                a.value.trim() !== ''
+                                              ).length - 1 && ' • '}
+                                            </span>
                                           ))
                                         }
                                       </div>
@@ -1086,9 +1096,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                                   {/* Right Column - Pricing Badge */}
                                   <div className="flex flex-col items-center justify-center">
-                                    <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
-                                      <div className="text-xs font-medium mb-1">Monthly Rental</div>
-                                      <div className="text-lg font-bold">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
+                                      <div className="text-xs font-medium mb-0.5">Monthly</div>
+                                      <div className="text-sm font-bold">
                                         {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
                                       </div>
                                     </div>
