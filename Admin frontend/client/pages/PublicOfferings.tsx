@@ -300,7 +300,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       
       return categoryName;
     } else if (typeof offering.category === 'string') {
-      const normalizedName = offering.category.toLowerCase().replace(/\s+/g, '');
+      const normalizedName = (offering.category as string).toLowerCase().replace(/\s+/g, '');
       
       if (normalizedName.includes('broadband')) {
         return 'Broadband';
