@@ -1027,7 +1027,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                               {/* Main Content Area - White Background */}
                               <div className="p-3 bg-white">
-                                <div className="flex items-center gap-4 h-36">
+                                <div className="flex items-center gap-4 h-40">
                                   {/* Left Column - PEO-TV Text and Icon */}
                                   <div className="flex flex-col items-center gap-1">
                                     <h3 className="text-xl font-bold text-gray-900">PEOTV</h3>
