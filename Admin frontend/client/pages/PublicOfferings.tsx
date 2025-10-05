@@ -1037,7 +1037,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                   </div>
 
                                   {/* Middle Column - Features and Equipment */}
-                                  <div className="flex-1 space-y-2 pl-4">
+                                  <div className="flex-1 space-y-2 pl-8">
                                     {/* Description */}
                                     <p className="text-gray-700 text-sm">
                                       {offering.description || 'Applicable for existing Fibre or Megaline connections'}
