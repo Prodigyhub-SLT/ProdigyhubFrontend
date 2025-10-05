@@ -382,45 +382,45 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     
     if (name.includes('titanium')) {
       return {
-        gradient: 'from-gray-600 to-gray-800',
+        background: 'bg-gray-600',
         shadow: 'shadow-gray-500/10',
-        badge: 'from-gray-500 to-gray-700',
+        badge: 'bg-gray-500',
         bullet: 'bg-gray-500',
         features: 'bg-gray-50',
-        hover: 'hover:bg-gray-600'
+        hover: 'hover:bg-gray-700'
       };
     } else if (name.includes('platinum')) {
       return {
-        gradient: 'from-pink-500 to-purple-700',
+        background: 'bg-pink-500',
         shadow: 'shadow-pink-500/20',
-        badge: 'from-pink-500 to-purple-700',
+        badge: 'bg-pink-500',
         bullet: 'bg-pink-500',
         features: 'bg-pink-100',
         hover: 'hover:bg-pink-600'
       };
     } else if (name.includes('gold')) {
       return {
-        gradient: 'from-yellow-500 to-yellow-700',
+        background: 'bg-yellow-500',
         shadow: 'shadow-yellow-500/10',
-        badge: 'from-yellow-500 to-yellow-700',
+        badge: 'bg-yellow-500',
         bullet: 'bg-yellow-500',
         features: 'bg-yellow-50',
         hover: 'hover:bg-yellow-600'
       };
     } else if (name.includes('silver plus')) {
       return {
-        gradient: 'from-gray-400 to-gray-600',
+        background: 'bg-gray-400',
         shadow: 'shadow-gray-400/10',
-        badge: 'from-gray-400 to-gray-600',
+        badge: 'bg-gray-400',
         bullet: 'bg-gray-400',
         features: 'bg-gray-50',
         hover: 'hover:bg-gray-500'
       };
     } else if (name.includes('silver')) {
       return {
-        gradient: 'from-gray-400 to-gray-600',
+        background: 'bg-gray-400',
         shadow: 'shadow-gray-400/10',
-        badge: 'from-gray-400 to-gray-600',
+        badge: 'bg-gray-400',
         bullet: 'bg-gray-400',
         features: 'bg-gray-50',
         hover: 'hover:bg-gray-500'
@@ -429,9 +429,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     
     // Default orange theme for other packages
     return {
-      gradient: 'from-orange-500 to-red-600',
+      background: 'bg-orange-500',
       shadow: 'shadow-orange-500/10',
-      badge: 'from-orange-500 to-red-600',
+      badge: 'bg-orange-500',
       bullet: 'bg-orange-500',
       features: 'bg-orange-50',
       hover: 'hover:bg-orange-600'
@@ -898,7 +898,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           
                           return (
                             <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl max-w-xs flex flex-col`}>
-                              <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
+                              <div className={`${colors.background} text-white p-4`}>
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                                     <Tv className="w-6 h-6 text-white" />
@@ -911,7 +911,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                               <div className="p-4 bg-white flex-1">
                                 <div className="mb-3">
-                                  <Badge variant="outline" className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm`}>
+                                  <Badge variant="outline" className={`${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm`}>
                                     PEO-TV
                                   </Badge>
                                 </div>
@@ -964,7 +964,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                 )}
                               </div>
 
-                              <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
+                              <div className={`${colors.background} text-white p-4`}>
                                 <div className="text-center mb-2">
                                   <div className="text-xs text-white/80 mb-1">Monthly Rental</div>
                                   <div className="text-2xl font-bold">
@@ -1151,7 +1151,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                   
                   return (
                     <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl max-w-xs flex flex-col`}>
-                      <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
+                      <div className={`${colors.background} text-white p-4`}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                             <Tv className="w-6 h-6 text-white" />
@@ -1217,7 +1217,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         )}
                       </div>
 
-                      <div className={`bg-gradient-to-r ${colors.gradient} text-white p-4`}>
+                      <div className={`${colors.background} text-white p-4`}>
                         <div className="text-center mb-2">
                           <div className="text-xs text-white/80 mb-1">Monthly Rental</div>
                           <div className="text-2xl font-bold">
