@@ -391,12 +391,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       };
     } else if (name.includes('platinum')) {
       return {
-        gradient: 'from-[rgba(37,150,190,0.9)] to-[rgba(37,150,190,1)]',
-        shadow: 'shadow-blue-400/10',
-        badge: 'from-[rgba(37,150,190,0.8)] to-[rgba(37,150,190,1)]',
-        bullet: 'bg-[rgba(37,150,190,0.8)]',
-        features: 'bg-blue-50',
-        hover: 'hover:bg-[rgba(37,150,190,0.8)]'
+        gradient: 'from-pink-400 to-purple-600',
+        shadow: 'shadow-pink-400/10',
+        badge: 'from-pink-400 to-purple-600',
+        bullet: 'bg-pink-400',
+        features: 'bg-pink-50',
+        hover: 'hover:bg-pink-500'
       };
     } else if (name.includes('gold')) {
       return {
