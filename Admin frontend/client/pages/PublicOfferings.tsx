@@ -382,56 +382,65 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
     
     if (name.includes('titanium')) {
       return {
-        background: 'bg-gray-600',
-        shadow: 'shadow-gray-500/10',
-        badge: 'bg-gray-500',
-        bullet: 'bg-gray-500',
-        features: 'bg-gray-50',
-        hover: 'hover:bg-gray-700'
+        // Metallic Titanium look
+        gradient: 'from-zinc-600 to-zinc-800',
+        background: 'bg-gradient-to-r from-zinc-600 to-zinc-800',
+        shadow: 'shadow-zinc-700/20',
+        badge: 'from-zinc-500 to-zinc-700',
+        bullet: 'bg-zinc-600',
+        features: 'bg-zinc-50',
+        hover: 'hover:bg-zinc-700'
       };
     } else if (name.includes('platinum')) {
       return {
-        background: 'bg-[#471874]',
-        shadow: 'shadow-[#471874]/20',
-        badge: 'bg-[#471874]',
-        bullet: 'bg-[#471874]',
+        // Premium purple/indigo gradient
+        gradient: 'from-[#5c2399] to-[#3b1361]',
+        background: 'bg-gradient-to-r from-[#5c2399] to-[#3b1361]',
+        shadow: 'shadow-[#5c2399]/20',
+        badge: 'from-[#5c2399] to-[#3b1361]',
+        bullet: 'bg-[#5c2399]',
         features: 'bg-purple-50',
         hover: 'hover:bg-[#3a1360]'
       };
     } else if (name.includes('gold')) {
       return {
-        background: 'bg-yellow-500',
-        shadow: 'shadow-yellow-500/10',
-        badge: 'bg-yellow-500',
-        bullet: 'bg-yellow-500',
-        features: 'bg-yellow-50',
-        hover: 'hover:bg-yellow-600'
+        // Gold gradient
+        gradient: 'from-amber-400 to-amber-600',
+        background: 'bg-gradient-to-r from-amber-400 to-amber-600',
+        shadow: 'shadow-amber-500/20',
+        badge: 'from-amber-400 to-amber-600',
+        bullet: 'bg-amber-500',
+        features: 'bg-amber-50',
+        hover: 'hover:bg-amber-600'
       };
     } else if (name.includes('silver plus')) {
       return {
-        background: 'bg-gray-400',
-        shadow: 'shadow-gray-400/10',
-        badge: 'bg-gray-400',
-        bullet: 'bg-gray-400',
-        features: 'bg-gray-50',
-        hover: 'hover:bg-gray-500'
+        gradient: 'from-slate-300 to-slate-500',
+        background: 'bg-gradient-to-r from-slate-300 to-slate-500',
+        shadow: 'shadow-slate-500/20',
+        badge: 'from-slate-300 to-slate-500',
+        bullet: 'bg-slate-400',
+        features: 'bg-slate-50',
+        hover: 'hover:bg-slate-500'
       };
     } else if (name.includes('silver')) {
       return {
-        background: 'bg-gray-400',
-        shadow: 'shadow-gray-400/10',
-        badge: 'bg-gray-400',
-        bullet: 'bg-gray-400',
-        features: 'bg-gray-50',
-        hover: 'hover:bg-gray-500'
+        gradient: 'from-slate-300 to-slate-500',
+        background: 'bg-gradient-to-r from-slate-300 to-slate-500',
+        shadow: 'shadow-slate-500/20',
+        badge: 'from-slate-300 to-slate-500',
+        bullet: 'bg-slate-400',
+        features: 'bg-slate-50',
+        hover: 'hover:bg-slate-500'
       };
     }
     
     // Default orange theme for other packages
     return {
-      background: 'bg-orange-500',
+      gradient: 'from-orange-500 to-red-600',
+      background: 'bg-gradient-to-r from-orange-500 to-red-600',
       shadow: 'shadow-orange-500/10',
-      badge: 'bg-orange-500',
+      badge: 'from-orange-500 to-red-600',
       bullet: 'bg-orange-500',
       features: 'bg-orange-50',
       hover: 'hover:bg-orange-600'
