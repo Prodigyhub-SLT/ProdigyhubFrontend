@@ -881,104 +881,75 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                         <h2 className="text-2xl font-bold text-gray-900">PEO Packages</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-6 max-w-6xl mx-auto">
                         {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').map((offering) => {
                           const price = getOfferingPrice(offering);
-                          const category = getOfferingCategory(offering);
-                          const specs = getOfferingSpecs(offering);
                           const colors = getPeoPackageColors(offering);
-                          
-                          // Extract features and includes from custom attributes
                           const features = (offering as any).customAttributes?.find((attr: any) => 
                             attr.name.toLowerCase().includes('feature') || attr.name.toLowerCase().includes('service')
                           )?.value || '';
                           const includes = (offering as any).customAttributes?.find((attr: any) => 
                             attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
                           )?.value || '';
-                          
+
                           return (
-                            <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl max-w-xs flex flex-col`}>
-                              <div className={`${colors.background} text-white p-4`}>
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                    <Tv className="w-6 h-6 text-white" />
+                            <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl`}>
+                              {/* Header - use package gradient */}
+                              <div className={`bg-gradient-to-r ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} text-white p-3`}>
+                                <div className="flex items-center justify-center relative">
+                                  <div className="absolute left-0">
+                                    <Badge className="bg-green-500 text-white border-0 text-xs font-semibold px-2 py-1 rounded-full">ACTIVE</Badge>
                                   </div>
-                                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+                                  <h3 className="text-xl font-bold text-center">{offering.name}</h3>
                                 </div>
-                                <h3 className="text-lg font-bold mb-2">{offering.name}</h3>
-                                <p className="text-xs text-white/80 opacity-90 mb-3">{offering.description || 'No description available'}</p>
                               </div>
 
-                              <div className="p-4 bg-white flex-1">
-                                <div className="mb-3">
-                                  <Badge variant="outline" className={`${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm`}>
-                                    PEO-TV
-                                  </Badge>
+                              {/* Body */}
+                              <div className="p-3 bg-white">
+                                <div className="flex items-center gap-4 h-44">
+                                  {/* Left: logo + badge */}
+                                  <div className="flex flex-col items-center gap-1 ml-6">
+                                    <div className={`w-16 h-16 bg-gradient-to-r ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} rounded-full flex items-center justify-center`}>
+                                      <Tv className="w-8 h-8 text-white" />
+                                    </div>
+                                    <Badge className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full`}>PEO-TV</Badge>
+                                  </div>
+
+                                  {/* Middle: details */}
+                                  <div className="flex-1 space-y-2 pl-40">
+                                    <p className="text-gray-700 text-sm font-bold -mt-2">{offering.description || 'No description available'}</p>
+                                    {features && (
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-gray-800 mb-1">Key Features</h4>
+                                        <div className={`${colors.features} border border-gray-200 rounded p-2 w-fit`}>
+                                          <p className="text-gray-700 text-sm">{features}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {includes && (
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-gray-800 mb-1">Included Equipment</h4>
+                                        <p className="text-gray-700 text-sm">{includes}</p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Right: price circle (keep blue) */}
+                                  <div className="flex flex-col items-center justify-center">
+                                    <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
+                                      <div className="text-xs font-medium mb-1">Monthly Rental</div>
+                                      <div className="text-lg font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
+                                    </div>
+                                  </div>
                                 </div>
-                                
-                                {/* Key features */}
-                                {features && (
-                                  <div className="mb-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Features</h4>
-                                    <div className={`${colors.features} p-3 rounded text-sm text-gray-600`}>
-                                      {features}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Included equipment */}
-                                {includes && (
-                                  <div className="mb-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Included Equipment</h4>
-                                    <div className="space-y-1">
-                                      {includes.split(',').map((item: string, index: number) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                          <div className={`w-1.5 h-1.5 ${colors.bullet} rounded-full`}></div>
-                                          <span className="text-sm text-gray-600">{item.trim()}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Other custom attributes */}
-                                {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                                  <div className="space-y-2">
-                                    {(offering as any).customAttributes
-                                      .filter((attr: any) => 
-                                        !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
-                                        !attr.name.toLowerCase().includes('feature') &&
-                                        !attr.name.toLowerCase().includes('include') &&
-                                        !attr.name.toLowerCase().includes('equipment') &&
-                                        attr.name.trim() !== '' &&
-                                        attr.value.trim() !== ''
-                                      )
-                                      .map((attr: any, index: number) => (
-                                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                          <span className="text-sm font-medium text-gray-600">{attr.name}</span>
-                                          <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
-                                        </div>
-                                      ))
-                                    }
-                                  </div>
-                                )}
                               </div>
 
-                              <div className={`${colors.background} text-white p-4`}>
-                                <div className="text-center mb-2">
-                                  <div className="text-xs text-white/80 mb-1">Monthly Rental</div>
-                                  <div className="text-2xl font-bold">
-                                    {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
-                                  </div>
+                              {/* Footer - use package gradient */}
+                              <div className={`bg-gradient-to-r ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} text-white p-3`}>
+                                <div className="flex gap-3">
+                                  <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Details</Button>
+                                  <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Channels</Button>
                                 </div>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => handleViewSpec(offering)}
-                                  className={`w-full text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm`}
-                                >
-                                  View Details &gt;
-                                </Button>
                               </div>
                             </Card>
                           );
