@@ -404,31 +404,28 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
       };
     } else if (name.includes('gold')) {
       return {
-        // Gold gradient
-        gradient: 'from-amber-400 to-amber-600',
-        background: 'bg-gradient-to-r from-amber-400 to-amber-600',
-        shadow: 'shadow-amber-500/20',
-        badge: 'from-amber-400 to-amber-600',
-        bullet: 'bg-amber-500',
-        features: 'bg-amber-50',
-        hover: 'hover:bg-amber-600'
+        // Solid gold
+        background: 'bg-yellow-500',
+        shadow: 'shadow-yellow-500/20',
+        badge: 'bg-yellow-500',
+        bullet: 'bg-yellow-500',
+        features: 'bg-yellow-50',
+        hover: 'hover:bg-yellow-600'
       };
     } else if (name.includes('silver plus')) {
       return {
-        gradient: 'from-slate-300 to-slate-500',
-        background: 'bg-gradient-to-r from-slate-300 to-slate-500',
+        background: 'bg-slate-500',
         shadow: 'shadow-slate-500/20',
-        badge: 'from-slate-300 to-slate-500',
+        badge: 'bg-slate-500',
         bullet: 'bg-slate-400',
         features: 'bg-slate-50',
-        hover: 'hover:bg-slate-500'
+        hover: 'hover:bg-slate-600'
       };
     } else if (name.includes('silver')) {
       return {
-        gradient: 'from-slate-300 to-slate-500',
-        background: 'bg-gradient-to-r from-slate-300 to-slate-500',
+        background: 'bg-slate-400',
         shadow: 'shadow-slate-500/20',
-        badge: 'from-slate-300 to-slate-500',
+        badge: 'bg-slate-400',
         bullet: 'bg-slate-400',
         features: 'bg-slate-50',
         hover: 'hover:bg-slate-500'
@@ -904,7 +901,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                           return (
                             <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl`}>
                               {/* Header - use package gradient */}
-                              <div className={`bg-gradient-to-r ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} text-white p-3`}>
+                              <div className={`${(colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background} text-white p-3`}>
                                 <div className="flex items-center justify-center relative">
                                   <div className="absolute left-0">
                                     <Badge className="bg-green-500 text-white border-0 text-xs font-semibold px-2 py-1 rounded-full">ACTIVE</Badge>
@@ -918,7 +915,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                 <div className="flex items-center gap-4 h-44">
                                   {/* Left: logo + badge */}
                                   <div className="flex flex-col items-center gap-1 ml-6">
-                                    <div className={`w-16 h-16 bg-gradient-to-r ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} rounded-full flex items-center justify-center`}>
+                                    <div className={`w-16 h-16 ${ (colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background } rounded-full flex items-center justify-center`}>
                                       <Tv className="w-8 h-8 text-white" />
                                     </div>
                                     <Badge className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full`}>PEO-TV</Badge>
@@ -966,7 +963,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
                                   {/* Right: price circle (match package color) */}
                                   <div className="flex flex-col items-center justify-center">
-                                    <div className={`w-32 h-32 bg-gradient-to-br ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} rounded-full flex flex-col items-center justify-center text-white shadow-lg`}>
+                                    <div className={`w-32 h-32 ${ (colors as any).gradient ? 'bg-gradient-to-br ' + (colors as any).gradient : colors.background } rounded-full flex flex-col items-center justify-center text-white shadow-lg`}>
                                       <div className="text-xs font-medium mb-1">Monthly Rental</div>
                                       <div className="text-lg font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
                                     </div>
@@ -975,7 +972,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                               </div>
 
                               {/* Footer - use package gradient */}
-                              <div className={`bg-gradient-to-r ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} text-white p-3`}>
+                              <div className={`${(colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background} text-white p-3`}>
                                 <div className="flex gap-3">
                                   <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Details</Button>
                                   <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Channels</Button>
