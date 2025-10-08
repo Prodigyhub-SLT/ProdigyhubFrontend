@@ -349,7 +349,11 @@ export default function UserDashboard() {
 
   // Reset sub-tab when switching top-level service so the sub-nav feels scoped
   useEffect(() => {
-    setActiveTab('inventory');
+    if (activeService === 'peotv') {
+      setActiveTab('packages');
+    } else {
+      setActiveTab('inventory');
+    }
   }, [activeService]);
 
 
