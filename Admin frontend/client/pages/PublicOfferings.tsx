@@ -1126,7 +1126,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                 // When specifically filtering, use the same layouts as grouped sections
                 <section>
                   {peoTvFilters.subCategory === 'peopackages' ? (
-                    <div className="space-y-6 max-w-6xl mx-auto">
+                    <div className="space-y-6 max-w-4xl mx-auto">
                       {filteredOfferings.map((offering) => {
                         const price = getOfferingPrice(offering);
                         const colors = getPeoPackageColors(offering);
