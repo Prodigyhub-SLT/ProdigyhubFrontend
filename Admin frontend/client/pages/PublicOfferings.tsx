@@ -27,6 +27,8 @@ const categoryNavItems = [
 
 interface PublicOfferingsProps {
   onLoginClick?: () => void;
+  initialTab?: 'broadband' | 'peo-tv' | 'all';
+  embed?: boolean; // render without page header/nav
 }
 
 interface FilterState {
@@ -36,13 +38,13 @@ interface FilterState {
   searchTerm: string;
 }
 
-export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) {
+export default function PublicOfferings({ onLoginClick, initialTab = 'broadband', embed = false }: PublicOfferingsProps) {
   const navigate = useNavigate();
   const [offerings, setOfferings] = useState<ProductOffering[]>([]);
   const [filteredOfferings, setFilteredOfferings] = useState<ProductOffering[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('broadband');
-  const [activeTab, setActiveTab] = useState<string>('broadband');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   
   // Filter states
   const [filters, setFilters] = useState<FilterState>({
@@ -70,7 +72,15 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
 
   useEffect(() => {
     loadOfferings();
-    handleCategorySelect('Broadband');
+    // Initialize from prop
+    if (initialTab === 'peo-tv') {
+      handleTabChange('peo-tv');
+    } else if (initialTab === 'broadband') {
+      handleCategorySelect('Broadband');
+    } else {
+      setActiveTab('all');
+      setSelectedCategory('all');
+    }
   }, []);
 
   useEffect(() => {
@@ -525,8 +535,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className={`min-h-screen ${embed ? '' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
       {/* Header */}
+      {!embed && (
       <header className="bg-gradient-to-r from-white/90 via-blue-50/50 to-purple-50/50 backdrop-blur-md border-b border-white/20 shadow-lg shadow-blue-500/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -557,8 +568,10 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           </div>
         </div>
       </header>
+      )}
 
       {/* Tab Navigation */}
+      {!embed && (
       <div className="bg-gradient-to-r from-white/80 via-blue-50/30 to-purple-50/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-30 shadow-lg shadow-blue-500/5">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center py-4">
@@ -583,10 +596,12 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className={`${embed ? 'px-0 py-0' : 'container mx-auto px-4 py-8'}`}>
         {/* Breadcrumb and Title */}
+        {!embed && (
         <div className="mb-6">
           <div className="text-sm text-gray-600 mb-2">
             <Link to="/" className="hover:text-blue-600">Home</Link>
@@ -598,6 +613,7 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
              activeTab === 'peo-tv' ? 'PEO-TV Packages' : 'Products'}
           </h1>
         </div>
+        )}
 
         {/* PEO-TV Specific Filters */}
         {activeTab === 'peo-tv' && (

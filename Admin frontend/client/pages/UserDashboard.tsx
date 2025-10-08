@@ -9,6 +9,7 @@ import { QualificationTab } from '../components/QualificationTab';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProfilePopup from '../components/ProfilePopup';
 import CustomerPackagesTab from '../components/CustomerPackagesTab';
+import PublicOfferings from './PublicOfferings';
 import InventoryTab from '../components/InventoryTab';
 import MessagesTab from '../components/MessagesTab';
 import CustomerCustomizeTab from '../components/CustomerCustomizeTab';
@@ -688,7 +689,11 @@ export default function UserDashboard() {
 
         {/* Packages Tab Content */}
         {activeTab === 'packages' && (
-          <CustomerPackagesTab />
+          activeService === 'peotv' ? (
+            <PublicOfferings initialTab="peo-tv" embed />
+          ) : (
+            <CustomerPackagesTab />
+          )
         )}
 
         {/* Other tabs content can be added here */}
