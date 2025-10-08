@@ -941,6 +941,27 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                         <p className="text-gray-700 text-sm">{includes}</p>
                                       </div>
                                     )}
+                                    {/* Other custom attributes */}
+                                    {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                                      <div className="space-y-1">
+                                        {(offering as any).customAttributes
+                                          .filter((attr: any) => 
+                                            !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
+                                            !attr.name.toLowerCase().includes('feature') &&
+                                            !attr.name.toLowerCase().includes('include') &&
+                                            !attr.name.toLowerCase().includes('equipment') &&
+                                            attr.name.trim() !== '' &&
+                                            attr.value.trim() !== ''
+                                          )
+                                          .map((attr: any, index: number) => (
+                                            <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100">
+                                              <span className="text-gray-600 font-medium text-xs">{attr.name}</span>
+                                              <span className="text-gray-900 font-semibold text-xs">{attr.value}</span>
+                                            </div>
+                                          ))
+                                        }
+                                      </div>
+                                    )}
                                   </div>
 
                                   {/* Right: price circle (keep blue) */}
