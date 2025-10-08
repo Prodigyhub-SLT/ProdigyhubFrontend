@@ -964,9 +964,9 @@ export default function PublicOfferings({ onLoginClick }: PublicOfferingsProps) 
                                     )}
                                   </div>
 
-                                  {/* Right: price circle (keep blue) */}
+                                  {/* Right: price circle (match package color) */}
                                   <div className="flex flex-col items-center justify-center">
-                                    <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex flex-col items-center justify-center text-white shadow-lg">
+                                    <div className={`w-32 h-32 bg-gradient-to-br ${(colors as any).gradient || colors.badge || 'from-orange-500 to-red-600'} rounded-full flex flex-col items-center justify-center text-white shadow-lg`}>
                                       <div className="text-xs font-medium mb-1">Monthly Rental</div>
                                       <div className="text-lg font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
                                     </div>
