@@ -1336,6 +1336,10 @@ export const useMongoOfferingsLogic = () => {
   };
 
   const loadOfferingForEdit = (offering: MongoProductOffering, pricingOnly: boolean = false) => {
+    console.log('🔄 Loading offering for edit:', offering);
+    console.log('🔄 Current custom attributes:', offering.customAttributes);
+    console.log('🔄 Current hierarchical category:', offering.hierarchicalCategory);
+    
     setFormData({
       name: offering.name,
       lifecycleStatus: offering.lifecycleStatus,
@@ -1346,14 +1350,14 @@ export const useMongoOfferingsLogic = () => {
       broadbandSelections: offering.broadbandSelections || [], // Deep copy
       hierarchicalCategory: offering.hierarchicalCategory, // Include hierarchical category
       description: offering.description,
-      customAttributes: [...offering.customAttributes], // Deep copy
-      images: [...offering.images], // Deep copy
+      customAttributes: offering.customAttributes ? [...offering.customAttributes] : [], // Deep copy with null check
+      images: offering.images ? [...offering.images] : [], // Deep copy with null check
       isBundle: offering.isBundle,
       isSellable: offering.isSellable,
       pricing: { ...offering.pricing } // Deep copy
     });
     setEditingOffering(offering);
-    setCurrentStep(pricingOnly ? 3 : 1); // Start at pricing step if pricingOnly, otherwise at step 1
+    setCurrentStep(pricingOnly ? 4 : 1); // Start at pricing step if pricingOnly, otherwise at step 1 (updated to 4 steps)
     setIsEditDialogOpen(true);
   };
 
@@ -1473,7 +1477,8 @@ export const useMongoOfferingsLogic = () => {
       subCategory: firstSubCategory?.name || firstSubCategory?.label || '',
       subSubCategory: firstSubSubCategory?.name || firstSubSubCategory?.label || '',
       hierarchicalCategory: selection,
-      customAttributes: defaultAttributes
+      // Only use default attributes if we don't already have custom attributes (preserve existing when editing)
+      customAttributes: prev.customAttributes.length > 0 ? prev.customAttributes : defaultAttributes
     }));
   };
 

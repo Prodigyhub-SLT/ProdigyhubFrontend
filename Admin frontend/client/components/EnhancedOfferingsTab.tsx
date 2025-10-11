@@ -278,40 +278,6 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                   </div>
                 )}
                 
-                {/* Images */}
-                {offering.images && Array.isArray(offering.images) && offering.images.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Images ({offering.images.length})</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {offering.images.filter(img => img.hasFunction).length} with pricing
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {offering.images.slice(0, 4).map((image) => (
-                        <div key={image.id} className="relative group">
-                          <img
-                            src={image.base64Data}
-                            alt={image.name}
-                            className="w-12 h-12 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
-                            title={`${image.name} - ${image.description}`}
-                          />
-                          {image.hasFunction && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs text-white font-bold">$</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      {offering.images.length > 4 && (
-                        <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center text-xs text-gray-600">
-                          +{offering.images.length - 4}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
                 {/* Pricing */}
                 {offering.pricing && (
                   <div className="bg-blue-600 text-white rounded-lg p-4">
