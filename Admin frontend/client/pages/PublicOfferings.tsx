@@ -868,9 +868,9 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                             attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
                           )?.value || '';
 
-                          // Extract channel count from custom attributes
-                          const channelCount = (offering as any).customAttributes?.find((attr: any) => 
-                            attr.name.toLowerCase().includes('channel') || attr.name.toLowerCase().includes('count')
+                          // Extract total channels from custom attributes
+                          const totalChannels = (offering as any).customAttributes?.find((attr: any) => 
+                            attr.name.toLowerCase().includes('total channels') || attr.name.toLowerCase().includes('totalchannel')
                           )?.value || 'N/A';
 
                           return (
@@ -883,19 +883,24 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                               {/* Central Circle */}
                               <div className="flex justify-center mb-6">
                                 <div className={`w-48 h-48 bg-gradient-to-br ${colors.gradient} rounded-full flex flex-col items-center justify-center relative shadow-lg`}>
-                                  {/* Channel Count */}
+                                  {/* Channel Count - Centered */}
                                   <div className={`text-4xl font-bold ${colors.channelCountColor} mb-2`}>
-                                    {channelCount}
+                                    {totalChannels}
                                   </div>
                                   
-                                  {/* Channels Badge */}
+                                  {/* Channels Badge - Centered below channel count */}
                                   <div className={`bg-gradient-to-r ${colors.badge} text-white px-3 py-1 rounded-full text-sm font-semibold mb-3`}>
                                     Channels
                                   </div>
                                   
-                                  {/* Price */}
-                                  <div className={`text-lg font-bold ${colors.priceColor}`}>
-                                    {price ? `${price.currency} ${price.amount.toLocaleString()} / per month` : 'N/A'}
+                                  {/* Price - Centered below badge */}
+                                  <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                    {price ? `${price.currency} ${price.amount.toLocaleString()} /` : 'N/A'}
+                                  </div>
+                                  
+                                  {/* Per month - Centered below price */}
+                                  <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                    per month
                                   </div>
                                 </div>
                               </div>
@@ -1074,9 +1079,9 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
                         )?.value || '';
 
-                        // Extract channel count from custom attributes
-                        const channelCount = (offering as any).customAttributes?.find((attr: any) => 
-                          attr.name.toLowerCase().includes('channel') || attr.name.toLowerCase().includes('count')
+                        // Extract total channels from custom attributes
+                        const totalChannels = (offering as any).customAttributes?.find((attr: any) => 
+                          attr.name.toLowerCase().includes('total channels') || attr.name.toLowerCase().includes('totalchannel')
                         )?.value || 'N/A';
 
                         return (
@@ -1089,19 +1094,24 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                             {/* Central Circle */}
                             <div className="flex justify-center mb-6">
                               <div className={`w-48 h-48 bg-gradient-to-br ${colors.gradient} rounded-full flex flex-col items-center justify-center relative shadow-lg`}>
-                                {/* Channel Count */}
+                                {/* Channel Count - Centered */}
                                 <div className={`text-4xl font-bold ${colors.channelCountColor} mb-2`}>
-                                  {channelCount}
+                                  {totalChannels}
                                 </div>
                                 
-                                {/* Channels Badge */}
+                                {/* Channels Badge - Centered below channel count */}
                                 <div className={`bg-gradient-to-r ${colors.badge} text-white px-3 py-1 rounded-full text-sm font-semibold mb-3`}>
                                   Channels
                                 </div>
                                 
-                                {/* Price */}
-                                <div className={`text-lg font-bold ${colors.priceColor}`}>
-                                  {price ? `${price.currency} ${price.amount.toLocaleString()} / per month` : 'N/A'}
+                                {/* Price - Centered below badge */}
+                                <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                  {price ? `${price.currency} ${price.amount.toLocaleString()} /` : 'N/A'}
+                                </div>
+                                
+                                {/* Per month - Centered below price */}
+                                <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                  per month
                                 </div>
                               </div>
                             </div>
