@@ -1026,6 +1026,16 @@ export const useMongoOfferingsLogic = () => {
           value: attr.value.trim(),
           type: attr.type
         })),
+        images: formData.images.map(img => ({
+          id: img.id,
+          name: img.name.trim(),
+          description: img.description.trim(),
+          categoryName: img.categoryName.trim(),
+          base64Data: img.base64Data,
+          hasFunction: img.hasFunction,
+          functionPrice: img.functionPrice,
+          uploadedAt: img.uploadedAt
+        })),
         pricing: {
           amount: Number(formData.pricing.amount),
           currency: formData.pricing.currency,
@@ -1088,6 +1098,7 @@ export const useMongoOfferingsLogic = () => {
         isBundle: formData.isBundle,
         isSellable: formData.isSellable,
         customAttributes: formData.customAttributes,
+        images: formData.images,
         pricing: {
           amount: Number(formData.pricing.amount),
           currency: formData.pricing.currency,
