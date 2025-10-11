@@ -390,21 +390,84 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
   const getPeoPackageColors = (offering: ProductOffering) => {
     const name = offering.name?.toLowerCase() || '';
     
-    // Apply new design from second image - all PEO Packages get yellow-orange theme
+    if (name.includes('titanium')) {
+      // Metallic Titanium look
+      return {
+        gradient: 'from-zinc-400 to-zinc-600',
+        background: 'bg-gradient-to-r from-zinc-400 to-zinc-600',
+        shadow: 'shadow-zinc-500/20',
+        badge: 'bg-zinc-600',
+        titleColor: 'text-zinc-800',
+        channelCountColor: 'text-zinc-700',
+        priceColor: 'text-black',
+        buttonPrimary: 'bg-zinc-600 hover:bg-zinc-700',
+        buttonSecondary: 'bg-zinc-400 hover:bg-zinc-500'
+      };
+    } else if (name.includes('platinum')) {
+      // Premium purple/indigo gradient
+      return {
+        gradient: 'from-purple-500 to-indigo-600',
+        background: 'bg-gradient-to-r from-purple-500 to-indigo-600',
+        shadow: 'shadow-purple-500/20',
+        badge: 'bg-purple-600',
+        titleColor: 'text-purple-800',
+        channelCountColor: 'text-purple-600',
+        priceColor: 'text-black',
+        buttonPrimary: 'bg-purple-600 hover:bg-purple-700',
+        buttonSecondary: 'bg-purple-400 hover:bg-purple-500'
+      };
+    } else if (name.includes('gold')) {
+      // Solid gold
+      return {
+        gradient: 'from-yellow-400 to-yellow-600',
+        background: 'bg-gradient-to-r from-yellow-400 to-yellow-600',
+        shadow: 'shadow-yellow-500/20',
+        badge: 'bg-yellow-600',
+        titleColor: 'text-yellow-800',
+        channelCountColor: 'text-yellow-600',
+        priceColor: 'text-black',
+        buttonPrimary: 'bg-yellow-600 hover:bg-yellow-700',
+        buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500'
+      };
+    } else if (name.includes('silver plus')) {
+      // Silver Plus - brighter silver
+      return {
+        gradient: 'from-slate-300 to-slate-500',
+        background: 'bg-gradient-to-r from-slate-300 to-slate-500',
+        shadow: 'shadow-slate-400/20',
+        badge: 'bg-slate-500',
+        titleColor: 'text-slate-700',
+        channelCountColor: 'text-slate-600',
+        priceColor: 'text-black',
+        buttonPrimary: 'bg-slate-500 hover:bg-slate-600',
+        buttonSecondary: 'bg-slate-300 hover:bg-slate-400'
+      };
+    } else if (name.includes('silver')) {
+      // Regular Silver - lighter silver
+      return {
+        gradient: 'from-gray-300 to-gray-400',
+        background: 'bg-gradient-to-r from-gray-300 to-gray-400',
+        shadow: 'shadow-gray-400/20',
+        badge: 'bg-gray-400',
+        titleColor: 'text-gray-600',
+        channelCountColor: 'text-gray-500',
+        priceColor: 'text-black',
+        buttonPrimary: 'bg-gray-400 hover:bg-gray-500',
+        buttonSecondary: 'bg-gray-300 hover:bg-gray-400'
+      };
+    }
+    
+    // Default yellow-orange theme for other packages
     return {
-      // Yellow-to-orange gradient theme for all PEO Packages
       gradient: 'from-yellow-400 to-orange-500',
       background: 'bg-gradient-to-r from-yellow-400 to-orange-500',
       shadow: 'shadow-orange-500/20',
-      badge: 'from-orange-500 to-orange-600',
-      bullet: 'bg-orange-500',
-      features: 'bg-orange-50',
-      hover: 'hover:bg-orange-600',
-      titleColor: 'text-orange-800', // Brown color for titles
-      channelCountColor: 'text-orange-600', // Orange color for channel counts
-      priceColor: 'text-black', // Black color for prices
-      buttonPrimary: 'bg-orange-500 hover:bg-orange-600', // Orange buttons
-      buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500' // Lighter yellow-orange buttons
+      badge: 'bg-orange-600',
+      titleColor: 'text-orange-800',
+      channelCountColor: 'text-orange-600',
+      priceColor: 'text-black',
+      buttonPrimary: 'bg-orange-500 hover:bg-orange-600',
+      buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500'
     };
   };
 
@@ -877,7 +940,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                             <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-sm mx-auto">
                               {/* Title */}
                               <div className="p-4 text-center">
-                                <h3 className={`text-lg font-bold ${colors.titleColor}`}>PEO {offering.name}</h3>
+                                <h3 className={`text-lg font-bold ${colors.titleColor}`}>{offering.name}</h3>
                               </div>
 
                               {/* Central Circle */}
@@ -888,7 +951,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                     <div className={`text-4xl font-bold ${colors.channelCountColor} mr-2`}>
                                       {totalChannels}
                                     </div>
-                                    <div className={`bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-bold`}>
+                                    <div className={`${colors.badge} text-white px-2 py-1 rounded-full text-xs font-bold`}>
                                       Channels
                                     </div>
                                   </div>
@@ -1088,7 +1151,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-sm mx-auto">
                             {/* Title */}
                             <div className="p-4 text-center">
-                              <h3 className={`text-lg font-bold ${colors.titleColor}`}>PEO {offering.name}</h3>
+                              <h3 className={`text-lg font-bold ${colors.titleColor}`}>{offering.name}</h3>
                             </div>
 
                             {/* Central Circle */}
@@ -1099,7 +1162,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                   <div className={`text-4xl font-bold ${colors.channelCountColor} mr-2`}>
                                     {totalChannels}
                                   </div>
-                                  <div className={`bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-bold`}>
+                                  <div className={`${colors.badge} text-white px-2 py-1 rounded-full text-xs font-bold`}>
                                     Channels
                                   </div>
                                 </div>
