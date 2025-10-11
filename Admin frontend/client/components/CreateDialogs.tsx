@@ -815,6 +815,65 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                 </div>
               )}
               
+              {/* Images Gallery */}
+              {selectedOffering.images && selectedOffering.images.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium">Images & Media ({selectedOffering.images.length})</Label>
+                  <div className="mt-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {selectedOffering.images.map((image) => (
+                        <div key={image.id} className="relative group">
+                          <div className="aspect-square overflow-hidden rounded-lg border bg-gray-50">
+                            <img
+                              src={image.base64Data}
+                              alt={image.name}
+                              className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                              onClick={() => {
+                                // Open image in full size (you can enhance this with a modal)
+                                window.open(image.base64Data, '_blank');
+                              }}
+                            />
+                          </div>
+                          
+                          {/* Image Info Overlay */}
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg">
+                            <div className="absolute bottom-0 left-0 right-0 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <p className="text-xs font-medium truncate">{image.name}</p>
+                              <p className="text-xs opacity-90 truncate">{image.categoryName}</p>
+                              {image.hasFunction && image.functionPrice && (
+                                <p className="text-xs font-bold text-green-300">
+                                  {image.functionPrice} LKR
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Function Badge */}
+                          {image.hasFunction && (
+                            <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                              <span className="text-xs text-white font-bold">$</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Images Summary */}
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">Summary:</span>
+                        <div className="flex gap-4">
+                          <span>Total: {selectedOffering.images.length} images</span>
+                          <span className="text-green-600 font-medium">
+                            {selectedOffering.images.filter(img => img.hasFunction).length} with pricing
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Pricing */}
               <div>
                 <Label className="text-sm font-medium">Pricing Details</Label>
