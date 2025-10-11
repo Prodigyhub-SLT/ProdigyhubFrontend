@@ -398,7 +398,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         shadow: 'shadow-zinc-500/20',
         badge: 'bg-zinc-600',
         titleColor: 'text-zinc-800',
-        channelCountColor: 'text-zinc-700',
+        channelCountColor: 'text-white',
         priceColor: 'text-black',
         buttonPrimary: 'bg-zinc-600 hover:bg-zinc-700',
         buttonSecondary: 'bg-zinc-400 hover:bg-zinc-500'
@@ -411,7 +411,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         shadow: 'shadow-purple-500/20',
         badge: 'bg-purple-600',
         titleColor: 'text-purple-800',
-        channelCountColor: 'text-purple-600',
+        channelCountColor: 'text-white',
         priceColor: 'text-black',
         buttonPrimary: 'bg-purple-600 hover:bg-purple-700',
         buttonSecondary: 'bg-purple-400 hover:bg-purple-500'
@@ -424,7 +424,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         shadow: 'shadow-yellow-500/20',
         badge: 'bg-yellow-600',
         titleColor: 'text-yellow-800',
-        channelCountColor: 'text-yellow-600',
+        channelCountColor: 'text-white',
         priceColor: 'text-black',
         buttonPrimary: 'bg-yellow-600 hover:bg-yellow-700',
         buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500'
@@ -437,7 +437,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         shadow: 'shadow-slate-400/20',
         badge: 'bg-slate-500',
         titleColor: 'text-slate-700',
-        channelCountColor: 'text-slate-600',
+        channelCountColor: 'text-white',
         priceColor: 'text-black',
         buttonPrimary: 'bg-slate-500 hover:bg-slate-600',
         buttonSecondary: 'bg-slate-300 hover:bg-slate-400'
@@ -450,7 +450,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         shadow: 'shadow-gray-400/20',
         badge: 'bg-gray-400',
         titleColor: 'text-gray-600',
-        channelCountColor: 'text-gray-500',
+        channelCountColor: 'text-white',
         priceColor: 'text-black',
         buttonPrimary: 'bg-gray-400 hover:bg-gray-500',
         buttonSecondary: 'bg-gray-300 hover:bg-gray-400'
@@ -464,7 +464,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       shadow: 'shadow-orange-500/20',
       badge: 'bg-orange-600',
       titleColor: 'text-orange-800',
-      channelCountColor: 'text-orange-600',
+      channelCountColor: 'text-white',
       priceColor: 'text-black',
       buttonPrimary: 'bg-orange-500 hover:bg-orange-600',
       buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500'
