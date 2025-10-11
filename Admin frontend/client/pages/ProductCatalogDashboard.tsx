@@ -114,6 +114,9 @@ export default function ProductCatalogDashboard() {
     addCustomAttribute,
     updateCustomAttribute,
     removeCustomAttribute,
+    addImage,
+    updateImage,
+    removeImage,
     handleCategoryChange: handleOfferingsCategoryChange,
     handleBroadbandSelectionsChange,
     loadOfferingsFromTMF620,
@@ -550,6 +553,9 @@ export default function ProductCatalogDashboard() {
         addCustomAttribute={addCustomAttribute}
         updateCustomAttribute={updateCustomAttribute}
         removeCustomAttribute={removeCustomAttribute}
+        addImage={addImage}
+        updateImage={updateImage}
+        removeImage={removeImage}
       />
 
       {/* Spec Dialogs */}

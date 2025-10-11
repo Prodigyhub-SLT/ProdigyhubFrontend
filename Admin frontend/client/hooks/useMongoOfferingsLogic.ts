@@ -11,6 +11,17 @@ export interface CustomAttribute {
   type: 'text' | 'number' | 'boolean';
 }
 
+export interface OfferingImage {
+  id: string;
+  name: string;
+  description: string;
+  categoryName: string;
+  base64Data: string;
+  hasFunction: boolean;
+  functionPrice?: number;
+  uploadedAt: string;
+}
+
 export interface MongoProductOffering {
   _id?: string;
   id: string;
@@ -34,6 +45,7 @@ export interface MongoProductOffering {
   isBundle: boolean;
   isSellable: boolean;
   customAttributes: CustomAttribute[];
+  images: OfferingImage[];
 
   pricing: {
     amount: number;
@@ -83,6 +95,7 @@ export const useMongoOfferingsLogic = () => {
     };
     description: string;
     customAttributes: CustomAttribute[];
+    images: OfferingImage[];
     isBundle: boolean;
     isSellable: boolean;
     pricing: {
@@ -102,6 +115,7 @@ export const useMongoOfferingsLogic = () => {
     broadbandSelections: [],
     description: '',
     customAttributes: [],
+    images: [],
     isBundle: false,
     isSellable: true,
     pricing: {
@@ -206,6 +220,7 @@ export const useMongoOfferingsLogic = () => {
           isBundle: offering.isBundle || false,
           isSellable: offering.isSellable !== false,
           customAttributes: (offering as any).customAttributes || customAttributes,
+          images: (offering as any).images || [],
           pricing: (offering as any).pricing || pricing,
           createdAt: (offering as any).createdAt || new Date().toISOString(),
           updatedAt: (offering as any).updatedAt,
@@ -687,6 +702,16 @@ export const useMongoOfferingsLogic = () => {
           value: attr.value.trim(),
           type: attr.type
         })),
+        images: formData.images.map(img => ({
+          id: img.id,
+          name: img.name.trim(),
+          description: img.description.trim(),
+          categoryName: img.categoryName.trim(),
+          base64Data: img.base64Data,
+          hasFunction: img.hasFunction,
+          functionPrice: img.functionPrice,
+          uploadedAt: img.uploadedAt
+        })),
         pricing: {
           amount: Number(formData.pricing.amount),
           currency: formData.pricing.currency,
@@ -755,6 +780,7 @@ export const useMongoOfferingsLogic = () => {
 
         // MongoDB Extensions (your backend should preserve these)
         customAttributes: mongoOffering.customAttributes,
+        images: mongoOffering.images,
         pricing: mongoOffering.pricing,
         createdAt: mongoOffering.createdAt,
         broadbandSelections: mongoOffering.broadbandSelections, // Include broadband selections
@@ -1283,6 +1309,7 @@ export const useMongoOfferingsLogic = () => {
       broadbandSelections: [],
       description: '',
       customAttributes: [],
+      images: [],
       isBundle: false,
       isSellable: true,
       pricing: {
@@ -1309,6 +1336,7 @@ export const useMongoOfferingsLogic = () => {
       hierarchicalCategory: offering.hierarchicalCategory, // Include hierarchical category
       description: offering.description,
       customAttributes: [...offering.customAttributes], // Deep copy
+      images: [...offering.images], // Deep copy
       isBundle: offering.isBundle,
       isSellable: offering.isSellable,
       pricing: { ...offering.pricing } // Deep copy
@@ -1344,6 +1372,50 @@ export const useMongoOfferingsLogic = () => {
     setFormData(prev => ({
       ...prev,
       customAttributes: prev.customAttributes.filter(attr => attr.id !== id)
+    }));
+  };
+
+  // Image management functions
+  const addImage = (file: File, name: string, description: string, categoryName: string) => {
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Data = reader.result as string;
+        const newImage: OfferingImage = {
+          id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          name: name.trim(),
+          description: description.trim(),
+          categoryName: categoryName.trim(),
+          base64Data,
+          hasFunction: false,
+          functionPrice: undefined,
+          uploadedAt: new Date().toISOString()
+        };
+        
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, newImage]
+        }));
+        resolve();
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const updateImage = (id: string, field: keyof OfferingImage, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map(img =>
+        img.id === id ? { ...img, [field]: value } : img
+      )
+    }));
+  };
+
+  const removeImage = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter(img => img.id !== id)
     }));
   };
 
@@ -1528,6 +1600,9 @@ export const useMongoOfferingsLogic = () => {
     addCustomAttribute,
     updateCustomAttribute,
     removeCustomAttribute,
+    addImage,
+    updateImage,
+    removeImage,
     handleCategoryChange,
     handleBroadbandSelectionsChange,
     setIsCreateDialogOpen,

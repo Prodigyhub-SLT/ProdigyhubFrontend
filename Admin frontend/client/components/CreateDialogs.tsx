@@ -17,10 +17,14 @@ import {
   Smartphone,
   Building,
   Cloud,
-  Wifi
+  Wifi,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
+  DollarSign
 } from "lucide-react";
 import { CATEGORIES, CategoryIcons } from "./CategoryConfig";
-import { MongoProductOffering, CustomAttribute } from "../hooks/useMongoOfferingsLogic";
+import { MongoProductOffering, CustomAttribute, OfferingImage } from "../hooks/useMongoOfferingsLogic";
 import { HierarchicalCategorySelector } from "./HierarchicalCategorySelector";
 import { CategoryHierarchy, SubCategory, SubSubCategory } from "../../shared/product-order-types";
 import { getCategoryLabel } from "../lib/utils";
@@ -52,6 +56,7 @@ interface CreateDialogsProps {
     broadbandSelections?: SubCategorySelection[];
     description: string;
     customAttributes: CustomAttribute[];
+    images: OfferingImage[];
     isBundle: boolean;
     isSellable: boolean;
     pricing: {
@@ -84,6 +89,9 @@ interface CreateDialogsProps {
   addCustomAttribute: () => void;
   updateCustomAttribute: (id: string, field: keyof CustomAttribute, value: any) => void;
   removeCustomAttribute: (id: string) => void;
+  addImage: (file: File, name: string, description: string, categoryName: string) => Promise<void>;
+  updateImage: (id: string, field: keyof OfferingImage, value: any) => void;
+  removeImage: (id: string) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -118,7 +126,10 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
   handleBroadbandSelectionsChange,
   addCustomAttribute,
   updateCustomAttribute,
-  removeCustomAttribute
+  removeCustomAttribute,
+  addImage,
+  updateImage,
+  removeImage
 }) => {
   
   // Validation function
@@ -129,6 +140,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
       case 2:
         return formData.description.trim();
       case 3:
+        return true; // Images are optional
+      case 4:
         return formData.pricing.amount > 0;
       default:
         return true;
@@ -296,7 +309,181 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
     </div>
   );
 
-  const renderStep3 = () => (
+  const renderStep3 = () => {
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert(`File ${file.name} is not an image. Please select only image files.`);
+          continue;
+        }
+
+        // Validate file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`File ${file.name} is too large. Please select images smaller than 5MB.`);
+          continue;
+        }
+
+        try {
+          const name = file.name.split('.')[0] || 'Image';
+          const description = `Uploaded image: ${file.name}`;
+          const categoryName = 'General';
+          
+          await addImage(file, name, description, categoryName);
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          alert(`Failed to upload ${file.name}. Please try again.`);
+        }
+      }
+      
+      // Clear the input
+      event.target.value = '';
+    };
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Images & Media</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Add images to showcase your offering. Each image can have custom attributes and optional pricing.
+          </p>
+          
+          {/* File Upload Area */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <label htmlFor="image-upload" className="cursor-pointer">
+              <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+              <p className="text-gray-600">Click to upload images or drag and drop</p>
+              <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 5MB each</p>
+            </label>
+          </div>
+
+          {/* Images List */}
+          {formData.images.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-md font-medium mb-3">Uploaded Images ({formData.images.length})</h4>
+              <div className="space-y-4">
+                {formData.images.map((image) => (
+                  <div key={image.id} className="border rounded-lg p-4 bg-gray-50">
+                    <div className="flex gap-4">
+                      {/* Image Preview */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={image.base64Data}
+                          alt={image.name}
+                          className="w-16 h-16 object-cover rounded border"
+                        />
+                      </div>
+                      
+                      {/* Image Details */}
+                      <div className="flex-1 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-gray-600">Name</Label>
+                            <Input
+                              value={image.name}
+                              onChange={(e) => updateImage(image.id, 'name', e.target.value)}
+                              placeholder="Image name"
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-600">Category</Label>
+                            <Input
+                              value={image.categoryName}
+                              onChange={(e) => updateImage(image.id, 'categoryName', e.target.value)}
+                              placeholder="e.g., Branding, Marketing"
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs text-gray-600">Description</Label>
+                          <Input
+                            value={image.description}
+                            onChange={(e) => updateImage(image.id, 'description', e.target.value)}
+                            placeholder="Describe this image..."
+                            className="text-sm"
+                          />
+                        </div>
+
+                        {/* Add Function Toggle */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`function-${image.id}`}
+                              checked={image.hasFunction}
+                              onChange={(e) => updateImage(image.id, 'hasFunction', e.target.checked)}
+                              className="rounded"
+                            />
+                            <Label htmlFor={`function-${image.id}`} className="text-sm">
+                              Add Function (Bundle Feature)
+                            </Label>
+                          </div>
+                          
+                          <Button
+                            type="button"
+                            onClick={() => removeImage(image.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        {/* Function Price */}
+                        {image.hasFunction && (
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-gray-500" />
+                            <Label className="text-sm">Function Price:</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={image.functionPrice || ''}
+                              onChange={(e) => updateImage(image.id, 'functionPrice', parseFloat(e.target.value) || 0)}
+                              placeholder="0.00"
+                              className="w-24 text-sm"
+                            />
+                            <span className="text-xs text-gray-500">LKR</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {formData.images.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <ImageIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <p>No images uploaded yet</p>
+              <p className="text-sm">Upload images to showcase your offering</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderStep4 = () => (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold mb-4">Pricing Information</h3>
@@ -426,9 +613,10 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           <DialogHeader>
             <DialogTitle>Create New MongoDB Offering</DialogTitle>
             <DialogDescription>
-              Step {currentStep} of 3 - {
+              Step {currentStep} of 4 - {
                 currentStep === 1 ? 'Basic Information' :
-                currentStep === 2 ? 'Description & Features' : 'Pricing Information'
+                currentStep === 2 ? 'Description & Features' :
+                currentStep === 3 ? 'Images & Media' : 'Pricing Information'
               }
             </DialogDescription>
           </DialogHeader>
@@ -437,6 +625,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
           </div>
           
           <DialogFooter className="flex justify-between">
@@ -465,7 +654,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                 Cancel
               </Button>
               
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <Button
                   type="button"
                   onClick={() => setCurrentStep(prev => prev + 1)}
@@ -508,6 +697,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
           </div>
           
           <DialogFooter className="flex justify-between">
@@ -536,7 +726,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                 Cancel
               </Button>
               
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <Button
                   type="button"
                   onClick={() => setCurrentStep(prev => prev + 1)}
