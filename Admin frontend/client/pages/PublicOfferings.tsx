@@ -390,67 +390,21 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
   const getPeoPackageColors = (offering: ProductOffering) => {
     const name = offering.name?.toLowerCase() || '';
     
-    if (name.includes('titanium')) {
-      return {
-        // Metallic Titanium look
-        gradient: 'from-zinc-600 to-zinc-800',
-        background: 'bg-gradient-to-r from-zinc-600 to-zinc-800',
-        shadow: 'shadow-zinc-700/20',
-        badge: 'from-zinc-500 to-zinc-700',
-        bullet: 'bg-zinc-600',
-        features: 'bg-zinc-50',
-        hover: 'hover:bg-zinc-700'
-      };
-    } else if (name.includes('platinum')) {
-      return {
-        // Premium purple/indigo gradient
-        gradient: 'from-[#5c2399] to-[#3b1361]',
-        background: 'bg-gradient-to-r from-[#5c2399] to-[#3b1361]',
-        shadow: 'shadow-[#5c2399]/20',
-        badge: 'from-[#5c2399] to-[#3b1361]',
-        bullet: 'bg-[#5c2399]',
-        features: 'bg-purple-50',
-        hover: 'hover:bg-[#3a1360]'
-      };
-    } else if (name.includes('gold')) {
-      return {
-        // Solid gold
-        background: 'bg-yellow-500',
-        shadow: 'shadow-yellow-500/20',
-        badge: 'bg-yellow-500',
-        bullet: 'bg-yellow-500',
-        features: 'bg-yellow-50',
-        hover: 'hover:bg-yellow-600'
-      };
-    } else if (name.includes('silver plus')) {
-      return {
-        background: 'bg-slate-500',
-        shadow: 'shadow-slate-500/20',
-        badge: 'bg-slate-500',
-        bullet: 'bg-slate-400',
-        features: 'bg-slate-50',
-        hover: 'hover:bg-slate-600'
-      };
-    } else if (name.includes('silver')) {
-      return {
-        background: 'bg-slate-400',
-        shadow: 'shadow-slate-500/20',
-        badge: 'bg-slate-400',
-        bullet: 'bg-slate-400',
-        features: 'bg-slate-50',
-        hover: 'hover:bg-slate-500'
-      };
-    }
-    
-    // Default orange theme for other packages
+    // Apply new design from second image - all PEO Packages get yellow-orange theme
     return {
-      gradient: 'from-orange-500 to-red-600',
-      background: 'bg-gradient-to-r from-orange-500 to-red-600',
-      shadow: 'shadow-orange-500/10',
-      badge: 'from-orange-500 to-red-600',
+      // Yellow-to-orange gradient theme for all PEO Packages
+      gradient: 'from-yellow-400 to-orange-500',
+      background: 'bg-gradient-to-r from-yellow-400 to-orange-500',
+      shadow: 'shadow-orange-500/20',
+      badge: 'from-orange-500 to-orange-600',
       bullet: 'bg-orange-500',
       features: 'bg-orange-50',
-      hover: 'hover:bg-orange-600'
+      hover: 'hover:bg-orange-600',
+      titleColor: 'text-orange-800', // Brown color for titles
+      channelCountColor: 'text-orange-600', // Orange color for channel counts
+      priceColor: 'text-black', // Black color for prices
+      buttonPrimary: 'bg-orange-500 hover:bg-orange-600', // Orange buttons
+      buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500' // Lighter yellow-orange buttons
     };
   };
 
@@ -903,7 +857,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         <h2 className="text-2xl font-bold text-gray-900">PEO Packages</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
-                      <div className="space-y-6 max-w-4xl mx-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
                         {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').map((offering) => {
                           const price = getOfferingPrice(offering);
                           const colors = getPeoPackageColors(offering);
@@ -914,85 +868,52 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                             attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
                           )?.value || '';
 
+                          // Extract channel count from custom attributes
+                          const channelCount = (offering as any).customAttributes?.find((attr: any) => 
+                            attr.name.toLowerCase().includes('channel') || attr.name.toLowerCase().includes('count')
+                          )?.value || 'N/A';
+
                           return (
-                            <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl`}>
-                              {/* Header - use package gradient */}
-                              <div className={`${(colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background} text-white p-3`}>
-                                <div className="flex items-center justify-center relative">
-                                  <div className="absolute left-0">
-                                    <Badge className="bg-green-500 text-white border-0 text-xs font-semibold px-2 py-1 rounded-full">ACTIVE</Badge>
-                                  </div>
-                                  <h3 className="text-xl font-bold text-center">{offering.name}</h3>
-                                </div>
+                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-sm mx-auto">
+                              {/* Title */}
+                              <div className="p-4 text-center">
+                                <h3 className={`text-lg font-bold ${colors.titleColor}`}>PEO {offering.name}</h3>
                               </div>
 
-                              {/* Body */}
-                              <div className="p-3 bg-white">
-                                <div className="flex items-center gap-4 h-44">
-                                  {/* Left: logo + badge */}
-                                  <div className="flex flex-col items-center gap-1 ml-6">
-                                    <div className={`w-16 h-16 ${ (colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background } rounded-full flex items-center justify-center`}>
-                                      <Tv className="w-8 h-8 text-white" />
-                                    </div>
-                                    <Badge className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full`}>PEO-TV</Badge>
+                              {/* Central Circle */}
+                              <div className="flex justify-center mb-6">
+                                <div className={`w-48 h-48 bg-gradient-to-br ${colors.gradient} rounded-full flex flex-col items-center justify-center relative shadow-lg`}>
+                                  {/* Channel Count */}
+                                  <div className={`text-4xl font-bold ${colors.channelCountColor} mb-2`}>
+                                    {channelCount}
                                   </div>
-
-                                  {/* Middle: details */}
-                                  <div className="flex-1 space-y-2 pl-40">
-                                    <p className="text-gray-700 text-sm font-bold -mt-2">{offering.description || 'No description available'}</p>
-                                    {features && (
-                                      <div>
-                                        <h4 className="text-sm font-semibold text-gray-800 mb-1">Key Features</h4>
-                                        <div className={`${colors.features} border border-gray-200 rounded p-2 w-fit`}>
-                                          <p className="text-gray-700 text-sm">{features}</p>
-                                        </div>
-                                      </div>
-                                    )}
-                                    {includes && (
-                                      <div>
-                                        <h4 className="text-sm font-semibold text-gray-800 mb-1">Included Equipment</h4>
-                                        <p className="text-gray-700 text-sm">{includes}</p>
-                                      </div>
-                                    )}
-                                    {/* Other custom attributes */}
-                                    {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                                      <div className="space-y-1">
-                                        {(offering as any).customAttributes
-                                          .filter((attr: any) => 
-                                            !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
-                                            !attr.name.toLowerCase().includes('feature') &&
-                                            !attr.name.toLowerCase().includes('include') &&
-                                            !attr.name.toLowerCase().includes('equipment') &&
-                                            attr.name.trim() !== '' &&
-                                            attr.value.trim() !== ''
-                                          )
-                                          .map((attr: any, index: number) => (
-                                            <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100">
-                                              <span className="text-gray-600 font-medium text-xs">{attr.name}</span>
-                                              <span className="text-gray-900 font-semibold text-xs">{attr.value}</span>
-                                            </div>
-                                          ))
-                                        }
-                                      </div>
-                                    )}
+                                  
+                                  {/* Channels Badge */}
+                                  <div className={`bg-gradient-to-r ${colors.badge} text-white px-3 py-1 rounded-full text-sm font-semibold mb-3`}>
+                                    Channels
                                   </div>
-
-                                  {/* Right: price circle (match package color) */}
-                                  <div className="flex flex-col items-center justify-center">
-                                    <div className={`w-32 h-32 ${ (colors as any).gradient ? 'bg-gradient-to-br ' + (colors as any).gradient : colors.background } rounded-full flex flex-col items-center justify-center text-white shadow-lg`}>
-                                      <div className="text-xs font-medium mb-1">Monthly Rental</div>
-                                      <div className="text-lg font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
-                                    </div>
+                                  
+                                  {/* Price */}
+                                  <div className={`text-lg font-bold ${colors.priceColor}`}>
+                                    {price ? `${price.currency} ${price.amount.toLocaleString()} / per month` : 'N/A'}
                                   </div>
                                 </div>
                               </div>
 
-                              {/* Footer - use package gradient */}
-                              <div className={`${(colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background} text-white p-3`}>
-                                <div className="flex gap-3">
-                                  <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Details</Button>
-                                  <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Channels</Button>
-                                </div>
+                              {/* Buttons */}
+                              <div className="p-4 space-y-3">
+                                <Button 
+                                  onClick={() => handleViewSpec(offering)} 
+                                  className={`w-full ${colors.buttonPrimary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
+                                >
+                                  View Details
+                                </Button>
+                                <Button 
+                                  onClick={() => handleViewSpec(offering)} 
+                                  className={`w-full ${colors.buttonSecondary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
+                                >
+                                  View Channels
+                                </Button>
                               </div>
                             </Card>
                           );
@@ -1142,7 +1063,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 // When specifically filtering, use the same layouts as grouped sections
                 <section>
                   {peoTvFilters.subCategory === 'peopackages' ? (
-                    <div className="space-y-6 max-w-4xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
                       {filteredOfferings.map((offering) => {
                         const price = getOfferingPrice(offering);
                         const colors = getPeoPackageColors(offering);
@@ -1153,78 +1074,52 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           attr.name.toLowerCase().includes('include') || attr.name.toLowerCase().includes('equipment')
                         )?.value || '';
 
+                        // Extract channel count from custom attributes
+                        const channelCount = (offering as any).customAttributes?.find((attr: any) => 
+                          attr.name.toLowerCase().includes('channel') || attr.name.toLowerCase().includes('count')
+                        )?.value || 'N/A';
+
                         return (
-                          <Card key={offering.id} className={`hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl ${colors.shadow} rounded-2xl`}>
-                            <div className={`${(colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background} text-white p-3`}>
-                              <div className="flex items-center justify-center relative">
-                                <div className="absolute left-0">
-                                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold px-2 py-1 rounded-full">ACTIVE</Badge>
-                                </div>
-                                <h3 className="text-xl font-bold text-center">{offering.name}</h3>
-                              </div>
+                          <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-sm mx-auto">
+                            {/* Title */}
+                            <div className="p-4 text-center">
+                              <h3 className={`text-lg font-bold ${colors.titleColor}`}>PEO {offering.name}</h3>
                             </div>
 
-                            <div className="p-3 bg-white">
-                              <div className="flex items-center gap-4 h-44">
-                                <div className="flex flex-col items-center gap-1 ml-6">
-                                  <div className={`w-16 h-16 ${ (colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background } rounded-full flex items-center justify-center`}>
-                                    <Tv className="w-8 h-8 text-white" />
-                                  </div>
-                                  <Badge className={`bg-gradient-to-r ${colors.badge} text-white border-0 text-xs font-bold px-2 py-1 rounded-full`}>PEO-TV</Badge>
+                            {/* Central Circle */}
+                            <div className="flex justify-center mb-6">
+                              <div className={`w-48 h-48 bg-gradient-to-br ${colors.gradient} rounded-full flex flex-col items-center justify-center relative shadow-lg`}>
+                                {/* Channel Count */}
+                                <div className={`text-4xl font-bold ${colors.channelCountColor} mb-2`}>
+                                  {channelCount}
                                 </div>
-
-                                <div className="flex-1 space-y-2 pl-40">
-                                  <p className="text-gray-700 text-sm font-bold -mt-2">{offering.description || 'No description available'}</p>
-                                  {features && (
-                                    <div>
-                                      <h4 className="text-sm font-semibold text-gray-800 mb-1">Key Features</h4>
-                                      <div className={`${colors.features} border border-gray-200 rounded p-2 w-fit`}>
-                                        <p className="text-gray-700 text-sm">{features}</p>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {includes && (
-                                    <div>
-                                      <h4 className="text-sm font-semibold text-gray-800 mb-1">Included Equipment</h4>
-                                      <p className="text-gray-700 text-sm">{includes}</p>
-                                    </div>
-                                  )}
-                                  {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                                    <div className="space-y-1">
-                                      {(offering as any).customAttributes
-                                        .filter((attr: any) => 
-                                          !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name) &&
-                                          !attr.name.toLowerCase().includes('feature') &&
-                                          !attr.name.toLowerCase().includes('include') &&
-                                          !attr.name.toLowerCase().includes('equipment') &&
-                                          attr.name.trim() !== '' &&
-                                          attr.value.trim() !== ''
-                                        )
-                                        .map((attr: any, index: number) => (
-                                          <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100">
-                                            <span className="text-gray-600 font-medium text-xs">{attr.name}</span>
-                                            <span className="text-gray-900 font-semibold text-xs">{attr.value}</span>
-                                          </div>
-                                        ))
-                                      }
-                                    </div>
-                                  )}
+                                
+                                {/* Channels Badge */}
+                                <div className={`bg-gradient-to-r ${colors.badge} text-white px-3 py-1 rounded-full text-sm font-semibold mb-3`}>
+                                  Channels
                                 </div>
-
-                                <div className="flex flex-col items-center justify-center">
-                                  <div className={`w-32 h-32 ${ (colors as any).gradient ? 'bg-gradient-to-br ' + (colors as any).gradient : colors.background } rounded-full flex flex-col items-center justify-center text-white shadow-lg`}>
-                                    <div className="text-xs font-medium mb-1">Monthly Rental</div>
-                                    <div className="text-lg font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
-                                  </div>
+                                
+                                {/* Price */}
+                                <div className={`text-lg font-bold ${colors.priceColor}`}>
+                                  {price ? `${price.currency} ${price.amount.toLocaleString()} / per month` : 'N/A'}
                                 </div>
                               </div>
                             </div>
 
-                            <div className={`${(colors as any).gradient ? 'bg-gradient-to-r ' + (colors as any).gradient : colors.background} text-white p-3`}>
-                              <div className="flex gap-3">
-                                <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Details</Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className={`flex-1 text-white ${colors.hover} hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20`}>View Channels</Button>
-                              </div>
+                            {/* Buttons */}
+                            <div className="p-4 space-y-3">
+                              <Button 
+                                onClick={() => handleViewSpec(offering)} 
+                                className={`w-full ${colors.buttonPrimary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
+                              >
+                                View Details
+                              </Button>
+                              <Button 
+                                onClick={() => handleViewSpec(offering)} 
+                                className={`w-full ${colors.buttonSecondary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
+                              >
+                                View Channels
+                              </Button>
                             </div>
                           </Card>
                         );
