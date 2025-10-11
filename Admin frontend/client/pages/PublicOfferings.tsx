@@ -883,14 +883,14 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                               {/* Central Circle */}
                               <div className="flex justify-center mb-6">
                                 <div className={`w-48 h-48 bg-gradient-to-br ${colors.gradient} rounded-full flex flex-col items-center justify-center relative shadow-lg`}>
-                                  {/* Channel Count - Centered */}
-                                  <div className={`text-4xl font-bold ${colors.channelCountColor} mb-2`}>
-                                    {totalChannels}
-                                  </div>
-                                  
-                                  {/* Channels Badge - Compact and properly sized */}
-                                  <div className={`bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold mb-3`}>
-                                    Channels
+                                  {/* Channel Count and Badge - Horizontal layout */}
+                                  <div className="flex items-center justify-center mb-3">
+                                    <div className={`text-4xl font-bold ${colors.channelCountColor} mr-2`}>
+                                      {totalChannels}
+                                    </div>
+                                    <div className={`bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-bold`}>
+                                      Channels
+                                    </div>
                                   </div>
                                   
                                   {/* Price - Medium size */}
@@ -1094,14 +1094,14 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                             {/* Central Circle */}
                             <div className="flex justify-center mb-6">
                               <div className={`w-48 h-48 bg-gradient-to-br ${colors.gradient} rounded-full flex flex-col items-center justify-center relative shadow-lg`}>
-                                {/* Channel Count - Centered */}
-                                <div className={`text-4xl font-bold ${colors.channelCountColor} mb-2`}>
-                                  {totalChannels}
-                                </div>
-                                
-                                {/* Channels Badge - Compact and properly sized */}
-                                <div className={`bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold mb-3`}>
-                                  Channels
+                                {/* Channel Count and Badge - Horizontal layout */}
+                                <div className="flex items-center justify-center mb-3">
+                                  <div className={`text-4xl font-bold ${colors.channelCountColor} mr-2`}>
+                                    {totalChannels}
+                                  </div>
+                                  <div className={`bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-bold`}>
+                                    Channels
+                                  </div>
                                 </div>
                                 
                                 {/* Price - Medium size */}
