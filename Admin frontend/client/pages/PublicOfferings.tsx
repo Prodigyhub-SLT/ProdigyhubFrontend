@@ -888,18 +888,18 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                     {totalChannels}
                                   </div>
                                   
-                                  {/* Channels Badge - Centered below channel count */}
-                                  <div className={`bg-gradient-to-r ${colors.badge} text-white px-3 py-1 rounded-full text-sm font-semibold mb-3`}>
+                                  {/* Channels Badge - Compact and properly sized */}
+                                  <div className={`bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold mb-3`}>
                                     Channels
                                   </div>
                                   
-                                  {/* Price - Centered below badge */}
-                                  <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                  {/* Price - Medium size */}
+                                  <div className={`text-base font-bold ${colors.priceColor} text-center`}>
                                     {price ? `${price.currency} ${price.amount.toLocaleString()} /` : 'N/A'}
                                   </div>
                                   
-                                  {/* Per month - Centered below price */}
-                                  <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                  {/* Per month - Much smaller size */}
+                                  <div className={`text-xs ${colors.priceColor} text-center`}>
                                     per month
                                   </div>
                                 </div>
@@ -1099,18 +1099,18 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                   {totalChannels}
                                 </div>
                                 
-                                {/* Channels Badge - Centered below channel count */}
-                                <div className={`bg-gradient-to-r ${colors.badge} text-white px-3 py-1 rounded-full text-sm font-semibold mb-3`}>
+                                {/* Channels Badge - Compact and properly sized */}
+                                <div className={`bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold mb-3`}>
                                   Channels
                                 </div>
                                 
-                                {/* Price - Centered below badge */}
-                                <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                {/* Price - Medium size */}
+                                <div className={`text-base font-bold ${colors.priceColor} text-center`}>
                                   {price ? `${price.currency} ${price.amount.toLocaleString()} /` : 'N/A'}
                                 </div>
                                 
-                                {/* Per month - Centered below price */}
-                                <div className={`text-lg font-bold ${colors.priceColor} text-center`}>
+                                {/* Per month - Much smaller size */}
+                                <div className={`text-xs ${colors.priceColor} text-center`}>
                                   per month
                                 </div>
                               </div>
