@@ -840,15 +840,18 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                                 <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${
                                   image.hasFunction ? 'border-blue-500' : 'border-gray-200'
                                 }`}>
-                                  <img
-                                    src={image.base64Data}
-                                    alt={image.name}
-                                    className="w-full h-full object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
-                                    onClick={() => {
-                                      // Open image in full size (you can enhance this with a modal)
-                                      window.open(image.base64Data, '_blank');
-                                    }}
-                                  />
+                                  <div className="w-full h-full flex items-center justify-center p-2">
+                                    <img
+                                      src={image.base64Data}
+                                      alt={image.name}
+                                      className="max-w-full max-h-full object-contain cursor-pointer hover:scale-110 transition-transform duration-200"
+                                      style={{ width: 'auto', height: '80%' }}
+                                      onClick={() => {
+                                        // Open image in full size (you can enhance this with a modal)
+                                        window.open(image.base64Data, '_blank');
+                                      }}
+                                    />
+                                  </div>
                                 </div>
                                 
                                 {/* Channel Number (Always Visible - Bottom Center) */}
