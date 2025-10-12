@@ -815,62 +815,80 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                 </div>
               )}
               
-              {/* Images Gallery */}
+              {/* Channels Gallery */}
               {selectedOffering.images && selectedOffering.images.length > 0 && (
                 <div>
-                  <Label className="text-sm font-medium">Images & Media ({selectedOffering.images.length})</Label>
-                  <div className="mt-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {selectedOffering.images.map((image) => (
-                        <div key={image.id} className="relative group">
-                          <div className={`aspect-[4/3] overflow-hidden rounded-lg border-2 bg-gray-50 ${
-                            image.hasFunction ? 'border-blue-500' : 'border-gray-200'
-                          }`}>
-                            <img
-                              src={image.base64Data}
-                              alt={image.name}
-                              className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
-                              onClick={() => {
-                                // Open image in full size (you can enhance this with a modal)
-                                window.open(image.base64Data, '_blank');
-                              }}
-                            />
-                          </div>
-                          
-                          {/* Image Name (Always Visible - Bottom Left) */}
-                          <div className="absolute bottom-1 left-1 bg-gray-800 bg-opacity-80 text-white px-2 py-1 rounded text-xs font-medium">
-                            <span className="group-hover:hidden">{image.name}</span>
-                            <span className="hidden group-hover:inline">{image.description}</span>
-                          </div>
-                          
-                          {/* Add Function Plus Line (Top Right Corner) */}
-                          {image.hasFunction && (
-                            <div className="absolute top-1 right-1">
-                              {/* Plus line from top-right corner */}
-                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                                <span className="text-xs text-white font-bold">+</span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Add Function Hover Overlay (Description + Price) */}
-                          {image.hasFunction && (
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
-                              <div className="absolute bottom-1 right-1 bg-blue-600 bg-opacity-90 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                {image.description && (
-                                  <p className="font-medium truncate max-w-24">{image.description}</p>
+                  <Label className="text-sm font-medium">Channels ({selectedOffering.images.length})</Label>
+                  <div className="mt-3 space-y-6">
+                    {(() => {
+                      // Group images by category
+                      const groupedImages = selectedOffering.images.reduce((groups: { [key: string]: typeof selectedOffering.images }, image) => {
+                        const category = image.categoryName || 'Other';
+                        if (!groups[category]) {
+                          groups[category] = [];
+                        }
+                        groups[category].push(image);
+                        return groups;
+                      }, {});
+
+                      return Object.entries(groupedImages).map(([category, images]) => (
+                        <div key={category}>
+                          <h3 className="text-sm font-semibold text-gray-700 mb-3">{category}</h3>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                            {images.map((image) => (
+                              <div key={image.id} className="relative group">
+                                <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${
+                                  image.hasFunction ? 'border-blue-500' : 'border-gray-200'
+                                }`}>
+                                  <img
+                                    src={image.base64Data}
+                                    alt={image.name}
+                                    className="w-full h-full object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
+                                    onClick={() => {
+                                      // Open image in full size (you can enhance this with a modal)
+                                      window.open(image.base64Data, '_blank');
+                                    }}
+                                  />
+                                </div>
+                                
+                                {/* Channel Number (Always Visible - Bottom Center) */}
+                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-80 text-white px-2 py-1 rounded text-xs font-medium">
+                                  <span className="group-hover:hidden">{image.name}</span>
+                                  <span className="hidden group-hover:inline">{image.description}</span>
+                                </div>
+                                
+                                {/* Add Function Plus Line (Top Right Corner) */}
+                                {image.hasFunction && (
+                                  <div className="absolute top-1 right-1">
+                                    {/* Plus line from top-right corner */}
+                                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                                      <span className="text-xs text-white font-bold">+</span>
+                                    </div>
+                                  </div>
                                 )}
-                                {image.functionPrice && (
-                                  <p className="font-bold text-green-300">
-                                    Rs. {image.functionPrice.toFixed(2)}
-                                  </p>
+                                
+                                {/* Add Function Hover Overlay (Description + Price) */}
+                                {image.hasFunction && (
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                                    <div className="absolute bottom-1 right-1 bg-blue-600 bg-opacity-90 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      {image.description && (
+                                        <p className="font-medium truncate max-w-24">{image.description}</p>
+                                      )}
+                                      {image.functionPrice && (
+                                        <p className="font-bold text-green-300">
+                                          Rs. {image.functionPrice.toFixed(2)}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      ));
+                    })()}
+                  </div>
                     
                     {/* Images Summary */}
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
