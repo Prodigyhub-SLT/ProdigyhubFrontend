@@ -823,7 +823,9 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       {selectedOffering.images.map((image) => (
                         <div key={image.id} className="relative group">
-                          <div className="aspect-square overflow-hidden rounded-lg border bg-gray-50">
+                          <div className={`aspect-[4/3] overflow-hidden rounded-lg border-2 bg-gray-50 ${
+                            image.hasFunction ? 'border-blue-500' : 'border-gray-200'
+                          }`}>
                             <img
                               src={image.base64Data}
                               alt={image.name}
@@ -835,23 +837,35 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                             />
                           </div>
                           
-                          {/* Image Info Overlay */}
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg">
-                            <div className="absolute bottom-0 left-0 right-0 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <p className="text-xs font-medium truncate">{image.name}</p>
-                              <p className="text-xs opacity-90 truncate">{image.categoryName}</p>
-                              {image.hasFunction && image.functionPrice && (
-                                <p className="text-xs font-bold text-green-300">
-                                  {image.functionPrice} LKR
-                                </p>
-                              )}
-                            </div>
+                          {/* Image Name (Always Visible - Bottom Left) */}
+                          <div className="absolute bottom-1 left-1 bg-gray-800 bg-opacity-80 text-white px-2 py-1 rounded text-xs font-medium">
+                            <span className="group-hover:hidden">{image.name}</span>
+                            <span className="hidden group-hover:inline">{image.description}</span>
                           </div>
                           
-                          {/* Function Badge */}
+                          {/* Add Function Plus Line (Top Right Corner) */}
                           {image.hasFunction && (
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs text-white font-bold">$</span>
+                            <div className="absolute top-1 right-1">
+                              {/* Plus line from top-right corner */}
+                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                                <span className="text-xs text-white font-bold">+</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Add Function Hover Overlay (Description + Price) */}
+                          {image.hasFunction && (
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                              <div className="absolute bottom-1 right-1 bg-blue-600 bg-opacity-90 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                {image.description && (
+                                  <p className="font-medium truncate max-w-24">{image.description}</p>
+                                )}
+                                {image.functionPrice && (
+                                  <p className="font-bold text-green-300">
+                                    Rs. {image.functionPrice.toFixed(2)}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
