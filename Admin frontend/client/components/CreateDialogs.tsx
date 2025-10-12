@@ -851,12 +851,13 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                                       }}
                                     />
                                   </div>
-                                </div>
-                                
-                                {/* Channel Number (Always Visible - Bottom Center) - Smaller */}
-                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-90 text-white px-1 py-0.5 rounded text-[10px] font-medium">
-                                  <span className="group-hover:hidden">{image.name}</span>
-                                  <span className="hidden group-hover:inline">{image.description}</span>
+                                  
+                                  {/* Description on Hover Only */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                                    <div className="absolute bottom-0 left-0 right-0 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      <p className="text-xs font-medium text-center">{image.description}</p>
+                                    </div>
+                                  </div>
                                 </div>
                                 
                                 {/* Add Function Plus Line (Top Right Corner) */}
