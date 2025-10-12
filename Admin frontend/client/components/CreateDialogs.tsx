@@ -840,12 +840,11 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                                 <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${
                                   image.hasFunction ? 'border-blue-500' : 'border-gray-200'
                                 }`}>
-                                  <div className="w-full h-full flex items-center justify-center p-1">
+                                  <div className="w-full h-full flex items-center justify-center">
                                     <img
                                       src={image.base64Data}
                                       alt={image.name}
-                                      className="max-w-full max-h-full object-contain cursor-pointer hover:scale-110 transition-transform duration-200"
-                                      style={{ width: '95%', height: '95%' }}
+                                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
                                       onClick={() => {
                                         // Open image in full size (you can enhance this with a modal)
                                         window.open(image.base64Data, '_blank');
@@ -854,8 +853,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                                   </div>
                                 </div>
                                 
-                                {/* Channel Number (Always Visible - Bottom Center) */}
-                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-80 text-white px-2 py-1 rounded text-xs font-medium">
+                                {/* Channel Number (Always Visible - Bottom Center) - Smaller */}
+                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-gray-800 bg-opacity-90 text-white px-1 py-0.5 rounded text-[10px] font-medium">
                                   <span className="group-hover:hidden">{image.name}</span>
                                   <span className="hidden group-hover:inline">{image.description}</span>
                                 </div>
