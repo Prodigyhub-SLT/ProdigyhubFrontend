@@ -902,7 +902,6 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                         </div>
                       </div>
                     </div>
-                  </div>
                 </div>
               )}
               
