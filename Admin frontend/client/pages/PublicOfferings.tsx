@@ -775,7 +775,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         ) : (
           // Always show grouped display for broadband category
           (activeTab === 'broadband') ? (
-            <div className="space-y-10 max-w-6xl mx-auto">
+            <div className="space-y-10 max-w-7xl mx-auto">
               {/* Group 1: Data/PEOTV & Voice Packages */}
               <section>
                 <div className="flex items-center gap-3 mb-6">
@@ -920,7 +920,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         <h2 className="text-2xl font-bold text-gray-900">PEO Packages</h2>
                         <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
                         {filteredOfferings.filter(o => getPeoTvSubCategoryGroup(o) === 'peopackages').map((offering) => {
                           const price = getOfferingPrice(offering);
                           const colors = getPeoPackageColors(offering);
@@ -937,7 +937,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           )?.value || 'N/A';
 
                           return (
-                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-lg mx-auto">
+                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xl mx-auto">
                               {/* Title */}
                               <div className="p-4 text-center">
                                 <h3 className={`text-lg font-bold ${colors.titleColor}`}>{offering.name}</h3>
@@ -1119,7 +1119,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 // When specifically filtering, use the same layouts as grouped sections
                 <section>
                   {peoTvFilters.subCategory === 'peopackages' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
                       {filteredOfferings.map((offering) => {
                         const price = getOfferingPrice(offering);
                         const colors = getPeoPackageColors(offering);
@@ -1136,7 +1136,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         )?.value || 'N/A';
 
                         return (
-                          <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-lg mx-auto">
+                          <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xl mx-auto">
                             {/* Title */}
                             <div className="p-4 text-center">
                               <h3 className={`text-lg font-bold ${colors.titleColor}`}>{offering.name}</h3>
