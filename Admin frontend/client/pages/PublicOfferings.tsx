@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Package, ArrowRight, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Filter, X, BookOpen } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
@@ -1424,37 +1425,57 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
               {/* Connection & Package Details OR Channels Gallery (PEO Packages only) */}
               {activeTab === 'peo-tv' && getPeoTvSubCategoryGroup(selectedOffering as any) === 'peopackages' ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Channels</h3>
+                  <Label className="text-sm font-medium">Channels {Array.isArray((selectedOffering as any).images) ? `(${(selectedOffering as any).images.length})` : ''}</Label>
                   {Array.isArray((selectedOffering as any).images) && (selectedOffering as any).images.length > 0 ? (
-                    <div className="mt-2 space-y-6">
+                    <div className="mt-3 space-y-6">
                       {(() => {
-                        const images = (selectedOffering as any).images as Array<any>;
-                        const grouped: Record<string, any[]> = images.reduce((acc: Record<string, any[]>, img: any) => {
-                          const key = img.categoryName || 'Channels';
-                          if (!acc[key]) acc[key] = [];
-                          acc[key].push(img);
-                          return acc;
-                        }, {});
+                        const groupedImages = ((selectedOffering as any).images as any[]).reduce((groups: { [key: string]: any[] }, image: any) => {
+                          const category = image.categoryName || 'Other';
+                          if (!groups[category]) {
+                            groups[category] = [];
+                          }
+                          groups[category].push(image);
+                          return groups;
+                        }, {} as { [key: string]: any[] });
 
-                        return Object.entries(grouped).map(([category, imgs]) => (
+                        return Object.entries(groupedImages).map(([category, images]) => (
                           <div key={category}>
-                            <h4 className="text-sm font-semibold text-gray-700 mb-3">{category}</h4>
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3">{category}</h3>
                             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                              {imgs.map((image: any) => (
-                                <div key={image.id || image.name} className="relative group">
+                              {images.map((image: any) => (
+                                <div key={image.id} className="relative group">
                                   <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
                                     <div className="w-full h-full flex items-center justify-center">
                                       <img
-                                        src={image.base64Data || image.url}
-                                        alt={image.name || 'Channel'}
-                                        className="w-full h-full object-contain p-2"
+                                        src={image.base64Data}
+                                        alt={image.name}
+                                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                                        onClick={() => { window.open(image.base64Data, '_blank'); }}
                                       />
                                     </div>
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                                      <div className="absolute bottom-0 left-0 right-0 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <p className="text-xs font-medium text-center">{image.description}</p>
+                                      </div>
+                                    </div>
                                   </div>
-                                  {(image.name || image.functionPrice) && (
-                                    <div className="absolute -top-2 left-2 bg-blue-700 text-white text-xs rounded-md px-2 py-1 shadow-md">
-                                      <div className="font-semibold truncate max-w-[120px]">{image.name || ''}</div>
-                                      {image.functionPrice ? <div className="opacity-90">Rs. {Number(image.functionPrice).toFixed(2)}</div> : null}
+                                  {image.hasFunction && (
+                                    <div className="absolute top-1 right-1">
+                                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                                        <span className="text-xs text-white font-bold">+</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {image.hasFunction && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                                      <div className="absolute bottom-1 right-1 bg-blue-600 bg-opacity-90 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        {image.description && (
+                                          <p className="font-medium truncate max-w-24">{image.description}</p>
+                                        )}
+                                        {image.functionPrice && (
+                                          <p className="font-bold text-green-300">Rs. {Number(image.functionPrice).toFixed(2)}</p>
+                                        )}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
@@ -1464,8 +1485,19 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         ));
                       })()}
                     </div>
-                  ) : (
-                    <div className="text-gray-600 text-sm">No channel images available.</div>
+                  ) : null}
+
+                  {/* Images Summary */}
+                  {Array.isArray((selectedOffering as any).images) && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">Summary:</span>
+                        <div className="flex gap-4">
+                          <span>Total: {(selectedOffering as any).images.length} images</span>
+                          <span className="text-green-600 font-medium">{(selectedOffering as any).images.filter((img: any) => img.hasFunction).length} with pricing</span>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               ) : (
