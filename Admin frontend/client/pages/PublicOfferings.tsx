@@ -956,13 +956,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                     </div>
                                   </div>
                                   
-                                  {/* Price - Medium size */}
-                                  <div className={`text-base font-bold ${colors.priceColor} text-center`}>
+                                  {/* Price - Larger size */}
+                                  <div className={`text-2xl font-bold ${colors.priceColor} text-center`}>
                                     {price ? `${price.currency} ${price.amount.toLocaleString()} /` : 'N/A'}
                                   </div>
                                   
-                                  {/* Per month - Much smaller size */}
-                                  <div className={`text-xs ${colors.priceColor} text-center`}>
+                                  {/* Per month - Small size */}
+                                  <div className={`text-sm ${colors.priceColor} text-center`}>
                                     per month
                                   </div>
                                 </div>
@@ -975,12 +975,6 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                   className={`w-full ${colors.buttonPrimary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
                                 >
                                   View Details
-                                </Button>
-                                <Button 
-                                  onClick={() => handleViewSpec(offering)} 
-                                  className={`w-full ${colors.buttonSecondary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
-                                >
-                                  View Channels
                                 </Button>
                               </div>
                             </Card>
@@ -1110,14 +1104,6 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                   >
                                     View Details
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => handleViewSpec(offering)}
-                                    className="flex-1 text-white hover:bg-orange-600 hover:text-white transition-all duration-200 rounded-lg py-2 font-medium border border-white/20"
-                                  >
-                                    View Channels
-                                  </Button>
                                 </div>
                               </div>
                             </Card>
@@ -1167,13 +1153,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                   </div>
                                 </div>
                                 
-                                {/* Price - Medium size */}
-                                <div className={`text-base font-bold ${colors.priceColor} text-center`}>
+                                {/* Price - Larger size */}
+                                <div className={`text-2xl font-bold ${colors.priceColor} text-center`}>
                                   {price ? `${price.currency} ${price.amount.toLocaleString()} /` : 'N/A'}
                                 </div>
                                 
-                                {/* Per month - Much smaller size */}
-                                <div className={`text-xs ${colors.priceColor} text-center`}>
+                                {/* Per month - Small size */}
+                                <div className={`text-sm ${colors.priceColor} text-center`}>
                                   per month
                                 </div>
                               </div>
@@ -1186,12 +1172,6 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                 className={`w-full ${colors.buttonPrimary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
                               >
                                 View Details
-                              </Button>
-                              <Button 
-                                onClick={() => handleViewSpec(offering)} 
-                                className={`w-full ${colors.buttonSecondary} text-white font-medium py-2 rounded-lg transition-all duration-200`}
-                              >
-                                View Channels
                               </Button>
                             </div>
                           </Card>
