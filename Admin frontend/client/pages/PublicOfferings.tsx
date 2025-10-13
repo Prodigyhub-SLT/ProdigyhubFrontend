@@ -1421,20 +1421,68 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 </div>
               )}
 
-              {/* Connection Type & Package Type */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Connection Type:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Package Type:</span>
-                    <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+              {/* Connection & Package Details OR Channels Gallery (PEO Packages only) */}
+              {activeTab === 'peo-tv' && getPeoTvSubCategoryGroup(selectedOffering as any) === 'peopackages' ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Channels</h3>
+                  {Array.isArray((selectedOffering as any).images) && (selectedOffering as any).images.length > 0 ? (
+                    <div className="mt-2 space-y-6">
+                      {(() => {
+                        const images = (selectedOffering as any).images as Array<any>;
+                        const grouped: Record<string, any[]> = images.reduce((acc: Record<string, any[]>, img: any) => {
+                          const key = img.categoryName || 'Channels';
+                          if (!acc[key]) acc[key] = [];
+                          acc[key].push(img);
+                          return acc;
+                        }, {});
+
+                        return Object.entries(grouped).map(([category, imgs]) => (
+                          <div key={category}>
+                            <h4 className="text-sm font-semibold text-gray-700 mb-3">{category}</h4>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                              {imgs.map((image: any) => (
+                                <div key={image.id || image.name} className="relative group">
+                                  <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <img
+                                        src={image.base64Data || image.url}
+                                        alt={image.name || 'Channel'}
+                                        className="w-full h-full object-contain p-2"
+                                      />
+                                    </div>
+                                  </div>
+                                  {(image.name || image.functionPrice) && (
+                                    <div className="absolute -top-2 left-2 bg-blue-700 text-white text-xs rounded-md px-2 py-1 shadow-md">
+                                      <div className="font-semibold truncate max-w-[120px]">{image.name || ''}</div>
+                                      {image.functionPrice ? <div className="opacity-90">Rs. {Number(image.functionPrice).toFixed(2)}</div> : null}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="text-gray-600 text-sm">No channel images available.</div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-700">Connection Type:</span>
+                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-700">Package Type:</span>
+                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
                {/* Custom Attributes */}
                {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
