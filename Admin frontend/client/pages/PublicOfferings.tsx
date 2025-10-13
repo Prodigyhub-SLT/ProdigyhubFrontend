@@ -937,7 +937,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           )?.value || 'N/A';
 
                           return (
-                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xl mx-auto px-6 py-8 min-h-[470px]">
+                            <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xl mx-auto px-6 py-8 min-h-[430px]">
                               {/* Title */}
                               <div className="p-4 text-center">
                                 <h3 className={`text-lg font-bold ${colors.titleColor}`}>{offering.name}</h3>
@@ -976,8 +976,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                 >
                                   View Details
                                 </Button>
-                                {/* Spacer to preserve previous card height after removing second button */}
-                                <div className="h-10"></div>
+                                {/* Spacer to preserve spacing below button (reduced height) */}
+                                <div className="h-4"></div>
                               </div>
                             </Card>
                           );
@@ -1136,7 +1136,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         )?.value || 'N/A';
 
                         return (
-                          <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xl mx-auto px-6 py-8 min-h-[470px]">
+                          <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xl mx-auto px-6 py-8 min-h-[430px]">
                             {/* Title */}
                             <div className="p-4 text-center">
                               <h3 className={`text-lg font-bold ${colors.titleColor}`}>{offering.name}</h3>
@@ -1175,8 +1175,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                               >
                                 View Details
                               </Button>
-                              {/* Spacer to preserve previous card height after removing second button */}
-                              <div className="h-10"></div>
+                              {/* Spacer to preserve spacing below button (reduced height) */}
+                              <div className="h-4"></div>
                             </div>
                           </Card>
                         );
