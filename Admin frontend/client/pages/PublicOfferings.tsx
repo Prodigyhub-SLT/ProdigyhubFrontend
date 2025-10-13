@@ -976,6 +976,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                 >
                                   View Details
                                 </Button>
+                                {/* Spacer to preserve previous card height after removing second button */}
+                                <div className="h-10"></div>
                               </div>
                             </Card>
                           );
@@ -1173,6 +1175,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                               >
                                 View Details
                               </Button>
+                              {/* Spacer to preserve previous card height after removing second button */}
+                              <div className="h-10"></div>
                             </div>
                           </Card>
                         );
