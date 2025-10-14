@@ -1,5 +1,5 @@
 // components/CreateDialogs.tsx - FIXED VERSION
-import React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -378,24 +378,40 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
       
       // Show success/error messages
       if (successCount > 0) {
-        toast({
-          title: "Upload Successful",
-          description: `${successCount} image${successCount > 1 ? 's' : ''} uploaded successfully`,
-          variant: "success",
-          duration: 3000
-        });
+        const successMessage = `${successCount} image${successCount > 1 ? 's' : ''} uploaded successfully`;
+        
+        // Try toast first, fallback to alert if needed
+        try {
+          toast({
+            title: "Upload Successful",
+            description: successMessage,
+            variant: "success",
+            duration: 3000
+          });
+        } catch (error) {
+          console.warn('Toast failed, using alert fallback:', error);
+          alert(`✅ ${successMessage}`);
+        }
         
         // Auto-scroll to new images
         scrollToNewImage();
       }
       
       if (errorCount > 0) {
-        toast({
-          title: "Upload Errors",
-          description: `${errorCount} image${errorCount > 1 ? 's' : ''} failed to upload: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? '...' : ''}`,
-          variant: "destructive",
-          duration: 5000
-        });
+        const errorMessage = `${errorCount} image${errorCount > 1 ? 's' : ''} failed to upload: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? '...' : ''}`;
+        
+        // Try toast first, fallback to alert if needed
+        try {
+          toast({
+            title: "Upload Errors",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000
+          });
+        } catch (error) {
+          console.warn('Toast failed, using alert fallback:', error);
+          alert(`❌ ${errorMessage}`);
+        }
       }
       
       // Clear the input
