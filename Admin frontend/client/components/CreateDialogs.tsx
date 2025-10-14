@@ -1,4 +1,5 @@
 // components/CreateDialogs.tsx - FIXED VERSION
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,13 +22,15 @@ import {
   Upload,
   Image as ImageIcon,
   Trash2,
-  DollarSign
+  DollarSign,
+  ArrowUp
 } from "lucide-react";
 import { CATEGORIES, CategoryIcons } from "./CategoryConfig";
 import { MongoProductOffering, CustomAttribute, OfferingImage } from "../hooks/useMongoOfferingsLogic";
 import { HierarchicalCategorySelector } from "./HierarchicalCategorySelector";
 import { CategoryHierarchy, SubCategory, SubSubCategory } from "../../shared/product-order-types";
 import { getCategoryLabel } from "../lib/utils";
+import { useToast } from "../hooks/use-toast";
 
 interface SubCategorySelection {
   subCategory: string;
@@ -131,6 +134,30 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
   updateImage,
   removeImage
 }) => {
+  const { toast } = useToast();
+  const imagesContainerRef = React.useRef<HTMLDivElement>(null);
+  const scrollToTopRef = React.useRef<HTMLButtonElement>(null);
+  
+  // Scroll helper functions
+  const scrollToNewImage = () => {
+    if (imagesContainerRef.current) {
+      setTimeout(() => {
+        imagesContainerRef.current?.scrollTo({
+          top: imagesContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (imagesContainerRef.current) {
+      imagesContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   // Validation function
   const validateCurrentStep = () => {
@@ -314,18 +341,24 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
       const files = event.target.files;
       if (!files || files.length === 0) return;
 
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          alert(`File ${file.name} is not an image. Please select only image files.`);
+          errors.push(`${file.name} is not an image file`);
+          errorCount++;
           continue;
         }
 
         // Validate file size (5MB limit)
         if (file.size > 5 * 1024 * 1024) {
-          alert(`File ${file.name} is too large. Please select images smaller than 5MB.`);
+          errors.push(`${file.name} is too large (max 5MB)`);
+          errorCount++;
           continue;
         }
 
@@ -335,10 +368,34 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           const categoryName = 'General';
           
           await addImage(file, name, description, categoryName);
+          successCount++;
         } catch (error) {
           console.error('Error uploading image:', error);
-          alert(`Failed to upload ${file.name}. Please try again.`);
+          errors.push(`Failed to upload ${file.name}`);
+          errorCount++;
         }
+      }
+      
+      // Show success/error messages
+      if (successCount > 0) {
+        toast({
+          title: "Upload Successful",
+          description: `${successCount} image${successCount > 1 ? 's' : ''} uploaded successfully`,
+          variant: "success",
+          duration: 3000
+        });
+        
+        // Auto-scroll to new images
+        scrollToNewImage();
+      }
+      
+      if (errorCount > 0) {
+        toast({
+          title: "Upload Errors",
+          description: `${errorCount} image${errorCount > 1 ? 's' : ''} failed to upload: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? '...' : ''}`,
+          variant: "destructive",
+          duration: 5000
+        });
       }
       
       // Clear the input
@@ -373,8 +430,25 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           {/* Images List */}
           {formData.images.length > 0 && (
             <div className="mt-6">
-              <h4 className="text-md font-medium mb-3">Uploaded Images ({formData.images.length})</h4>
-              <div className="space-y-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-md font-medium">Uploaded Images ({formData.images.length})</h4>
+                <Button
+                  ref={scrollToTopRef}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={scrollToTop}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <ArrowUp className="w-3 h-3" />
+                  Scroll to Top
+                </Button>
+              </div>
+              <div 
+                ref={imagesContainerRef}
+                className="space-y-4 max-h-96 overflow-y-auto pr-2"
+                style={{ scrollbarWidth: 'thin' }}
+              >
                 {formData.images.map((image) => (
                   <div key={image.id} className="border rounded-lg p-4 bg-gray-50">
                     <div className="flex gap-4">
