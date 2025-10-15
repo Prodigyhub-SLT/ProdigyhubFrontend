@@ -109,7 +109,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             <Button 
               onClick={() => setShowDeleteAllConfirm(true)}
               variant="destructive" 
-              size="sm"
+              size={"sm" as const}
               className="flex-1 sm:flex-none"
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -227,12 +227,12 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             <Card key={offering.id} className="relative overflow-hidden bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 group">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <Badge className={getStatusColor(offering.lifecycleStatus)} variant="outline">
+                  <Badge className={getStatusColor(offering.lifecycleStatus)} variant={"outline" as const}>
                     {offering.lifecycleStatus?.toUpperCase()}
                   </Badge>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant={"ghost" as const}
+                    size={"sm" as const}
                     onClick={() => setOfferingToDelete(offering)}
                     className="text-red-600 hover:text-red-700"
                   >
@@ -310,8 +310,8 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                   <Button 
-                    variant="outline" 
-                    size="sm" 
+                    variant={"outline" as const} 
+                    size={"sm" as const} 
                     className="flex-1"
                     onClick={() => {
                       setSelectedOffering(offering);
@@ -322,8 +322,8 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
                     View
                   </Button>
                   <Button 
-                    variant="outline" 
-                    size="sm" 
+                    variant={"outline" as const} 
+                    size={"sm" as const} 
                     className="flex-1"
                     onClick={() => loadOfferingForEdit(offering)}
                   >
@@ -386,7 +386,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteAllConfirm(false)}>
+            <Button variant={"outline" as const} onClick={() => setShowDeleteAllConfirm(false)}>
               Cancel
             </Button>
             <Button 
@@ -435,7 +435,7 @@ export const EnhancedOfferingsTab: React.FC<EnhancedOfferingsTabProps> = ({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOfferingToDelete(null)}>
+            <Button variant={"outline" as const} onClick={() => setOfferingToDelete(null)}>
               Cancel
             </Button>
             <Button 

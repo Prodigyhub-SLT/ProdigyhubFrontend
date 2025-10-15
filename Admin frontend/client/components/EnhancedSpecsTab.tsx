@@ -210,7 +210,7 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
                     <div>
                       <h3 className="text-lg font-semibold line-clamp-1">{spec.name || 'Unnamed Specification'}</h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(spec.lifecycleStatus)} variant="outline">
+                        <Badge className={getStatusColor(spec.lifecycleStatus)} variant={"outline" as const}>
                           {spec.lifecycleStatus?.toUpperCase()}
                         </Badge>
                         <span className="text-sm text-muted-foreground">{spec.category || 'No Category'}</span>
@@ -218,8 +218,8 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
                     </div>
                   </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant={"ghost" as const}
+                    size={"sm" as const}
                     onClick={() => deleteMongoSpec(spec.id)}
                     className="text-red-600 hover:text-red-700"
                   >
@@ -247,8 +247,8 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
                   {/* Action Buttons */}
                   <div className="flex gap-2">
                     <Button 
-                      variant="outline" 
-                      size="sm" 
+                      variant={"outline" as const} 
+                      size={"sm" as const} 
                       onClick={() => {
                         setSelectedSpec(spec);
                         setIsViewDialogOpen(true);
@@ -258,8 +258,8 @@ export const EnhancedSpecsTab: React.FC<EnhancedSpecsTabProps> = ({
                       View
                     </Button>
                     <Button 
-                      variant="outline" 
-                      size="sm" 
+                      variant={"outline" as const} 
+                      size={"sm" as const} 
                       onClick={() => loadSpecForEdit(spec)}
                     >
                       <Edit className="w-4 h-4 mr-2" />

@@ -292,7 +292,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           <div>
             <div className="flex items-center justify-between mb-4">
               <Label className="text-base font-medium">Custom Attributes</Label>
-              <Button type="button" onClick={addCustomAttribute} variant="outline" size="sm">
+              <Button type="button" onClick={addCustomAttribute} variant={"outline" as const} size={"sm" as const}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Attribute
               </Button>
@@ -316,8 +316,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                   <Button
                     type="button"
                     onClick={() => removeCustomAttribute(attr.id)}
-                    variant="ghost"
-                    size="sm"
+                    variant={"ghost" as const}
+                    size={"sm" as const}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -451,8 +451,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                 <Button
                   ref={scrollToTopRef}
                   type="button"
-                  variant="outline"
-                  size="sm"
+                  variant={"outline" as const}
+                  size={"sm" as const}
                   onClick={scrollToTop}
                   className="flex items-center gap-2 text-xs"
                 >
@@ -528,8 +528,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                           <Button
                             type="button"
                             onClick={() => removeImage(image.id)}
-                            variant="ghost"
-                            size="sm"
+                            variant={"ghost" as const}
+                            size={"sm" as const}
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -723,7 +723,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
               {currentStep > 1 && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant={"outline" as const}
                   onClick={() => setCurrentStep(prev => prev - 1)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
@@ -735,7 +735,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant={"outline" as const}
                 onClick={() => {
                   setIsCreateDialogOpen(false);
                   resetForm();
@@ -795,7 +795,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
               {currentStep > 1 && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant={"outline" as const}
                   onClick={() => setCurrentStep(prev => prev - 1)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
@@ -807,7 +807,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant={"outline" as const}
                 onClick={() => {
                   setIsEditDialogOpen(false);
                   resetForm();
@@ -878,8 +878,8 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                 <div>
                   <Label className="text-sm font-medium">Type</Label>
                   <div className="flex gap-1">
-                    {selectedOffering.isBundle && <Badge variant="outline">Bundle</Badge>}
-                    {selectedOffering.isSellable && <Badge variant="outline">Sellable</Badge>}
+                    {selectedOffering.isBundle && <Badge variant={"outline" as const}>Bundle</Badge>}
+                    {selectedOffering.isSellable && <Badge variant={"outline" as const}>Sellable</Badge>}
                   </div>
                 </div>
               </div>
@@ -1146,7 +1146,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
               )}
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              <Button type="button" variant={"outline" as const} onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit">Create</Button>

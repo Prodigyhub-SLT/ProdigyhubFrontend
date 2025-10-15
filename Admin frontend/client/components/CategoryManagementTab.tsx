@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -847,7 +847,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
           <p className="text-gray-600">Manage hierarchical categories for your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={loadCategories} variant="outline" disabled={loading}>
+          <Button onClick={loadCategories} variant={"outline" as const} disabled={loading}>
             {loading ? 'Loading...' : 'Refresh'}
           </Button>
           <Button onClick={() => setCreateMainDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
@@ -897,8 +897,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                                              <Button
-                         variant="ghost"
-                         size="sm"
+                         variant={"ghost" as const}
+                         size={"sm" as const}
                          onClick={() => toggleCategoryExpansion(category.categoryId)}
                          className="p-1 h-8 w-8"
                        >
@@ -911,20 +911,20 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant={"outline" as const} className="text-xs">
                         {category.subCategories?.length || 0} sub-categories
                       </Badge>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant={"outline" as const}
+                        size={"sm" as const}
                         onClick={() => openEditMainCategory(category)}
                         className="h-8 w-8 p-0"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant={"outline" as const}
+                        size={"sm" as const}
                         onClick={() => handleDeleteMainCategory(category)}
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                         disabled={category.subCategories && category.subCategories.length > 0}
@@ -947,8 +947,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
                                                                  <Button
-                                   variant="ghost"
-                                   size="sm"
+                                   variant={"ghost" as const}
+                                   size={"sm" as const}
                                    onClick={() => toggleSubCategoryExpansion(subCategory.subCategoryId)}
                                    className="p-1 h-6 w-6"
                                  >
@@ -963,16 +963,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                                   {subCategory.subSubCategories?.length || 0} sub-sub-categories
                                 </Badge>
                                 <Button
-                                  variant="outline"
-                                  size="sm"
+                                  variant={"outline" as const}
+                                  size={"sm" as const}
                                   onClick={() => openEditSubCategory(category, subCategory)}
                                   className="h-6 w-6 p-0"
                                 >
                                   <Edit className="w-3 h-3" />
                                 </Button>
                                 <Button
-                                  variant="outline"
-                                  size="sm"
+                                  variant={"outline" as const}
+                                  size={"sm" as const}
                                   onClick={() => handleDeleteSubCategory(category, subCategory)}
                                   className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                                   disabled={subCategory.subSubCategories && subCategory.subSubCategories.length > 0}
@@ -994,16 +994,16 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                                     </div>
                                     <div className="flex items-center space-x-1">
                                       <Button
-                                        variant="outline"
-                                        size="sm"
+                                        variant={"outline" as const}
+                                        size={"sm" as const}
                                         onClick={() => openEditSubSubCategory(category, subCategory, subSubCategory)}
                                         className="h-5 w-5 p-0"
                                       >
                                         <Edit className="w-2.5 h-2.5" />
                                       </Button>
                                       <Button
-                                        variant="outline"
-                                        size="sm"
+                                        variant={"outline" as const}
+                                        size={"sm" as const}
                                         onClick={() => handleDeleteSubSubCategory(category, subCategory, subSubCategory)}
                                         className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
                                       >
@@ -1015,8 +1015,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                                 
                                 {/* Add Sub-sub-category Button */}
                                 <Button
-                                  variant="outline"
-                                  size="sm"
+                                  variant={"outline" as const}
+                                  size={"sm" as const}
                                   onClick={() => openCreateSubSubCategory(category, subCategory)}
                                   className="h-6 text-xs"
                                 >
@@ -1031,8 +1031,8 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                       
                       {/* Add Sub-category Button */}
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant={"outline" as const}
+                        size={"sm" as const}
                         onClick={() => openCreateSubCategory(category)}
                         className="h-8"
                       >
@@ -1162,7 +1162,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
                </Select>
              </div>
              <DialogFooter>
-               <Button type="button" variant="outline" onClick={() => {
+               <Button type="button" variant={"outline" as const} onClick={() => {
                  setCreateMainDialogOpen(false);
                  resetMainCategoryForm();
                }}>
@@ -1289,7 +1289,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               </Select>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
+              <Button type="button" variant={"outline" as const} onClick={() => {
                 setEditMainDialogOpen(false);
                 resetMainCategoryForm();
               }}>
@@ -1354,7 +1354,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
+              <Button type="button" variant={"outline" as const} onClick={() => {
                 setCreateSubDialogOpen(false);
                 resetSubCategoryForm();
               }}>
@@ -1419,7 +1419,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
+              <Button type="button" variant={"outline" as const} onClick={() => {
                 setEditSubDialogOpen(false);
                 resetSubCategoryForm();
               }}>
@@ -1484,7 +1484,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
+              <Button type="button" variant={"outline" as const} onClick={() => {
                 setCreateSubSubDialogOpen(false);
                 resetSubSubCategoryForm();
               }}>
@@ -1549,7 +1549,7 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
+              <Button type="button" variant={"outline" as const} onClick={() => {
                 setEditSubSubDialogOpen(false);
                 resetSubSubCategoryForm();
               }}>
@@ -1572,10 +1572,10 @@ export function CategoryManagementTab({ onCategoriesChange }: CategoryManagement
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDeleteConfirmDialogOpen(false)}>
+            <Button type="button" variant={"outline" as const} onClick={() => setDeleteConfirmDialogOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteConfirm}>
+            <Button type="button" variant={"destructive" as const} onClick={handleDeleteConfirm}>
               Delete
             </Button>
           </DialogFooter>

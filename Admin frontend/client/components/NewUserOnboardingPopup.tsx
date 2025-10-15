@@ -696,7 +696,7 @@ export default function NewUserOnboardingPopup({
 
             <div className="flex justify-between pt-4 border-t border-gray-200">
               <Button 
-                variant="outline" 
+                variant={"outline" as const} 
                 onClick={handleSkipUserDetails}
                 className="px-6 py-2"
               >
@@ -800,7 +800,7 @@ export default function NewUserOnboardingPopup({
 
             <div className="flex justify-between pt-4 border-t border-gray-200">
               <Button 
-                variant="outline" 
+                variant={"outline" as const} 
                 onClick={handleGoBack} 
                 className="flex items-center gap-2 px-6 py-2"
               >
@@ -945,7 +945,7 @@ export default function NewUserOnboardingPopup({
             {infrastructureCheck && (
               <div className="flex justify-between pt-4 border-t border-gray-200">
                 <Button 
-                  variant="outline" 
+                  variant={"outline" as const} 
                   onClick={handleGoBack} 
                   className="flex items-center gap-2 px-6 py-2"
                 >

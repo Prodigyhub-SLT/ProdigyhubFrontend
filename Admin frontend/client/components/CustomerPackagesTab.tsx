@@ -448,8 +448,8 @@ export default function CustomerPackagesTab() {
       case 'progress':
         return (
           <Button 
-            variant="ghost" 
-            size="sm" 
+            variant={"ghost" as const} 
+            size={"sm" as const} 
             disabled
             className="flex-1 text-white bg-green-400 border-green-400 text-white cursor-not-allowed transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
           >
@@ -459,8 +459,8 @@ export default function CustomerPackagesTab() {
       case 'active':
         return (
           <Button 
-            variant="ghost" 
-            size="sm" 
+            variant={"ghost" as const} 
+            size={"sm" as const} 
             className="flex-1 text-white bg-green-400 border-green-400 text-white transition-all duration-300 rounded-lg py-1.5 font-medium text-sm"
             style={{ pointerEvents: 'none' }}
             onClick={(e) => e.preventDefault()}
@@ -471,8 +471,8 @@ export default function CustomerPackagesTab() {
       case 'cancelled':
         return (
           <Button 
-            variant="ghost" 
-            size="sm" 
+            variant={"ghost" as const} 
+            size={"sm" as const} 
             onClick={() => handleUpgrade(offering)}
             className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
           >
@@ -482,8 +482,8 @@ export default function CustomerPackagesTab() {
       default:
         return (
           <Button 
-            variant="ghost" 
-            size="sm" 
+            variant={"ghost" as const} 
+            size={"sm" as const} 
             onClick={() => handleUpgrade(offering)}
             className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
           >
@@ -602,8 +602,8 @@ export default function CustomerPackagesTab() {
             {(filters.connectionType !== 'all' || filters.packageUsageType !== 'all' || 
               filters.packageType !== 'all' || filters.searchTerm !== '' || filters.dataBundle !== 'all') && (
               <Button
-                variant="outline"
-                size="sm"
+                variant={"outline" as const}
+                size={"sm" as const}
                 onClick={resetFilters}
                 className="text-gray-600 hover:text-gray-800"
               >
@@ -666,7 +666,7 @@ export default function CustomerPackagesTab() {
                         </div>
                         <div className="p-3 bg-white flex-1">
                           <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                            <Badge variant={"outline" as const} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
                               {getOfferingCategory(offering).toUpperCase()}
                             </Badge>
                           </div>
@@ -713,8 +713,8 @@ export default function CustomerPackagesTab() {
                           </div>
                           <div className="flex gap-2">
                             <Button 
-                              variant="ghost" 
-                              size="sm" 
+                              variant={"ghost" as const} 
+                              size={"sm" as const} 
                               onClick={() => handleViewSpec(offering)}
                               className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                             >
@@ -755,7 +755,7 @@ export default function CustomerPackagesTab() {
                         </div>
                         <div className="p-3 bg-white flex-1">
                           <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                            <Badge variant={"outline" as const} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
                               {getOfferingCategory(offering).toUpperCase()}
                             </Badge>
                           </div>
@@ -802,8 +802,8 @@ export default function CustomerPackagesTab() {
                           </div>
                           <div className="flex gap-2">
                             <Button 
-                              variant="ghost" 
-                              size="sm" 
+                              variant={"ghost" as const} 
+                              size={"sm" as const} 
                               onClick={() => handleViewSpec(offering)}
                               className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                             >
@@ -844,7 +844,7 @@ export default function CustomerPackagesTab() {
                         </div>
                         <div className="p-3 bg-white flex-1">
                           <div className="mb-3">
-                            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                            <Badge variant={"outline" as const} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
                               {getOfferingCategory(offering).toUpperCase()}
                             </Badge>
                           </div>
@@ -891,8 +891,8 @@ export default function CustomerPackagesTab() {
                           </div>
                           <div className="flex gap-2">
                             <Button 
-                              variant="ghost" 
-                              size="sm" 
+                              variant={"ghost" as const} 
+                              size={"sm" as const} 
                               onClick={() => handleViewSpec(offering)}
                               className="flex-1 text-white hover:bg-blue-700 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
                             >
@@ -926,8 +926,8 @@ export default function CustomerPackagesTab() {
                 </div>
               </div>
               <Button
-                variant="ghost"
-                size="sm"
+                variant={"ghost" as const}
+                size={"sm" as const}
                 onClick={closeSpecView}
                 className="h-8 w-8 p-0 rounded-full"
               >

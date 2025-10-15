@@ -369,8 +369,8 @@ export default function MessagesTab({ user }: MessagesTabProps) {
             <div className="flex gap-2">
               {unreadCount > 0 && (
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant={"outline" as const}
+                  size={"sm" as const}
                   onClick={markAllAsRead}
                   className="flex items-center gap-2"
                 >
@@ -425,8 +425,8 @@ export default function MessagesTab({ user }: MessagesTabProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant={"ghost" as const}
+                          size={"sm" as const}
                           onClick={(e) => {
                             e.stopPropagation();
                             deleteNotification(notification.id);
@@ -497,8 +497,8 @@ export default function MessagesTab({ user }: MessagesTabProps) {
                       <div className="flex gap-2">
                         {notification.canCancel && (
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant={"outline" as const}
+                            size={"sm" as const}
                             onClick={(e) => {
                               e.stopPropagation();
                               openCancelDialog(notification.id);
@@ -512,8 +512,8 @@ export default function MessagesTab({ user }: MessagesTabProps) {
                         )}
                         {!notification.read && (
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant={"ghost" as const}
+                            size={"sm" as const}
                             onClick={(e) => {
                               e.stopPropagation();
                               markAsRead(notification.id);
@@ -563,14 +563,14 @@ export default function MessagesTab({ user }: MessagesTabProps) {
           </div>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant={"outline" as const}
               onClick={closeCancelDialog}
               disabled={cancellingOrder === selectedOrderId}
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant={"destructive" as const}
               onClick={handleSubmitCancellation}
               disabled={cancellingOrder === selectedOrderId || !cancellationReason.trim()}
             >

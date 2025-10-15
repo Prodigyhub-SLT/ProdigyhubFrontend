@@ -348,7 +348,7 @@ export default function CustomerCustomizeTab() {
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 md:p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="font-semibold text-gray-800">Your selections</div>
-              <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(true)}>Preview</Button>
+              <Button variant={"outline" as const} size={"sm" as const} onClick={() => setIsPreviewOpen(true)}>Preview</Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-500">Connection:</span> <span className="font-medium text-gray-900">{data.connectionType || '—'}</span></div>
@@ -386,7 +386,7 @@ export default function CustomerCustomizeTab() {
                 )}
                 {similarOffers.length > 3 && (
                   <div className="mt-3">
-                    <Button variant="outline" size="sm" onClick={() => setShowAllOffers(!showAllOffers)}>
+                    <Button variant={"outline" as const} size={"sm" as const} onClick={() => setShowAllOffers(!showAllOffers)}>
                       {showAllOffers ? 'Show less' : `Show other offers (${similarOffers.length - 3})`}
                     </Button>
                   </div>

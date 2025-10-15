@@ -356,8 +356,8 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
                   
                   <div className="flex flex-col gap-2">
                     <Button 
-                      variant="outline" 
-                      size="sm" 
+                      variant={"outline" as const} 
+                      size={"sm" as const} 
                       className="w-full"
                       onClick={() => {
                         setSelectedOffering(offering);
@@ -368,8 +368,8 @@ export const EnhancedPricesTab: React.FC<EnhancedPricesTabProps> = ({
                       View Details
                     </Button>
                     <Button 
-                      variant="outline" 
-                      size="sm" 
+                      variant={"outline" as const} 
+                      size={"sm" as const} 
                       className="w-full"
                       onClick={() => {
                         loadOfferingForEdit(offering, true); // true = pricing only

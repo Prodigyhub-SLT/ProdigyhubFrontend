@@ -349,7 +349,7 @@ export default function InventoryTab() {
               {/* Small Activate pill near Inventory */}
               {activePackage && (
                 <Button
-                  size="sm"
+                  size={"sm" as const}
                   className="ml-2 h-8 px-5 rounded-full bg-white/15 text-white font-semibold border border-white/70 shadow-inner hover:bg-white/20"
                 >
                   Active
@@ -368,7 +368,7 @@ export default function InventoryTab() {
             <div className="flex flex-col gap-3 ml-8">
               {/* Cancel button - red with X icon */}
               <Button
-                variant="outline"
+                variant={"outline" as const}
                 onClick={() => setIsCancelDialogOpen(true)}
                 className="bg-red-500 text-white border-red-500 hover:bg-red-600 hover:text-white rounded-lg px-4 py-2 w-32 h-10 text-sm font-medium shadow-md flex items-center gap-2"
               >
@@ -633,7 +633,7 @@ export default function InventoryTab() {
 
               {/* Cancel Request Button */}
               <Button
-                variant="outline"
+                variant={"outline" as const}
                 onClick={async () => {
                   if (!pendingUpgrade?.order?.id) return;
                   if (!confirm('Are you sure you want to cancel this upgrade request?')) return;
@@ -960,8 +960,8 @@ export default function InventoryTab() {
                         <td className="py-5 px-6">
                           <div className="flex items-center gap-1">
                             <Button
-                              variant="ghost"
-                              size="sm"
+                              variant={"ghost" as const}
+                              size={"sm" as const}
                               onClick={() => handleViewOrder(order)}
                               title="View Order Details"
                               className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group/btn"
@@ -969,8 +969,8 @@ export default function InventoryTab() {
                               <Eye className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="sm"
+                              variant={"ghost" as const}
+                              size={"sm" as const}
                               onClick={() => handleDeleteOrder(order.id)}
                               title="Delete Order"
                               className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group/btn"
@@ -1018,11 +1018,11 @@ export default function InventoryTab() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)} disabled={!!cancellingOrderId}>
+            <Button variant={"outline" as const} onClick={() => setIsCancelDialogOpen(false)} disabled={!!cancellingOrderId}>
               Close
             </Button>
             <Button
-              variant="destructive"
+              variant={"destructive" as const}
               onClick={async () => {
                 if (!activePackage?.order?.id) return;
                 if (!cancellationReason.trim()) {
@@ -1286,7 +1286,7 @@ export default function InventoryTab() {
           
           <div className="flex justify-end mt-8 pt-6 border-t border-slate-100">
             <Button 
-              variant="outline" 
+              variant={"outline" as const} 
               onClick={() => {
                 setIsViewDialogOpen(false);
                 setSelectedOrderForView(null);
@@ -1327,7 +1327,7 @@ export default function InventoryTab() {
           <DialogFooter className="pt-6">
             <Button 
               type="button" 
-              variant="outline" 
+              variant={"outline" as const} 
               onClick={() => {
                 setIsDeleteDialogOpen(false);
                 setOrderToDelete("");

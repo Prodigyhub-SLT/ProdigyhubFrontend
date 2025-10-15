@@ -390,8 +390,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Left side */}
             <div className="flex items-center">
               <Button
-                variant="ghost"
-                size="sm"
+                variant={"ghost" as const}
+                size={"sm" as const}
                 className="lg:hidden"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >
@@ -468,7 +468,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 <div className="text-xs text-gray-500 truncate">{item.description}</div>
                               </div>
                               {item.badge && (
-                                <Badge variant="secondary" className="text-xs">{item.badge}</Badge>
+                                <Badge variant={"secondary" as const} className="text-xs">{item.badge}</Badge>
                               )}
                             </button>
                           );
@@ -498,7 +498,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 <div className="font-medium text-sm text-gray-900">{tab.name}</div>
                                 <div className="text-xs text-gray-500 truncate">{tab.description}</div>
                               </div>
-                              <Badge variant="outline" className="text-xs border-blue-200 text-blue-700">
+                              <Badge variant={"outline" as const} className="text-xs border-blue-200 text-blue-700">
                                 Catalog
                               </Badge>
                             </button>
@@ -523,7 +523,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* Notifications */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="relative">
+                  <Button variant={"ghost" as const} size={"sm" as const} className="relative">
                     <Bell className="h-5 w-5" />
                     <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                       {lifecycleEvents.length > 0 ? Math.min(lifecycleEvents.length, 99) : 0}
@@ -534,7 +534,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Notifications</span>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant={"secondary" as const} className="text-xs">
                         {lifecycleEvents.length} events
                       </Badge>
                     </div>
@@ -595,8 +595,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             className="p-3 cursor-pointer hover:bg-gray-50 text-center justify-center"
                           >
                             <Button 
-                              variant="outline" 
-                              size="sm" 
+                              variant={"outline" as const} 
+                              size={"sm" as const} 
                               className="w-full"
                               onClick={handleShowAllMessages}
                             >
@@ -613,7 +613,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button variant={"ghost" as const} className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.avatar} alt={user?.name} />
                       <AvatarFallback>
@@ -689,7 +689,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <div className="flex items-center justify-between">
                         <span>{item.name}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
+                          <Badge variant={"secondary" as const} className="ml-2 text-xs">
                             {item.badge}
                           </Badge>
                         )}
@@ -721,7 +721,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </p>
                 </div>
                 <Badge
-                  variant="outline"
+                  variant={"outline" as const}
                   className={`text-xs ${
                     user?.role === 'admin' ? 'border-red-200 text-red-700' : 'border-blue-200 text-blue-700'
                   }`}
