@@ -750,3 +750,35 @@ module.exports = {
   // USER MANAGEMENT MODELS
   User
 };
+
+// ===================================
+// STARTUP INDEX SELF-HEALING (NON-BREAKING)
+// ===================================
+// Ensure only the intended unique indexes exist on the hierarchical categories collection.
+// This guards against stale unique indexes (e.g., on name/value) that may cause 409 conflicts.
+// Runs once on startup; safe to call multiple times.
+(async () => {
+  try {
+    // Only run when a DB connection is available
+    if (!mongoose.connection || !mongoose.connection.db) return;
+    const collectionName = 'new_hierarchical_categories';
+    const coll = mongoose.connection.db.collection(collectionName);
+    const indexes = await coll.indexes();
+
+    // Drop unexpected unique indexes on name/value if present
+    const staleUniqueNames = indexes.filter(idx => (idx.name === 'name_1' || idx.name === 'value_1') && idx.unique);
+    for (const idx of staleUniqueNames) {
+      try {
+        await coll.dropIndex(idx.name);
+      } catch (_) { /* ignore if not present */ }
+    }
+
+    // Ensure the expected indexes exist
+    await coll.createIndex({ categoryId: 1 }, { unique: true });
+    await coll.createIndex({ name: 1 }); // non-unique
+  } catch (err) {
+    // Do not crash app if index management fails; just log
+    // eslint-disable-next-line no-console
+    console.error('Index self-healing failed for new_hierarchical_categories:', err?.message || err);
+  }
+})();

@@ -1,0 +1,742 @@
+
+
+
+
+
+
+
+
+
+Prodigy Hub
+
+
+
+
+
+
+
+
+
+Business requirements document
+
+Table of Contents
+
+
+
+Business requirements document	1
+Table of Contents	2
+1.0 Introduction.	3
+1.1 Background.	3
+1.2 Overview.	3
+1.3 Proposal.	3
+1.4 Objectives.	4
+1.5 Scope.	4
+2.0 High-level Flow diagram.	5
+2.1 Functional Flow of Proposed Attendance Management System.	6
+3.0 Functional Requirements.	7
+3.1 Functional Flow Diagram.	7
+3.2 List of Functions	8
+11. Billing and Revenue Management	11
+3.3 List of Fields	12
+4.0 Non-Functional Requirements.	16
+4.1 Privileges	16
+4.1.1. Administrator	16
+4.1.2. User	17
+4.2 User Characteristics	19
+
+
+
+
+
+1.0 Introduction.
+
+1.1 Background.
+The initial requirement is to develop a comprehensive Product Management system that adheres to TMForum standards. ProdigyHub was conceived to address the growing need for standardized product lifecycle management across telecommunications and service provider industries. The system needs to manage product catalogs, ordering processes, inventory tracking, and customer qualifications in a unified platform. Since modern enterprises require real-time data synchronization and seamless integration across multiple systems, it is necessary to have one centralized system to handle all product management operations efficiently.
+
+1.2 Overview.
+ProdigyHub is an enterprise-grade product management platform that implements multiple TMForum Open API standards to provide comprehensive product lifecycle management. The system serves telecommunications companies, service providers, and enterprise organizations by offering standardized APIs for product catalog management, ordering workflows, inventory tracking, qualification processes, event management, and product configuration. Currently, the system operates as a unified web application with real-time dashboards and automated workflows. The platform eliminates the manual overhead of managing complex product portfolios and enables seamless integration with existing enterprise systems through standardized TMForum APIs.
+
+
+1.3 Proposal.
+
+The proposal for developing ProdigyHub is to modernize traditional product management approaches by implementing industry-standard TMForum APIs in a unified platform. The system aims to provide automated product catalog management, streamlined ordering processes, real-time inventory tracking, and comprehensive qualification workflows. Another key aspect of the software is to generate automated reports, enable real-time monitoring, and support enterprise-level integrations through standardized API endpoints.
+
+
+1.4 Objectives.
+
+? To develop an automated product catalog management system following the TMF620 standards.
+? To streamline product ordering workflows with the TMF622 implementation.
+? To enable real-time inventory tracking through TMF637 integration
+? To automate product qualification processes using TMF679 standards.
+? To implement comprehensive event management via TMF688.
+? To provide advanced product configuration capabilities through TMF760
+? To minimize manual operational overhead through automation
+? To ensure standardized API compliance for enterprise integrations
+? To reduce time-to-market for new product offerings
+? To enable real-time monitoring and analytics across all product operations
+
+1.5 Scope.
+The scope of ProdigyHub encompasses a comprehensive product management ecosystem built on TMForum standards. The system is developed as a modern web application with both frontend dashboards and backend API services. It operates across the entire product lifecycle from catalog creation to order fulfillment and inventory management.
+
+
+
+
+
+2.0 High-level Flow diagram. 
+
+
+
+
+
+
+
+
+
+
+
+2.1 Functional Flow of Proposed Attendance Management System.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3.0 Functional Requirements.
+3.1 Functional Flow Diagram.   
+
+3.2 List of Functions
+
+1. User onboarding and authentication
+
+Function
+User Authentication and Onboarding 
+Description
+- Validate user credentials and create profile 
+- Authenticate registered users to access personalized features
+- Grant role-based access to dashboard and system features
+- Password Policy Enforcement: Enforce strong password requirements including complexity rules, expiration policies, and password history to prevent reuse
+Inputs
+Username, Password, Email 
+Outputs
+User role, Access permission
+
+2. Manage and browse the product catalog
+
+Function
+Manage and browse the product catalog
+Description
+- Create and browse new digital product offerings 
+- Update existing product specification and price
+- Manage and add categories  
+- Search & filter packages
+- Control product lifecycle states
+Inputs
+Product name, Description, Category, Price, Specifications, Business rules
+Outputs
+New offering
+
+Function
+Check, Analyse, and manage qualification 
+Description
+- Verify product availability by geographic location
+- Check customer eligibility for a specific product or category
+- Request not available services
+Inputs
+ Personal information, location information
+Outputs
+ Qualification status, Alternative recommendations
+3. Check and Manage Qualifications
+4. Configure Product & check Config Request 
+
+Function
+Configure the product and check the config request 
+Description
+- Set configuration constraints and dependencies
+- Define customizable product options and variants
+- Request for a  new customized product 
+- Configuration Templates: Pre-defined configuration templates for common use cases, industry-specific setups, and best-practice configurations
+Inputs 
+Customize details, product variant
+Outputs
+Request a new config product 
+
+5. Place orders and manage orders 
+
+Function
+Order Management and process
+Description
+- Process customer product orders with validation
+- Approve/reject / update orders
+- Manage order approval
+- Upgrade/downgrade existing package
+- Handle order modifications and cancellations
+- Track order status throughout the fulfillment lifecycle
+- Monitor service requests
+- Bulk Order Processing: Support for high-volume order processing with batch operations, priority queuing, and resource optimization
+Inputs 
+Product selection, Delivery details, Payment information
+Outputs
+ Order status, Fulfillment timeline
+
+6. Update product inventory 
+Function
+Update product inventory
+Description
+- Update service status in real-time
+- Manage inventory reservations and commitments
+- Handle inventory audits and reconciliation
+Inputs 
+Customer details,  billing details 
+Outputs
+Inventory status, Service records
+
+7. Manage notification
+
+Function
+Manage Notification
+Description
+- Process real-time system events and triggers
+- Send automated notifications to customers and staff
+- Handle system alerts and monitoring events
+- Track delivery status and engagement metrics
+- Enable automated communication workflows
+- Personalized Notification Preferences: Customer-specific notification preferences with granular control over notification types, channels, timing, and frequency with opt-in/opt-out management
+Inputs 
+Notification preferences
+Outputs
+Notification, Event triggers
+
+8. Reporting and Analytics
+
+Function
+Reporting and Analytics
+Description
+- Provide performance metrics and KPI monitoring
+- Create audit trails and compliance reports
+- Support data-driven decision making
+- Analyze customer behavior and product performance
+- Complaint trends
+Inputs
+ Date ranges, Performance metrics, Filter parameters
+Outputs
+Analytics dashboards, Audit logs, Performance insights
+
+9. User and Access Management 
+Function
+User and Access Management
+Description
+- Manage user accounts and profiles
+- Control role-based access permissions
+- Handle user authentication and authorization
+- Monitor user activities and access logs
+- Maintain security compliance and policies
+Inputs
+User details, Role assignments, Access permissions
+Outputs
+Access tokens, Permission matrices
+
+10.  Customer Feedback and Complaints
+Function
+Customer Feedback and Complaints Management
+Description
+- Capture and categorize customer feedback and complaints
+- Track complaint resolution status and timelines
+- Track and resolve complaints
+- Maintain customer satisfaction metrics and reports
+- Route complaints to appropriate departments/teams
+Inputs
+Feedback type, Complaint description, Priority level
+Outputs
+Acknowledgment confirmation, Resolution status
+Penalties
+P01 - Failure to acknowledge customer complaints within 24 hours will result in escalation to management and may impact customer retention metrics
+
+P02 - Complaints not resolved within the agreed SLA timeframe (48 hours for high priority, 72 hours for medium priority, 7 days for low priority) will trigger automatic compensation consideration and management review
+
+   11.  Billing and Revenue Management
+Function
+Billing and Revenue Management
+Description
+- Generate customer invoices based on product usage and subscriptions
+- Process recurring billing cycles and one-time charges
+- Handle payment processing and collection
+- Manage billing disputes and adjustments
+- Track revenue recognition and financial reporting
+- Support multiple pricing models (subscription, usage-based, tiered)
+Inputs
+Customer details, Payment methods, Billing preferences
+Outputs
+Invoice ID, Payment confirmation, Revenue reports, Billing statements
+
+12.  Customer Relationship Management (CRM)
+Function
+Customer Relationship Management
+Description
+- Maintain comprehensive customer profiles and history
+- Enable personalized customer experiences
+- Monitor customer lifecycle and retention metrics
+inputs
+Customer data, Interaction history, Preferences, Communication logs
+3.3 List of Fields
+
+1. User onboarding and Authentication
+
+Field Name 
+Variable
+Variable type 
+First Name 
+firstName
+string
+Last Name
+lastName
+string
+Email
+emailAddress
+string
+Phone Number
+phoneNumber
+string
+Street Address
+streetAddress
+string
+City
+city
+string
+Postal code
+postalCode
+string
+DIstrict
+district
+string
+Province
+province
+string
+
+
+2. Add new offering
+Field Name 
+Variable
+Variable Type
+Offering Name
+offeringName 
+string
+status
+status
+string
+Description
+description
+Text
+Custom Attribute
+customAttribute
+string
+Price
+price
+Decimal
+Billing Period
+billingPeriod
+string
+Setup fee
+setupFee
+Decimal
+
+
+3. Add new Category 
+Field Name 
+Variable
+Variable Type
+Name
+name
+string
+Value
+value
+string
+Label
+label
+string
+Description
+description
+text
+Icon
+icon
+char
+Is Active
+isActive
+boolean
+
+4. Check Service Availability
+Field Name
+Variable
+Variable Type
+Address
+address
+string
+District
+district
+string
+Province
+province
+string
+Service type
+serviceType
+string
+Customer type
+customerType
+string
+
+5. Add a new area
+Field Name 
+Variable
+Variable Type
+Area Name
+areaName
+string
+Postal code 
+postalCode 
+string
+District
+district
+string
+Province
+province
+string
+Area type
+areaType
+string
+Description
+description
+text
+Technology
+technology
+string
+Max speed
+maxSpeed
+integer
+Coverage
+coverage
+decimal
+Monthly fee
+monthlyFee
+decimal
+
+6. Feedback
+Field Name
+Variable
+Variable Type
+Feedback Category
+feedbackCategory
+string
+Overall rate
+overallRate
+integer
+Subject
+subject
+string
+Detailed Feedback 
+detailedFeedback
+text
+Suggestion for Improvement
+suggestions
+text
+
+7. Submit a complaint 
+Field Name
+Variable
+Variable Type
+Complaint category
+complaintCategory
+string
+Subject
+subject
+string
+Detailed Description
+detailedDescription
+text
+Priority level
+priorityLevel
+string
+Contact method
+contactMethod
+string
+Phone number
+phoneNumber
+string
+Email
+email
+string
+
+8. Place an Order 
+Field Name
+Variable
+Variable Type
+Main category
+mainCategory
+string
+Priority
+priority
+string
+Sub Category
+subCategory
+string
+Description
+description
+text
+Offering
+offering
+string
+Quantity
+quantity
+string
+
+3.3 System User Interface
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.0 Non-Functional Requirements.
+
+4.1 Privileges
+ 
+The proposed system has two types of access modes:
+
+1) Administrator
+
+2) Authorized Users
+
+   a) Product Manager
+
+   b) Order Processor
+
+   c) Inventory Manager
+
+   d) Customer Service Representative
+
+   e) Qualification Analyst
+
+4.1.1. Administrator
+
+Provide system administration features that:
+
+? Enable the setup, management, and assignment of all user data, product catalog data, inventory records, order workflows, etc.
+? Allow for organization-specific categorization of products to catalogs, categories, lifecycle states, etc.
+? Allow flexibility to capture organization-specific business rules for pricing, qualifications, configurations, and integrations.
+? Allow grants, custom attributes, and other data in generic fields.
+? Enable the configuration and management of all TMForum standard-specific rules (e.g., TMF620 for catalogs, TMF622 for orders).
+? Allow for custom workflow processing and notification rules.
+
+4.1.2. User
+
+1. Product Manager
+
+? Log in to the system and manage product catalogs.
+? View and update product specifications, prices, categories, and lifecycle states.
+? Coordinate product configurations, add custom attributes.
+? Create and browse new product offerings with appropriate coding to categories, business rules, etc.
+? View the status of product updates submitted.
+? Adjust and view the status of modifications.
+? View product history.
+? View the catalog or configuration changes.
+
+2. Order Processor
+
+? Log in to the system and manage orders.
+? View customer orders and process validations.
+? Coordinate order approvals, modifications, cancellations, and upgrades/downgrades.
+? Record order details with appropriate coding to products, delivery, payments, etc.
+? View the status of orders submitted.
+? Adjust and view the status of changes.
+? View order history.
+? View fulfillment timelines or status changes.
+
+3. Inventory Manager
+
+? Log in to the system and update product inventory.
+? View real-time inventory status and manage reservations.
+? Coordinate inventory audits, reconciliations, and commitments.
+? Record inventory updates with appropriate coding to services, customers, etc.
+? View the status of inventory changes submitted.
+? Adjust and view the status of corrections.
+? View inventory history.
+? View service status or commitment changes.
+
+4. Customer Service Representative
+
+? Log in to the system and handle customer feedback, complaints, and CRM.
+? View customer profiles, interaction history, and satisfaction metrics.
+? Coordinate complaint resolutions, routings, and timelines.
+? Record feedback with appropriate coding to types, priorities, etc.
+? View the status of complaints submitted.
+? Adjust and view the status of resolutions.
+? View complaint history.
+? View customer lifecycle or retention changes.
+
+            5. Qualification Analyst
+
+? Log in to the system and manage qualifications.
+? View and analyze product availability, customer eligibility, and geographic checks.
+? Coordinate qualification requests and alternative recommendations.
+? Record qualification details with appropriate coding to locations, personal info, etc.
+? View the status of qualifications submitted.
+? Adjust and view the status of analyses.
+? View qualification history.
+? View eligibility or availability changes.
+
+4.2 User Characteristics
+
+
+This Software gives three kinds of users.
+
+Administrator
+
+? The Administrator has access to add, delete, and modify information stored in the database.
+
+User
+
+Provide customer-facing features that:
+
+? Enable customers to view and manage their personal profile information, order history, and service status.
+? Allow customers to browse and search the product catalog with personalized recommendations based on their location and preferences.
+? Enable customers to check service availability and qualification status for their geographic location.
+? Allow customers to place orders, track order status, and manage their subscriptions.
+? Enable customers to view their billing information, payment history, and download invoices.
+? Allow customers to submit feedback, complaints, and service requests with real-time status tracking.
+? Enable customers to configure and customize their product offerings based on available options.
+? Allow customers to view their service usage analytics and performance metrics.
+? Enable customers to manage their notification preferences and communication settings.
+? Allow customers to access self-service tools for common account management tasks.
+
+4.1.3. User
+
+1. User (Standard Customer)
+
+? Log in to the system and access their personalized user dashboard at /user.
+? View and update personal profile information including name, email, phone, and address details.
+? Browse and manage service packages (PEO TV, Broadband, Mobile, etc.) through the customer packages tab.
+? Check service availability and qualification for their geographic location using the qualification tab.
+? View and manage product inventory through the inventory tab.
+? Configure and customize product offerings using the customer customize tab.
+? Send and receive messages through the messages tab.
+? Access public product offerings and browse available services.
+? Complete new user onboarding process with profile setup.
+? View service status and manage active subscriptions.
+
+2. Viewer (Read-Only Access)
+
+? Access the system with limited read-only permissions.
+? View product catalog and service information.
+? Browse available offerings without modification capabilities.
+? Access public information and service details.
+? View basic system information and status.
+
+3. Admin (System Administrator)
+
+? Full access to all system features and administrative functions.
+? Manage product catalogs, categories, and specifications (TMF620).
+? Process and manage product orders and cancellations (TMF622).
+? Track and manage product inventory and lifecycle (TMF637).
+? Handle product qualification and validation processes (TMF679).
+? Monitor and manage system events and notifications (TMF688).
+? Configure product setups and validation rules (TMF760).
+? Access enhanced dashboard with comprehensive analytics.
+? Manage user accounts, roles, and permissions.
+? View system reports and audit logs.
+
+Authorized Users:
+
+? Internal staff have access to view the data stored in the database and can apply product management actions in the form of formatted reports.
+
+? Internal Approval staff can view the data stored in the database, download data tables via the database, can apply for approval status.
+
+? External Organization staff - view the previous product/order/inventory data in the database.
+
+User 
+User Type (Internal/External)
+Access Privileges
+Product Manager
+Internal
+Add remarks / Edit / Delete 
+Order Processor 
+Internal
+Add remarks / Edit / View
+Inventory Manager
+Internal
+Add remarks / Edit / Delete 
+Customer Service Representative
+Internal or External
+Add remarks / View / Resolve     
+Qualification Analyst
+Internal
+Add remarks / Edit / Analyze
+Approving Officer
+Internal or External
+View / Approve / Reject / Add remarks
+
+User 
+User Type (Internal/External)
+Access Privileges
+User (Standard Customer)
+External
+View / Browse / Order / Track / Configure / Messages / Profile Management
+Viewer
+External
+View / Browse (Read-Only)
+Admin
+Internal
+Full Access / Manage / Configure / Analytics / User Management / All TMF APIs
+
+  
+
+
+
+
+
+
+
+
+
+
+   Product Management System
+Phase � 1
+
+
+
+
+
+
+
+
+
+
