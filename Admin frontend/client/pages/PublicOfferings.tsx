@@ -67,6 +67,11 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     subCategory: 'all'
   });
 
+  // Telephone specific filter states
+  const [telephoneFilters, setTelephoneFilters] = useState({
+    subCategory: 'all'
+  });
+
   // Spec view modal state
   const [isSpecViewOpen, setIsSpecViewOpen] = useState(false);
   const [selectedOffering, setSelectedOffering] = useState<ProductOffering | null>(null);
@@ -254,6 +259,17 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       }
     }
 
+    // Apply Telephone specific filters
+    if (activeTab === 'telephone') {
+      // Sub-category filter (e.g., Fibre - Calling Plans, Megaline - Calling Plans, VoLTE - Calling Plans)
+      if (telephoneFilters.subCategory !== 'all') {
+        filtered = filtered.filter(offering => {
+          const subCategory = ((offering as any).subCategory || '').toString();
+          return subCategory.toLowerCase().includes(telephoneFilters.subCategory.toLowerCase());
+        });
+      }
+    }
+
     console.log('🔍 Final filtered result:', filtered.length, 'offerings');
     console.log('🔍 Filtered offerings:', filtered.map(o => ({ name: o.name, category: getOfferingCategory(o) })));
     setFilteredOfferings(filtered);
@@ -407,6 +423,15 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       return 'peopackages';
     }
     
+    return 'other';
+  };
+
+  // Classify telephone offerings by subCategory names
+  const getTelephoneSubCategoryGroup = (offering: ProductOffering): 'fibre' | 'megaline' | 'volte' | 'other' => {
+    const subCategory = (((offering as any).subCategory || '') as string).toLowerCase();
+    if (subCategory.includes('fibre')) return 'fibre';
+    if (subCategory.includes('megaline')) return 'megaline';
+    if (subCategory.includes('volte')) return 'volte';
     return 'other';
   };
 
@@ -687,6 +712,29 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   <SelectItem value="all">All PEO-TV Packages</SelectItem>
                   <SelectItem value="peocharges">PEO Charges</SelectItem>
                   <SelectItem value="peopackages">PEO Packages</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {/* Telephone Specific Filters */}
+        {activeTab === 'telephone' && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="flex flex-wrap gap-3 items-center">
+              <span className="text-sm font-medium text-gray-700">Filter By:</span>
+              <Select 
+                value={telephoneFilters.subCategory} 
+                onValueChange={(value) => setTelephoneFilters(prev => ({ ...prev, subCategory: value }))}
+              >
+                <SelectTrigger className="w-56 bg-gray-900 text-white border-gray-900 rounded-full">
+                  <SelectValue placeholder="Telephone Sub-Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Telephone Packages</SelectItem>
+                  <SelectItem value="fibre">Fibre - Calling Plans</SelectItem>
+                  <SelectItem value="megaline">Megaline - Calling Plans</SelectItem>
+                  <SelectItem value="volte">VoLTE - Calling Plans</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1285,6 +1333,120 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                       })}
                     </div>
                   )}
+                </section>
+              )}
+            </div>
+          ) : activeTab === 'telephone' ? (
+            // Telephone grouped display
+            <div className="space-y-10 max-w-6xl mx-auto">
+              {/* Fibre - Calling Plans */}
+              {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'fibre').length > 0 && (
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-900 to-gray-700 rounded-full flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Fibre - Calling Plans</h2>
+                    <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'fibre').map((offering) => {
+                      const price = getOfferingPrice(offering);
+                      const category = getOfferingCategory(offering);
+                      const isTelephone = category === 'Telephone';
+                      const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
+                      return (
+                        <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
+                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3">
+                            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div>
+                            <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
+                          </div>
+                          <div className="p-3 bg-white flex-1">
+                            <div className="mb-3"><Badge variant="outline" className="bg-gray-900 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
+                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{telephoneConnection}</div></div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                              <div className="space-y-2">{((offering as any).customAttributes as any[]).filter((attr: any) => (attr.name || '').toString().trim().toLowerCase() !== 'connection type').map((attr: any, index: number) => (
+                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
+                              ))}</div>
+                            )}
+                          </div>
+                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {/* Megaline - Calling Plans */}
+              {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'megaline').length > 0 && (
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-900 to-gray-700 rounded-full flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Megaline - Calling Plans</h2>
+                    <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'megaline').map((offering) => {
+                      const price = getOfferingPrice(offering);
+                      const category = getOfferingCategory(offering);
+                      const isTelephone = category === 'Telephone';
+                      const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
+                      return (
+                        <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
+                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div><p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p></div>
+                          <div className="p-3 bg-white flex-1">
+                            <div className="mb-3"><Badge variant="outline" className="bg-gray-900 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
+                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{telephoneConnection}</div></div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                              <div className="space-y-2">{((offering as any).customAttributes as any[]).filter((attr: any) => (attr.name || '').toString().trim().toLowerCase() !== 'connection type').map((attr: any, index: number) => (
+                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
+                              ))}</div>
+                            )}
+                          </div>
+                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {/* VoLTE - Calling Plans */}
+              {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'volte').length > 0 && (
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-900 to-gray-700 rounded-full flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">VoLTE - Calling Plans</h2>
+                    <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'volte').map((offering) => {
+                      const price = getOfferingPrice(offering);
+                      const category = getOfferingCategory(offering);
+                      const isTelephone = category === 'Telephone';
+                      const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
+                      return (
+                        <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
+                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div><p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p></div>
+                          <div className="p-3 bg-white flex-1">
+                            <div className="mb-3"><Badge variant="outline" className="bg-gray-900 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
+                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{telephoneConnection}</div></div>
+                            {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                              <div className="space-y-2">{((offering as any).customAttributes as any[]).filter((attr: any) => (attr.name || '').toString().trim().toLowerCase() !== 'connection type').map((attr: any, index: number) => (
+                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
+                              ))}</div>
+                            )}
+                          </div>
+                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </section>
               )}
             </div>
