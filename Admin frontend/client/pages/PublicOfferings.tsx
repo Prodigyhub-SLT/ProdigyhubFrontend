@@ -28,7 +28,7 @@ const categoryNavItems = [
 
 interface PublicOfferingsProps {
   onLoginClick?: () => void;
-  initialTab?: 'broadband' | 'peo-tv' | 'all';
+  initialTab?: 'broadband' | 'peo-tv' | 'telephone' | 'all';
   embed?: boolean; // render without page header/nav
 }
 
@@ -76,6 +76,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     // Initialize from prop
     if (initialTab === 'peo-tv') {
       handleTabChange('peo-tv');
+    } else if (initialTab === 'telephone') {
+      handleTabChange('telephone');
     } else if (initialTab === 'broadband') {
       handleCategorySelect('Broadband');
     } else {
@@ -296,6 +298,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         return 'Broadband';
       } else if (normalizedName.includes('peotv') || normalizedName.includes('peo-tv') || normalizedName.includes('peotv')) {
         return 'PEO-TV';
+      } else if (normalizedName.includes('telephone') || normalizedName.includes('voice')) {
+        return 'Telephone';
       }
       
       return categoryName; // Return the original name if it doesn't match our known categories
@@ -307,6 +311,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         return 'Broadband';
       } else if (normalizedName.includes('peotv') || normalizedName.includes('peo-tv') || normalizedName.includes('peotv')) {
         return 'PEO-TV';
+      } else if (normalizedName.includes('telephone') || normalizedName.includes('voice')) {
+        return 'Telephone';
       }
       
       return categoryName;
@@ -317,6 +323,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         return 'Broadband';
       } else if (normalizedName.includes('peotv') || normalizedName.includes('peo-tv') || normalizedName.includes('peotv')) {
         return 'PEO-TV';
+      } else if (normalizedName.includes('telephone') || normalizedName.includes('voice')) {
+        return 'Telephone';
       }
       
       return offering.category;
@@ -328,6 +336,12 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         categoryDescription.toLowerCase().includes('peotv') || 
         categoryDescription.toLowerCase().includes('peo-tv')) {
       return 'PEO-TV';
+    }
+    // Fallback: Check Telephone by name/description
+    const nameLower = (offering.name || '').toLowerCase();
+    const descLower = (offering.description || '').toLowerCase();
+    if (nameLower.includes('telephone') || nameLower.includes('voice') || descLower.includes('telephone')) {
+      return 'Telephone';
     }
     
     // Fallback: Check if it's a Broadband offering based on name or description
@@ -524,6 +538,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       setPeoTvFilters({
         subCategory: 'all'
       });
+    } else if (tabValue === 'telephone') {
+      setFilters({
+        mainCategory: 'Telephone',
+        subCategory: 'all',
+        subSubCategory: 'all',
+        searchTerm: ''
+      });
     }
   };
 
@@ -593,8 +614,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       <div className="bg-gradient-to-r from-white/80 via-blue-50/30 to-purple-50/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-30 shadow-lg shadow-blue-500/5">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center py-4">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-2xl">
-              <TabsList className="grid w-full grid-cols-2 bg-white/50 backdrop-blur-sm border border-white/20">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-3xl">
+              <TabsList className="grid w-full grid-cols-3 bg-white/50 backdrop-blur-sm border border-white/20">
                 <TabsTrigger 
                   value="broadband" 
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
@@ -608,6 +629,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 >
                   <Tv className="w-4 h-4" />
                   PEO-TV
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="telephone" 
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg"
+                >
+                  <Phone className="w-4 h-4" />
+                  Telephone
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -1253,7 +1281,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
               )}
             </div>
           ) : (
-            // Regular grid display for other categories
+            // Regular grid display for other categories including Telephone
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
               {filteredOfferings.map((offering) => {
                 const price = getOfferingPrice(offering);
@@ -1442,7 +1470,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           <div key={category}>
                             <h3 className="text-sm font-semibold text-gray-700 mb-3">{category}</h3>
                             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                              {images.map((image: any) => (
+                              {(images as any[]).map((image: any) => (
                                 <div key={image.id} className="relative group">
                                   <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
                                     <div className="w-full h-full flex items-center justify-center">
