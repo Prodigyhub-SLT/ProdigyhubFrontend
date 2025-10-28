@@ -1300,8 +1300,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 
                 return (
                                  <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
-                    {/* Top Header - Dark Blue */}
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3">
+                    {/* Top Header - Color by category (Telephone = black) */}
+                    <div className={`${isTelephone ? 'bg-gradient-to-r from-gray-900 to-gray-800' : 'bg-gradient-to-r from-blue-600 to-blue-800'} text-white p-3`}>
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-bold">{offering.name}</h3>
                         <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
@@ -1370,8 +1370,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                        </div>
                      )}
                  </div>
-                    {/* Bottom Section - Dark Blue Footer */}
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-3 mt-auto">
+                    {/* Bottom Section - Color by category (Telephone = black) */}
+                    <div className={`${isTelephone ? 'bg-gradient-to-r from-gray-900 to-gray-800' : 'bg-gradient-to-r from-blue-600 to-blue-800'} text-white p-3 mt-auto`}>
                       <div className="text-center mb-2">
                         <div className="text-xs text-blue-100 mb-1">Monthly Rental</div>
                         <div className="text-2xl font-bold">
