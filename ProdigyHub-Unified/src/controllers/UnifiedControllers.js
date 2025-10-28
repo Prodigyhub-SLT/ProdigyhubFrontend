@@ -259,6 +259,8 @@ class TMF620Controller {
         categoryData.subCategories = [];
       }
 
+      // Debug: print request and computed values
+      console.log('Incoming hierarchical category payload:', req.body);
       console.log('Creating hierarchical category with data (sanitized):', {
         name: categoryData.name,
         value: categoryData.value,
@@ -266,6 +268,22 @@ class TMF620Controller {
         categoryId: categoryData.categoryId,
         subCategoriesCount: categoryData.subCategories.length
       });
+
+      // Debug: log current indexes and any potential name/value duplicates
+      try {
+        const indexes = await HierarchicalCategory.collection.indexes();
+        console.log('HierarchicalCategory indexes:', indexes);
+        const existingByName = await HierarchicalCategory.findOne({ name: categoryData.name });
+        const existingByValue = await HierarchicalCategory.findOne({ value: categoryData.value });
+        console.log('Duplicate check:', {
+          hasExistingByName: !!existingByName,
+          hasExistingByValue: !!existingByValue,
+          existingByNameId: existingByName?.categoryId,
+          existingByValueId: existingByValue?.categoryId
+        });
+      } catch (dupCheckErr) {
+        console.warn('Duplicate pre-check failed:', dupCheckErr?.message || dupCheckErr);
+      }
       
       let category = new HierarchicalCategory(categoryData);
       try {
