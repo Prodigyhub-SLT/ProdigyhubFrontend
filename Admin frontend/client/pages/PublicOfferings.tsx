@@ -379,6 +379,14 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     };
   };
 
+  // Helper: read a custom attribute's value by name
+  const getCustomAttributeValue = (offering: ProductOffering, attributeName: string): string | undefined => {
+    const attrs = (offering as any).customAttributes as any[] | undefined;
+    if (!Array.isArray(attrs)) return undefined;
+    const found = attrs.find(a => (a.name || '').toString().trim().toLowerCase() === attributeName.toLowerCase());
+    return found?.value;
+  };
+
   // Classify offering into a connection-type group for grouped display
   const getConnectionTypeGroup = (offering: ProductOffering): 'peotv' | 'dataPackages' | 'dataAndVoice' | 'unknown' => {
     const desc = (offering as any).categoryDescription || '';
@@ -1287,6 +1295,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 const price = getOfferingPrice(offering);
                 const category = getOfferingCategory(offering);
                 const specs = getOfferingSpecs(offering);
+                const isTelephone = category === 'Telephone';
+                const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
                 
                 return (
                                  <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-xs flex flex-col">
@@ -1319,13 +1329,14 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                       <div className="space-y-2 mb-3">
                         <div className="bg-gray-50 p-2 rounded-lg">
                           <div className="text-xs text-gray-600 mb-1">Connection Type</div>
-                          <div className="text-base font-bold text-gray-900">{specs.connectionType}</div>
+                          <div className="text-base font-bold text-gray-900">{isTelephone ? telephoneConnection : specs.connectionType}</div>
                         </div>
-                       
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                          <span className="text-sm font-medium text-gray-600">Package Type</span>
-                          <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
-                        </div>
+                        {!isTelephone && (
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-sm font-medium text-gray-600">Package Type</span>
+                            <span className="text-sm text-gray-900 font-semibold">{specs.packageType}</span>
+                          </div>
+                        )}
 
                         {/* Data Bundle - if available */}
                         {(offering as any).customAttributes && (offering as any).customAttributes.find((attr: any) => attr.name === 'Data Allowance') && (
@@ -1338,20 +1349,24 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         )}
                      </div>
 
-                     {/* Other Custom Attributes */}
+                     {/* Custom Attributes List */}
                      {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
                        <div className="space-y-2">
-                         {(offering as any).customAttributes
-                           .filter((attr: any) => 
-                             !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name)
-                           )
+                         {((offering as any).customAttributes as any[])
+                           .filter((attr: any) => {
+                             if (isTelephone) {
+                               // For Telephone: show all attributes except Connection Type (already shown above)
+                               return (attr.name || '').toString().trim().toLowerCase() !== 'connection type';
+                             }
+                             // For others: exclude some already summarized attributes
+                             return !['Connection Type', 'Package Type', 'Data Allowance'].includes(attr.name);
+                           })
                            .map((attr: any, index: number) => (
                              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
                                <span className="text-sm font-medium text-gray-600">{attr.name}</span>
                                <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
                              </div>
-                           ))
-                         }
+                           ))}
                        </div>
                      )}
                  </div>
