@@ -40,13 +40,13 @@ const HierarchicalCategorySchema = new mongoose.Schema({
   bgColor: { type: String, required: false, default: 'bg-blue-50' },
   icon: { type: String, required: false, default: 'Folder' },
   subCategories: [{
-    subCategoryId: { type: String, unique: true, required: true, default: uuidv4 },
+    subCategoryId: { type: String, required: true, default: uuidv4 },
     name: { type: String, required: true },
     value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
     label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Category'; } },
     description: { type: String, default: '' },
     subSubCategories: [{
-      subSubCategoryId: { type: String, unique: true, required: true, default: uuidv4 },
+      subSubCategoryId: { type: String, required: true, default: uuidv4 },
       name: { type: String, required: true },
       value: { type: String, required: false, default: function() { return this.name ? this.name.toLowerCase().replace(/\s+/g, '_') : uuidv4(); } },
       label: { type: String, required: false, default: function() { return this.name || 'Unnamed Sub-Sub-Category'; } },
@@ -773,9 +773,22 @@ module.exports = {
       } catch (_) { /* ignore if not present */ }
     }
 
+    // Drop unique multikey indexes on nested IDs if present (replace with non-unique or partial)
+    const nestedUnique = indexes.filter(idx => (
+      (idx.name === 'subCategories.subCategoryId_1' || idx.name === 'subCategories.subSubCategories.subSubCategoryId_1') && idx.unique
+    ));
+    for (const idx of nestedUnique) {
+      try {
+        await coll.dropIndex(idx.name);
+      } catch (_) { /* ignore */ }
+    }
+
     // Ensure the expected indexes exist
     await coll.createIndex({ categoryId: 1 }, { unique: true });
     await coll.createIndex({ name: 1 }); // non-unique
+    // Safe non-unique indexes on nested IDs for query performance
+    await coll.createIndex({ 'subCategories.subCategoryId': 1 });
+    await coll.createIndex({ 'subCategories.subSubCategories.subSubCategoryId': 1 });
   } catch (err) {
     // Do not crash app if index management fails; just log
     // eslint-disable-next-line no-console
