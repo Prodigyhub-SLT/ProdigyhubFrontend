@@ -242,10 +242,53 @@ class TMF620Controller {
         categoryData.description = '';
       }
       
-      console.log('Creating hierarchical category with data:', categoryData);
+      // Always generate fresh IDs to avoid accidental collisions from client payloads
+      categoryData.categoryId = uuidv4();
+      if (Array.isArray(categoryData.subCategories)) {
+        categoryData.subCategories = categoryData.subCategories.map((sc) => ({
+          ...sc,
+          subCategoryId: uuidv4(),
+          subSubCategories: Array.isArray(sc.subSubCategories)
+            ? sc.subSubCategories.map((ssc) => ({
+                ...ssc,
+                subSubCategoryId: uuidv4()
+              }))
+            : []
+        }));
+      } else {
+        categoryData.subCategories = [];
+      }
+
+      console.log('Creating hierarchical category with data (sanitized):', {
+        name: categoryData.name,
+        value: categoryData.value,
+        label: categoryData.label,
+        categoryId: categoryData.categoryId,
+        subCategoriesCount: categoryData.subCategories.length
+      });
       
-      const category = new HierarchicalCategory(categoryData);
-      await category.save();
+      let category = new HierarchicalCategory(categoryData);
+      try {
+        await category.save();
+      } catch (error) {
+        // If duplicate key occurs due to an extremely rare UUID collision, retry once with new IDs
+        if (error && error.code === 11000) {
+          console.warn('Duplicate key on first save, regenerating IDs and retrying once...');
+          categoryData.categoryId = uuidv4();
+          categoryData.subCategories = (categoryData.subCategories || []).map((sc) => ({
+            ...sc,
+            subCategoryId: uuidv4(),
+            subSubCategories: (sc.subSubCategories || []).map((ssc) => ({
+              ...ssc,
+              subSubCategoryId: uuidv4()
+            }))
+          }));
+          category = new HierarchicalCategory(categoryData);
+          await category.save();
+        } else {
+          throw error;
+        }
+      }
       
       console.log('Hierarchical category created successfully:', category.id);
       
