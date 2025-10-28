@@ -54,9 +54,17 @@ const handleError = (res, error, operation = 'operation') => {
   }
   
   if (error.code === 11000) {
+    // Provide more context about which index/field caused the conflict
+    const duplicateInfo = {
+      index: (error && error.keyPattern) ? Object.keys(error.keyPattern).join(',') : undefined,
+      keyValue: error && error.keyValue ? error.keyValue : undefined,
+      message: error && error.message ? error.message : undefined
+    };
+    console.error('⚠️ Duplicate key error details:', duplicateInfo);
     return res.status(409).json({
       error: 'Conflict',
-      message: 'Resource already exists'
+      message: 'Resource already exists',
+      details: duplicateInfo
     });
   }
   
