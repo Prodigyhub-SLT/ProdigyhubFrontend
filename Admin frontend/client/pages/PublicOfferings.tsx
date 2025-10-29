@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Package, ArrowRight, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Filter, X, BookOpen } from 'lucide-react';
+import { Search, Package, ArrowRight, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Filter, X, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { ProductOffering } from '../../shared/product-order-types';
 
@@ -1841,7 +1841,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Product Description</h3>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
+                      <pre className="text-gray-700 leading-relaxed whitespace-pre-wrap font-normal">{selectedOffering.description}</pre>
                     </div>
                   </div>
                 )}
