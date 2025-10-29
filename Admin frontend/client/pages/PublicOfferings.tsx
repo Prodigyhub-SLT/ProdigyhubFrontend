@@ -21,6 +21,7 @@ const categoryNavItems = [
   { name: 'Product', icon: Package, color: 'text-indigo-500', description: 'Hardware & Software Products' },
   { name: 'PEOTV', icon: Tv, color: 'text-red-500', description: 'Entertainment Services' },
   { name: 'Telephone', icon: Phone, color: 'text-indigo-500', description: 'Voice Services' },
+  { name: 'eTeleshop', icon: Package, color: 'text-blue-500', description: 'Electronic Products & Devices' },
   { name: 'Gaming & Cloud', icon: Gamepad2, color: 'text-pink-500', description: 'Gaming Solutions' },
   { name: 'IDD', icon: Globe, color: 'text-cyan-500', description: 'International Services' },
   { name: 'Promotions', icon: Gift, color: 'text-yellow-500', description: 'Special Offers' }
@@ -28,7 +29,7 @@ const categoryNavItems = [
 
 interface PublicOfferingsProps {
   onLoginClick?: () => void;
-  initialTab?: 'broadband' | 'peo-tv' | 'telephone' | 'all';
+  initialTab?: 'broadband' | 'peo-tv' | 'telephone' | 'eteleshop' | 'all';
   embed?: boolean; // render without page header/nav
 }
 
@@ -83,6 +84,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       handleTabChange('peo-tv');
     } else if (initialTab === 'telephone') {
       handleTabChange('telephone');
+    } else if (initialTab === 'eteleshop') {
+      handleTabChange('eteleshop');
     } else if (initialTab === 'broadband') {
       handleCategorySelect('Broadband');
     } else {
@@ -359,6 +362,10 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     if (nameLower.includes('telephone') || nameLower.includes('voice') || descLower.includes('telephone')) {
       return 'Telephone';
     }
+    // Fallback: Check eTeleshop by name/description
+    if (nameLower.includes('eteleshop') || nameLower.includes('e-teleshop') || descLower.includes('eteleshop')) {
+      return 'eTeleshop';
+    }
     
     // Fallback: Check if it's a Broadband offering based on name or description
     const name = (offering.name || '').toLowerCase();
@@ -578,6 +585,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
         subSubCategory: 'all',
         searchTerm: ''
       });
+    } else if (tabValue === 'eteleshop') {
+      setFilters({
+        mainCategory: 'eTeleshop',
+        subCategory: 'all',
+        subSubCategory: 'all',
+        searchTerm: ''
+      });
     }
   };
 
@@ -647,8 +661,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       <div className="bg-gradient-to-r from-white/80 via-blue-50/30 to-purple-50/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-30 shadow-lg shadow-blue-500/5">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center py-4">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-3xl">
-              <TabsList className="grid w-full grid-cols-3 bg-white/50 backdrop-blur-sm border border-white/20">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-4xl">
+              <TabsList className="grid w-full grid-cols-4 bg-white/50 backdrop-blur-sm border border-white/20">
                 <TabsTrigger 
                   value="broadband" 
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
@@ -670,6 +684,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   <Phone className="w-4 h-4" />
                   Telephone
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="eteleshop" 
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg"
+                >
+                  <Package className="w-4 h-4" />
+                  eTeleshop
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -685,11 +706,12 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
           <div className="text-sm text-gray-600 mb-2">
             <Link to="/" className="hover:text-blue-600">Home</Link>
             <span className="mx-2">»</span>
-            <span>{activeTab === 'broadband' ? 'Broadband' : activeTab === 'peo-tv' ? 'PEO-TV' : activeTab}</span>
+            <span>{activeTab === 'broadband' ? 'Broadband' : activeTab === 'peo-tv' ? 'PEO-TV' : activeTab === 'eteleshop' ? 'eTeleshop' : activeTab}</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
             {activeTab === 'broadband' ? 'Broadband Packages' :
-             activeTab === 'peo-tv' ? 'PEO-TV Packages' : 'Products'}
+             activeTab === 'peo-tv' ? 'PEO-TV Packages' : 
+             activeTab === 'eteleshop' ? 'eTeleshop Products' : 'Products'}
           </h1>
         </div>
         )}
@@ -1450,6 +1472,101 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 </section>
               )}
             </div>
+          ) : activeTab === 'eteleshop' ? (
+            // eTeleshop specific display with new card design
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              {filteredOfferings.map((offering) => {
+                const price = getOfferingPrice(offering);
+                const category = getOfferingCategory(offering);
+                
+                // Get offer percentage and before offer price from pricing data
+                const offerPercentage = (offering as any).pricing?.offerPercentage || 0;
+                const beforeOfferPrice = (offering as any).pricing?.beforeOfferPrice || 0;
+                const currentPrice = price?.amount || 0;
+                
+                // Get product image (first image from images array)
+                const productImage = (offering as any).images && (offering as any).images.length > 0 
+                  ? (offering as any).images[0].base64Data 
+                  : null;
+                
+                return (
+                  <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-sm flex flex-col">
+                    {/* Product Image Section */}
+                    <div className="relative p-4 bg-gray-50">
+                      {/* Offer Percentage Badge - Top Left */}
+                      {offerPercentage > 0 && (
+                        <div className="absolute top-2 left-2 z-10">
+                          <div className="bg-yellow-400 border-2 border-black rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                            <span className="text-black font-bold text-sm">{offerPercentage}% OFF</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Product Image */}
+                      <div className="flex justify-center items-center h-48 bg-white rounded-lg border border-gray-200">
+                        {productImage ? (
+                          <img 
+                            src={productImage} 
+                            alt={offering.name}
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-gray-400 text-center">
+                            <Package className="w-16 h-16 mx-auto mb-2" />
+                            <p className="text-sm">No Image</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Product Details Section */}
+                    <div className="p-4 flex-1">
+                      {/* Product Name */}
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
+                        {offering.name}
+                      </h3>
+
+                      {/* Custom Attributes */}
+                      {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                          {(offering as any).customAttributes.slice(0, 3).map((attr: any, index: number) => (
+                            <div key={index} className="text-sm text-gray-600">
+                              <span className="font-medium">{attr.name}:</span> {attr.value}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Pricing Section */}
+                      <div className="space-y-2">
+                        {/* Before Offer Price (Struck Through) */}
+                        {beforeOfferPrice > 0 && (
+                          <div className="text-lg text-gray-400 line-through">
+                            Rs. {beforeOfferPrice.toLocaleString()}
+                          </div>
+                        )}
+                        
+                        {/* Current Price */}
+                        <div className="text-2xl font-bold text-blue-600">
+                          {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="p-4 border-t border-gray-100">
+                      <Button 
+                        onClick={() => handleViewSpec(offering)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-all duration-200"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           ) : (
             // Regular grid display for other categories including Telephone
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -1752,8 +1869,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         {getOfferingPrice(selectedOffering)!.period}
                       </div>
                       <div className="space-y-2 opacity-80">
-                        <div className="text-sm">Setup: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.setupFee?.toLocaleString() || 'N/A'}</div>
-                        <div className="text-sm">Security Deposit: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.deposit?.toLocaleString() || 'N/A'}</div>
+                        <div className="text-sm">Offer Percentage: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.offerPercentage?.toLocaleString() || 'N/A'}</div>
+                        <div className="text-sm">Before Offer Price: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.beforeOfferPrice?.toLocaleString() || 'N/A'}</div>
                       </div>
                     </div>
                   </div>
