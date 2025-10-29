@@ -1728,7 +1728,171 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
             </div>
           </DialogHeader>
           
-          {selectedOffering && (() => {
+          {selectedOffering && (activeTab === 'peo-tv' ? (
+            <div className="space-y-6 p-6 pt-0">
+              {/* Description */}
+              {selectedOffering.description && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <pre className="text-gray-700 leading-relaxed whitespace-pre-wrap font-normal">{selectedOffering.description}</pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Connection & Package Details OR Channels Gallery (PEO Packages only) */}
+              {getPeoTvSubCategoryGroup(selectedOffering as any) === 'peopackages' ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <Label className="text-sm font-medium">Channels {Array.isArray((selectedOffering as any).images) ? `(${(selectedOffering as any).images.length})` : ''}</Label>
+                  {Array.isArray((selectedOffering as any).images) && (selectedOffering as any).images.length > 0 ? (
+                    <div className="mt-3 space-y-6">
+                      {(() => {
+                        const groupedImages = ((selectedOffering as any).images as any[]).reduce((groups: { [key: string]: any[] }, image: any) => {
+                          const category = image.categoryName || 'Other';
+                          if (!groups[category]) {
+                            groups[category] = [];
+                          }
+                          groups[category].push(image);
+                          return groups;
+                        }, {} as { [key: string]: any[] });
+
+                        return Object.entries(groupedImages).map(([category, images]) => (
+                          <div key={category}>
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3">{category}</h3>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                              {(images as any[]).map((image: any) => (
+                                <div key={image.id} className="relative group">
+                                  <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <img
+                                        src={image.base64Data}
+                                        alt={image.name}
+                                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                                        onClick={() => { window.open(image.base64Data, '_blank'); }}
+                                      />
+                                    </div>
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                                      <div className="absolute bottom-0 left-0 right-0 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <p className="text-xs font-medium text-center">{image.description}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {image.hasFunction && (
+                                    <div className="absolute top-1 right-1">
+                                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                                        <span className="text-xs text-white font-bold">+</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {image.hasFunction && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
+                                      <div className="absolute bottom-1 right-1 bg-blue-600 bg-opacity-90 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        {image.description && (
+                                          <p className="font-medium truncate max-w-24">{image.description}</p>
+                                        )}
+                                        {image.functionPrice && (
+                                          <p className="font-bold text-green-300">Rs. {Number(image.functionPrice).toFixed(2)}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  ) : null}
+
+                  {/* Images Summary */}
+                  {Array.isArray((selectedOffering as any).images) && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">Summary:</span>
+                        <div className="flex gap-4">
+                          <span>Total: {(selectedOffering as any).images.length} images</span>
+                          <span className="text-green-600 font-medium">{(selectedOffering as any).images.filter((img: any) => img.hasFunction).length} with pricing</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-700">Connection Type:</span>
+                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-700">Package Type:</span>
+                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Attributes */}
+              {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Attributes</h3>
+                  <div className="space-y-3">
+                    {(selectedOffering as any).customAttributes.map((attr: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="font-medium text-gray-700">{attr.name}:</span>
+                        <span className="text-gray-900">{attr.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Pricing Information */}
+              {getOfferingPrice(selectedOffering) && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Details</h3>
+                  <div className="bg-blue-600 text-white p-6 relative overflow-hidden rounded-lg">
+                    <div className="absolute inset-0 bg-white/10"></div>
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                    <div className="text-center relative z-10">
+                      <div className="text-3xl font-bold mb-2 drop-shadow-sm">
+                        {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
+                      </div>
+                      <div className="text-lg opacity-90 mb-4">
+                        {getOfferingPrice(selectedOffering)!.period}
+                      </div>
+                      <div className="space-y-2 opacity-80">
+                        <div className="text-sm">Offer Percentage: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.offerPercentage?.toLocaleString() || 'N/A'}</div>
+                        <div className="text-sm">Before Offer Price: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.beforeOfferPrice?.toLocaleString() || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Timestamps</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium text-gray-700">Created:</span>
+                    <span className="text-gray-900 ml-2">
+                      {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Last Updated:</span>
+                    <span className="text-gray-900 ml-2">
+                      {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (() => {
             const hasImages = ((selectedOffering as any).images?.length || 0) > 0;
             return (
             <div className={`grid grid-cols-1 ${hasImages ? 'lg:grid-cols-2' : ''} gap-8 p-6 pt-0`}>
@@ -1845,7 +2009,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
               </div>
             </div>
             );
-          })()}
+          })())}
         </DialogContent>
       </Dialog>
     </div>
