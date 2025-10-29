@@ -1767,7 +1767,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                                       <img
                                         src={image.base64Data}
                                         alt={image.name}
-                                        className="w-full h-full object-contain p-4 md:p-5 cursor-pointer hover:scale-105 transition-transform duration-200"
+                                        className="w-full h-full object-contain p-3 md:p-4 cursor-pointer hover:scale-105 transition-transform duration-200"
                                         onClick={() => { window.open(image.base64Data, '_blank'); }}
                                       />
                                     </div>
