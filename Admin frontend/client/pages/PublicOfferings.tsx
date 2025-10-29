@@ -1759,15 +1759,15 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         return Object.entries(groupedImages).map(([category, images]) => (
                           <div key={category}>
                             <h3 className="text-sm font-semibold text-gray-700 mb-3">{category}</h3>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                               {(images as any[]).map((image: any) => (
                                 <div key={image.id} className="relative group">
-                                  <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
+                                  <div className={`aspect-[16/10] overflow-hidden rounded-md border bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
                                     <div className="w-full h-full flex items-center justify-center">
                                       <img
                                         src={image.base64Data}
                                         alt={image.name}
-                                        className="w-full h-full object-contain p-6 md:p-7 cursor-pointer hover:scale-105 transition-transform duration-200"
+                                        className="w-full h-full object-contain p-4 md:p-5 cursor-pointer hover:scale-105 transition-transform duration-200"
                                         onClick={() => { window.open(image.base64Data, '_blank'); }}
                                       />
                                     </div>
