@@ -1545,7 +1545,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
 
                       {/* Custom Attributes */}
                       {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                        <div className="space-y-2 mb-4">
+                        <div className="space-y-2 mb-4 text-center">
                           {(offering as any).customAttributes.slice(0, 3).map((attr: any, index: number) => (
                             <div key={index} className="text-sm text-gray-600">
                               <span className="font-medium">{attr.name}:</span> {attr.value}
