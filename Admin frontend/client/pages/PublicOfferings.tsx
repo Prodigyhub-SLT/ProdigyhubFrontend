@@ -1705,7 +1705,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
 
       {/* Spec View Modal */}
       <Dialog open={isSpecViewOpen} onOpenChange={setIsSpecViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
           <DialogHeader className="flex-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1729,188 +1729,122 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
           </DialogHeader>
           
           {selectedOffering && (
-            <div className="space-y-6 p-6 pt-0">
-              {/* Basic Information */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-                  <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">
-                    ACTIVE
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-700">Category:</span>
-                    <span className="text-gray-900">{getOfferingCategory(selectedOffering)}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Brand & Version:</span>
-                    <span className="text-gray-900 ml-2">ProdigyHub v1.0</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              {selectedOffering.description && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Connection & Package Details OR Channels Gallery (PEO Packages only) */}
-              {activeTab === 'peo-tv' && getPeoTvSubCategoryGroup(selectedOffering as any) === 'peopackages' ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <Label className="text-sm font-medium">Channels {Array.isArray((selectedOffering as any).images) ? `(${(selectedOffering as any).images.length})` : ''}</Label>
-                  {Array.isArray((selectedOffering as any).images) && (selectedOffering as any).images.length > 0 ? (
-                    <div className="mt-3 space-y-6">
-                      {(() => {
-                        const groupedImages = ((selectedOffering as any).images as any[]).reduce((groups: { [key: string]: any[] }, image: any) => {
-                          const category = image.categoryName || 'Other';
-                          if (!groups[category]) {
-                            groups[category] = [];
-                          }
-                          groups[category].push(image);
-                          return groups;
-                        }, {} as { [key: string]: any[] });
-
-                        return Object.entries(groupedImages).map(([category, images]) => (
-                          <div key={category}>
-                            <h3 className="text-sm font-semibold text-gray-700 mb-3">{category}</h3>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                              {(images as any[]).map((image: any) => (
-                                <div key={image.id} className="relative group">
-                                  <div className={`aspect-[3/2] overflow-hidden rounded-lg border-2 bg-white shadow-sm ${image.hasFunction ? 'border-blue-500' : 'border-gray-200'}`}>
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <img
-                                        src={image.base64Data}
-                                        alt={image.name}
-                                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
-                                        onClick={() => { window.open(image.base64Data, '_blank'); }}
-                                      />
-                                    </div>
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
-                                      <div className="absolute bottom-0 left-0 right-0 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <p className="text-xs font-medium text-center">{image.description}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {image.hasFunction && (
-                                    <div className="absolute top-1 right-1">
-                                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                                        <span className="text-xs text-white font-bold">+</span>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {image.hasFunction && (
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-200 rounded-lg">
-                                      <div className="absolute bottom-1 right-1 bg-blue-600 bg-opacity-90 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        {image.description && (
-                                          <p className="font-medium truncate max-w-24">{image.description}</p>
-                                        )}
-                                        {image.functionPrice && (
-                                          <p className="font-bold text-green-300">Rs. {Number(image.functionPrice).toFixed(2)}</p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  ) : null}
-
-                  {/* Images Summary */}
-                  {Array.isArray((selectedOffering as any).images) && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">Summary:</span>
-                        <div className="flex gap-4">
-                          <span>Total: {(selectedOffering as any).images.length} images</span>
-                          <span className="text-green-600 font-medium">{(selectedOffering as any).images.filter((img: any) => img.hasFunction).length} with pricing</span>
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 pt-0">
+              {/* Left Side - Product Images */}
+              <div className="space-y-4">
+                {/* Main Product Image */}
+                <div className="relative">
+                  <div className="aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
+                    {(selectedOffering as any).images && (selectedOffering as any).images.length > 0 ? (
+                      <img 
+                        src={(selectedOffering as any).images[0].base64Data} 
+                        alt={selectedOffering.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-gray-400 text-center">
+                        <Package className="w-24 h-24 mx-auto mb-4" />
+                        <p className="text-lg">No Image Available</p>
                       </div>
-                    </div>
+                    )}
+                  </div>
+                  
+                  {/* Navigation Arrows */}
+                  {(selectedOffering as any).images && (selectedOffering as any).images.length > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
-              ) : (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection & Package Details</h3>
+
+                {/* Thumbnail Gallery */}
+                {(selectedOffering as any).images && (selectedOffering as any).images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {(selectedOffering as any).images.map((image: any, index: number) => (
+                      <div key={index} className="flex-shrink-0">
+                        <img 
+                          src={image.base64Data} 
+                          alt={`${selectedOffering.name} ${index + 1}`}
+                          className="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:border-blue-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right Side - Product Details */}
+              <div className="space-y-6">
+                {/* Custom Attributes */}
+                {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-gray-900">Specifications</h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      {(selectedOffering as any).customAttributes.map((attr: any, index: number) => (
+                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="font-medium text-gray-700">{attr.name}:</span>
+                          <span className="text-gray-900">{attr.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Product Name */}
+                <div>
+                  <h1 className="text-3xl font-bold text-blue-600 mb-2">{selectedOffering.name}</h1>
+                </div>
+
+                {/* Product ID and Seller */}
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Product ID:</span> {selectedOffering.name}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Sold by:</span> 
+                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer ml-1">SLT-MOBITEL</span>
+                  </div>
+                </div>
+
+                {/* Pricing Information */}
+                {getOfferingPrice(selectedOffering) && (
+                  <div className="space-y-2">
+                    {/* Before Offer Price */}
+                    {(selectedOffering as any).pricing?.beforeOfferPrice > 0 && (
+                      <div className="text-xl text-gray-400 line-through">
+                        Rs. {(selectedOffering as any).pricing.beforeOfferPrice.toLocaleString()}
+                      </div>
+                    )}
+                    
+                    {/* Current Price */}
+                    <div className="text-3xl font-bold text-gray-900">
+                      {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Product Description */}
+                {selectedOffering.description && (
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Connection Type:</span>
-                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).connectionType}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Package Type:</span>
-                      <span className="text-gray-900">{getOfferingSpecs(selectedOffering).packageType}</span>
+                    <h3 className="text-lg font-semibold text-gray-900">Product Description</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-gray-700 leading-relaxed">{selectedOffering.description}</p>
                     </div>
                   </div>
-                </div>
-              )}
-
-               {/* Custom Attributes */}
-               {(selectedOffering as any).customAttributes && (selectedOffering as any).customAttributes.length > 0 ? (
-                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Attributes</h3>
-                   <div className="space-y-3">
-                     {(selectedOffering as any).customAttributes.map((attr: any, index: number) => (
-                       <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                         <span className="font-medium text-gray-700">{attr.name}:</span>
-                         <span className="text-gray-900">{attr.value}</span>
-                       </div>
-                     ))}
-                   </div>
-                 </div>
-               ) : null}
-
-              {/* Pricing Information */}
-              {getOfferingPrice(selectedOffering) && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Details</h3>
-                  <div className="bg-blue-600 text-white p-6 relative overflow-hidden rounded-lg">
-                    <div className="absolute inset-0 bg-white/10"></div>
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-10 translate-x-10"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-                    <div className="text-center relative z-10">
-                      <div className="text-3xl font-bold mb-2 drop-shadow-sm">
-                        {getOfferingPrice(selectedOffering)!.currency} {getOfferingPrice(selectedOffering)!.amount.toLocaleString()}
-                      </div>
-                      <div className="text-lg opacity-90 mb-4">
-                        {getOfferingPrice(selectedOffering)!.period}
-                      </div>
-                      <div className="space-y-2 opacity-80">
-                        <div className="text-sm">Offer Percentage: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.offerPercentage?.toLocaleString() || 'N/A'}</div>
-                        <div className="text-sm">Before Offer Price: {getOfferingPrice(selectedOffering)!.currency} {(selectedOffering as any).pricing?.beforeOfferPrice?.toLocaleString() || 'N/A'}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Timestamps */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Timestamps</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="font-medium text-gray-700">Created:</span>
-                    <span className="text-gray-900 ml-2">
-                      {(selectedOffering as any).createdAt ? new Date((selectedOffering as any).createdAt).toLocaleString() : 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Last Updated:</span>
-                    <span className="text-gray-900 ml-2">
-                      {(selectedOffering as any).updatedAt ? new Date((selectedOffering as any).updatedAt).toLocaleString() : 'N/A'}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}
