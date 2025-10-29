@@ -51,8 +51,8 @@ export interface MongoProductOffering {
     amount: number;
     currency: string;
     period: string;
-    setupFee: number;
-    deposit: number;
+    offerPercentage: number;
+    beforeOfferPrice: number;
   };
   createdAt: string;
   updatedAt?: string;
@@ -102,8 +102,8 @@ export const useMongoOfferingsLogic = () => {
       amount: number;
       currency: string;
       period: string;
-      setupFee: number;
-      deposit: number;
+      offerPercentage: number;
+      beforeOfferPrice: number;
     };
   }>({
     name: '',
@@ -122,8 +122,8 @@ export const useMongoOfferingsLogic = () => {
       amount: 0,
       currency: 'LKR',
       period: 'per month',
-      setupFee: 0,
-      deposit: 0,
+      offerPercentage: 0,
+      beforeOfferPrice: 0,
     }
   });
 
@@ -156,12 +156,15 @@ export const useMongoOfferingsLogic = () => {
         }
 
         // Extract pricing from productOfferingPrice if available
+        // Handle backward compatibility: support both old (setupFee/deposit) and new (offerPercentage/beforeOfferPrice) field names
+        const pricingData = (offering as any).pricing || {};
         const pricing = {
           amount: (offering as any).productOfferingPrice?.[0]?.price?.taxIncludedAmount?.value || 0,
           currency: (offering as any).productOfferingPrice?.[0]?.price?.taxIncludedAmount?.unit || 'LKR',
           period: (offering as any).productOfferingPrice?.[0]?.priceType === 'oneTime' ? 'one-time' : 'per month',
-          setupFee: 0,
-          deposit: 0
+          // Support both old and new field names for backward compatibility
+          offerPercentage: pricingData.offerPercentage ?? pricingData.setupFee ?? 0,
+          beforeOfferPrice: pricingData.beforeOfferPrice ?? pricingData.deposit ?? 0
         };
 
         // Handle category properly - extract name from category object or array
@@ -716,8 +719,8 @@ export const useMongoOfferingsLogic = () => {
           amount: Number(formData.pricing.amount),
           currency: formData.pricing.currency,
           period: formData.pricing.period,
-          setupFee: Number(formData.pricing.setupFee),
-          deposit: Number(formData.pricing.deposit),
+          offerPercentage: Number(formData.pricing.offerPercentage),
+          beforeOfferPrice: Number(formData.pricing.beforeOfferPrice),
         },
         createdAt: new Date().toISOString(),
         '@type': 'ProductOffering'
@@ -1040,8 +1043,8 @@ export const useMongoOfferingsLogic = () => {
           amount: Number(formData.pricing.amount),
           currency: formData.pricing.currency,
           period: formData.pricing.period,
-          setupFee: Number(formData.pricing.setupFee),
-          deposit: Number(formData.pricing.deposit),
+          offerPercentage: Number(formData.pricing.offerPercentage),
+          beforeOfferPrice: Number(formData.pricing.beforeOfferPrice),
         },
         broadbandSelections: formData.broadbandSelections || [], // Include broadband selections
         hierarchicalCategory: formData.hierarchicalCategory, // Include hierarchical category
@@ -1103,8 +1106,8 @@ export const useMongoOfferingsLogic = () => {
           amount: Number(formData.pricing.amount),
           currency: formData.pricing.currency,
           period: formData.pricing.period,
-          setupFee: Number(formData.pricing.setupFee),
-          deposit: Number(formData.pricing.deposit),
+          offerPercentage: Number(formData.pricing.offerPercentage),
+          beforeOfferPrice: Number(formData.pricing.beforeOfferPrice),
         },
         updatedAt: new Date().toISOString(),
       };
@@ -1327,8 +1330,8 @@ export const useMongoOfferingsLogic = () => {
         amount: 0,
         currency: 'LKR',
         period: 'per month',
-        setupFee: 0,
-        deposit: 0,
+        offerPercentage: 0,
+        beforeOfferPrice: 0,
       }
     });
     setCurrentStep(1);
@@ -1339,6 +1342,16 @@ export const useMongoOfferingsLogic = () => {
     console.log('🔄 Loading offering for edit:', offering);
     console.log('🔄 Current custom attributes:', offering.customAttributes);
     console.log('🔄 Current hierarchical category:', offering.hierarchicalCategory);
+    
+    // Handle backward compatibility: support both old and new field names
+    const pricingData = offering.pricing as any;
+    const pricing = {
+      amount: pricingData.amount || 0,
+      currency: pricingData.currency || 'LKR',
+      period: pricingData.period || 'per month',
+      offerPercentage: pricingData.offerPercentage ?? pricingData.setupFee ?? 0,
+      beforeOfferPrice: pricingData.beforeOfferPrice ?? pricingData.deposit ?? 0
+    };
     
     setFormData({
       name: offering.name,
@@ -1354,7 +1367,7 @@ export const useMongoOfferingsLogic = () => {
       images: offering.images ? [...offering.images] : [], // Deep copy with null check
       isBundle: offering.isBundle,
       isSellable: offering.isSellable,
-      pricing: { ...offering.pricing } // Deep copy
+      pricing: pricing // Use normalized pricing with backward compatibility
     });
     setEditingOffering(offering);
     setCurrentStep(pricingOnly ? 4 : 1); // Start at pricing step if pricingOnly, otherwise at step 1 (updated to 4 steps)
