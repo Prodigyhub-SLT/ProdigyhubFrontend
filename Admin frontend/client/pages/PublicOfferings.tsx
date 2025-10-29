@@ -1728,63 +1728,60 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
             </div>
           </DialogHeader>
           
-          {selectedOffering && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 pt-0">
-              {/* Left Side - Product Images */}
-              <div className="space-y-4">
-                {/* Main Product Image */}
-                <div className="relative">
-                  <div className="aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
-                    {(selectedOffering as any).images && (selectedOffering as any).images.length > 0 ? (
+          {selectedOffering && (() => {
+            const hasImages = ((selectedOffering as any).images?.length || 0) > 0;
+            return (
+            <div className={`grid grid-cols-1 ${hasImages ? 'lg:grid-cols-2' : ''} gap-8 p-6 pt-0`}>
+              {/* Left Side - Product Images (only if images exist) */}
+              {hasImages && (
+                <div className="space-y-4">
+                  {/* Main Product Image */}
+                  <div className="relative">
+                    <div className="aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
                       <img 
                         src={(selectedOffering as any).images[0].base64Data} 
                         alt={selectedOffering.name}
                         className="max-h-full max-w-full object-contain"
                       />
-                    ) : (
-                      <div className="text-gray-400 text-center">
-                        <Package className="w-24 h-24 mx-auto mb-4" />
-                        <p className="text-lg">No Image Available</p>
-                      </div>
+                    </div>
+                    
+                    {/* Navigation Arrows */}
+                    {((selectedOffering as any).images?.length || 0) > 1 && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </>
                     )}
                   </div>
-                  
-                  {/* Navigation Arrows */}
-                  {(selectedOffering as any).images && (selectedOffering as any).images.length > 1 && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </>
+
+                  {/* Thumbnail Gallery */}
+                  {((selectedOffering as any).images?.length || 0) > 1 && (
+                    <div className="flex gap-2 overflow-x-auto">
+                      {(selectedOffering as any).images.map((image: any, index: number) => (
+                        <div key={index} className="flex-shrink-0">
+                          <img 
+                            src={image.base64Data} 
+                            alt={`${selectedOffering.name} ${index + 1}`}
+                            className="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:border-blue-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {/* Thumbnail Gallery */}
-                {(selectedOffering as any).images && (selectedOffering as any).images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto">
-                    {(selectedOffering as any).images.map((image: any, index: number) => (
-                      <div key={index} className="flex-shrink-0">
-                        <img 
-                          src={image.base64Data} 
-                          alt={`${selectedOffering.name} ${index + 1}`}
-                          className="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:border-blue-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Right Side - Product Details */}
               <div className="space-y-6">
@@ -1847,7 +1844,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                 )}
               </div>
             </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
