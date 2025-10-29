@@ -1493,11 +1493,28 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl shadow-blue-500/10 rounded-2xl max-w-sm flex flex-col">
                     {/* Product Image Section */}
                     <div className="relative p-4 bg-gray-50">
-                      {/* Offer Percentage Badge - Top Left */}
+                      {/* Offer Percentage Badge - Top Right with Custom Shape */}
                       {offerPercentage > 0 && (
-                        <div className="absolute top-2 left-2 z-10">
-                          <div className="bg-yellow-400 border-2 border-black rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-                            <span className="text-black font-bold text-sm">{offerPercentage}% OFF</span>
+                        <div className="absolute top-2 right-2 z-10">
+                          <div className="relative">
+                            {/* Custom badge shape - organic blob-like */}
+                            <div className="bg-yellow-400 border-2 border-gray-800 shadow-lg" 
+                                 style={{
+                                   width: '60px',
+                                   height: '50px',
+                                   borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+                                   transform: 'rotate(-15deg)',
+                                   display: 'flex',
+                                   flexDirection: 'column',
+                                   alignItems: 'center',
+                                   justifyContent: 'center',
+                                   padding: '4px'
+                                 }}>
+                              <div className="text-gray-800 font-bold text-xs leading-tight text-center">
+                                <div>{offerPercentage}%</div>
+                                <div>OFF</div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1537,8 +1554,8 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                         </div>
                       )}
 
-                      {/* Pricing Section */}
-                      <div className="space-y-2">
+                      {/* Pricing Section - Centered */}
+                      <div className="space-y-2 text-center">
                         {/* Before Offer Price (Struck Through) */}
                         {beforeOfferPrice > 0 && (
                           <div className="text-lg text-gray-400 line-through">
