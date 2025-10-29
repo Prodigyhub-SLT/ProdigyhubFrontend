@@ -643,7 +643,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="setupFee">Setup Fee (Optional)</Label>
+              <Label htmlFor="setupFee">Offer Percentage (Optional)</Label>
               <Input
                 id="setupFee"
                 type="number"
@@ -659,7 +659,7 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="deposit">Security Deposit (Optional)</Label>
+              <Label htmlFor="deposit">Before Offer Price (Optional)</Label>
               <Input
                 id="deposit"
                 type="number"
@@ -680,10 +680,10 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
             <div className="text-sm text-blue-800">
               <p><strong>Main Price:</strong> {formData.pricing.currency} {formData.pricing.amount.toLocaleString()} {formData.pricing.period}</p>
               {formData.pricing.setupFee > 0 && (
-                <p><strong>Setup Fee:</strong> {formData.pricing.currency} {formData.pricing.setupFee.toLocaleString()}</p>
+                <p><strong>Offer Percentage:</strong> {formData.pricing.currency} {formData.pricing.setupFee.toLocaleString()}</p>
               )}
               {formData.pricing.deposit > 0 && (
-                <p><strong>Security Deposit:</strong> {formData.pricing.currency} {formData.pricing.deposit.toLocaleString()}</p>
+                <p><strong>Before Offer Price:</strong> {formData.pricing.currency} {formData.pricing.deposit.toLocaleString()}</p>
               )}
             </div>
           </div>
@@ -1015,13 +1015,13 @@ export const CreateDialogs: React.FC<CreateDialogsProps> = ({
                     <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-blue-100">
                       {selectedOffering.pricing.setupFee > 0 && (
                         <div>
-                          <span className="block font-medium">Setup Fee</span>
+                          <span className="block font-medium">Offer Percentage</span>
                           <span>{selectedOffering.pricing.currency} {selectedOffering.pricing.setupFee.toLocaleString()}</span>
                         </div>
                       )}
                       {selectedOffering.pricing.deposit > 0 && (
                         <div>
-                          <span className="block font-medium">Security Deposit</span>
+                          <span className="block font-medium">Before Offer Price</span>
                           <span>{selectedOffering.pricing.currency} {selectedOffering.pricing.deposit.toLocaleString()}</span>
                         </div>
                       )}
