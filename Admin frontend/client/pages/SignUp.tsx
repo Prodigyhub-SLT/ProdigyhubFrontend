@@ -71,10 +71,16 @@ export default function SignUp() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // Normalize phone to digits only and cap at 10
+    if (field === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({ ...prev, phone: digitsOnly }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
 
     // Real-time email validation
     if (field === 'email') {
@@ -106,6 +112,7 @@ export default function SignUp() {
     if (!formData.email.trim()) { setError('Email address is required'); return false; }
     if (!emailValidation.isValid) { setError('Please enter a valid email address'); return false; }
     if (!formData.phone.trim()) { setError('Phone number is required'); return false; }
+    if (!/^\d{10}$/.test(formData.phone)) { setError('Phone number must be exactly 10 digits'); return false; }
     if (!formData.nic.trim()) { setError('NIC number is required'); return false; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters long'); return false; }
     if (!passwordValidation.isValid) { setError('Passwords do not match'); return false; }
@@ -229,7 +236,7 @@ export default function SignUp() {
                 </p>
               )}
             </div>
-            <div className="space-y-2"><Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label><Input id="phone" type="tel" placeholder="Phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
+            <div className="space-y-2"><Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label><Input id="phone" type="tel" placeholder="Phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} required disabled={isLoading} maxLength={10} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
             <div className="space-y-2"><Label htmlFor="nic" className="text-gray-700 text-sm">Enter NIC *</Label><Input id="nic" type="text" placeholder="Enter your NIC number" value={formData.nic} onChange={(e) => handleInputChange('nic', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 text-sm">Password *</Label>
