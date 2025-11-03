@@ -101,12 +101,8 @@ const App = () => (
               </ProtectedRoute>
             } />
 
-            {/* Privacy Policy (user dashboard area, protected, no admin layout) */}
-            <Route path="/privacy-policy" element={
-              <ProtectedRoute>
-                <PrivacyPolicy />
-              </ProtectedRoute>
-            } />
+            {/* Privacy Policy (public) */}
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             
             {/* New Customer Onboarding Route */}
             <Route path="/new-customer" element={
