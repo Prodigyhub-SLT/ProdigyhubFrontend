@@ -250,7 +250,33 @@ export default function SignUp() {
                 </p>
               )}
             </div>
-            <div className="space-y-2"><Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label><Input id="phone" type="tel" placeholder="Phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} required disabled={isLoading} maxLength={10} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-gray-700 text-sm">Phone Number *</Label>
+              <Input 
+                id="phone" 
+                type="tel" 
+                placeholder="Phone number" 
+                value={formData.phone} 
+                onChange={(e) => handleInputChange('phone', e.target.value)} 
+                required 
+                disabled={isLoading} 
+                maxLength={10} 
+                className={`border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:ring-blue-500 ${
+                  phoneValidation.isTouched 
+                    ? phoneValidation.isValid 
+                      ? 'focus:border-green-500 border-green-500' 
+                      : 'focus:border-red-500 border-red-500' 
+                    : 'focus:border-blue-500'
+                }`} 
+              />
+              {phoneValidation.isTouched && (
+                <p className={`text-xs ${
+                  phoneValidation.isValid ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {phoneValidation.message}
+                </p>
+              )}
+            </div>
             <div className="space-y-2"><Label htmlFor="nic" className="text-gray-700 text-sm">Enter NIC *</Label><Input id="nic" type="text" placeholder="Enter your NIC number" value={formData.nic} onChange={(e) => handleInputChange('nic', e.target.value)} required disabled={isLoading} className="border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 focus:border-blue-500 focus:ring-blue-500" /></div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 text-sm">Password *</Label>
