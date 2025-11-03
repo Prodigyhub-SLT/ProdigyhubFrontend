@@ -36,6 +36,11 @@ export default function SignUp() {
     isTouched: false,
     message: ''
   });
+  const [phoneValidation, setPhoneValidation] = useState({
+    isValid: false,
+    isTouched: false,
+    message: ''
+  });
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -75,6 +80,15 @@ export default function SignUp() {
     if (field === 'phone') {
       const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
       setFormData(prev => ({ ...prev, phone: digitsOnly }));
+
+      // Real-time phone validation
+      const isTen = /^\d{10}$/.test(digitsOnly);
+      const msg = digitsOnly.length === 0
+        ? 'Phone number is required'
+        : isTen
+          ? 'Phone number looks good!'
+          : 'Phone number must be exactly 10 digits';
+      setPhoneValidation({ isValid: isTen, isTouched: true, message: msg });
     } else {
       setFormData(prev => ({
         ...prev,
