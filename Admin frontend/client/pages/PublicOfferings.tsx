@@ -596,6 +596,15 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
   };
 
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const getImageSrc = (image: any): string => {
+    return (
+      image?.base64Data ||
+      image?.url ||
+      image?.src ||
+      image?.data ||
+      ''
+    );
+  };
 
   const handleViewSpec = (offering: ProductOffering) => {
     setSelectedOffering(offering);
@@ -1906,7 +1915,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   <div className="relative">
                     <div className="aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
                       <img 
-                        src={(selectedOffering as any).images[selectedImageIndex]?.base64Data} 
+                        src={getImageSrc((selectedOffering as any).images[selectedImageIndex])} 
                         alt={selectedOffering.name}
                         className="max-h-full max-w-full object-contain"
                       />
@@ -1947,7 +1956,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                       {(selectedOffering as any).images.map((image: any, index: number) => (
                         <div key={index} className="flex-shrink-0">
                           <img 
-                            src={image.base64Data} 
+                            src={getImageSrc(image)} 
                             alt={`${selectedOffering.name} ${index + 1}`}
                             className={`w-16 h-16 object-cover rounded border cursor-pointer ${selectedImageIndex === index ? 'border-blue-600' : 'border-gray-200 hover:border-blue-500'}`}
                             onClick={() => setSelectedImageIndex(index)}
