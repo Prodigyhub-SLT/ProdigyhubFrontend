@@ -119,7 +119,7 @@ export default function UserDashboard() {
     { name: 'Broadband', icon: <Wifi className="w-6 h-6" />, isActive: true },
     { name: 'PEOTV', icon: <Tv className="w-6 h-6" />, isActive: false },
     { name: 'Voice', icon: <Phone className="w-6 h-6" />, isActive: false },
-    { name: 'Mobile', icon: <Smartphone className="w-6 h-6" />, isActive: false },
+    { name: 'eTeleshop', icon: <Smartphone className="w-6 h-6" />, isActive: false },
     { name: 'Promotion', icon: <Megaphone className="w-6 h-6" />, isActive: false },
   ];
 
@@ -181,8 +181,8 @@ export default function UserDashboard() {
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
-  const mobileTabs = [
-    { id: 'packages', name: 'Packages', icon: <Package className="w-4 h-4" /> },
+  const eteleshopTabs = [
+    { id: 'products', name: 'Products', icon: <Package className="w-4 h-4" /> },
     { id: 'messages', name: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
 
@@ -195,7 +195,7 @@ export default function UserDashboard() {
     activeService === 'broadband' ? broadbandTabs :
     activeService === 'peotv' ? peotvTabs :
     activeService === 'voice' ? voiceTabs :
-    activeService === 'mobile' ? mobileTabs :
+    activeService === 'eteleshop' ? eteleshopTabs :
     promotionTabs;
 
   // Check if user needs onboarding (users without complete profile details)
@@ -333,7 +333,7 @@ export default function UserDashboard() {
     const urlParams = new URLSearchParams(location.search);
     const tabParam = urlParams.get('tab');
     
-    if (tabParam && ['packages', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
+    if (tabParam && ['packages', 'products', 'inventory', 'qualification', 'customize', 'messages'].includes(tabParam)) {
       setActiveTab(tabParam);
       console.log('✅ Tab set from URL parameter:', tabParam);
     }
@@ -349,8 +349,10 @@ export default function UserDashboard() {
 
   // Reset sub-tab when switching top-level service so the sub-nav feels scoped
   useEffect(() => {
-    if (activeService === 'peotv') {
+    if (activeService === 'peotv' || activeService === 'voice') {
       setActiveTab('packages');
+    } else if (activeService === 'eteleshop') {
+      setActiveTab('products');
     } else {
       setActiveTab('inventory');
     }
@@ -695,9 +697,15 @@ export default function UserDashboard() {
         {activeTab === 'packages' && (
           activeService === 'peotv' ? (
             <PublicOfferings initialTab="peo-tv" embed />
+          ) : activeService === 'voice' ? (
+            <PublicOfferings initialTab="telephone" embed />
           ) : (
             <CustomerPackagesTab />
           )
+        )}
+
+        {activeTab === 'products' && activeService === 'eteleshop' && (
+          <PublicOfferings initialTab="eteleshop" embed />
         )}
 
         {/* Other tabs content can be added here */}
