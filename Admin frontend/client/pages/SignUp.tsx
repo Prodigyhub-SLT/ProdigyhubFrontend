@@ -373,7 +373,7 @@ export default function SignUp() {
                 </p>
               )}
             </div>
-            <div className="flex items-start space-x-2"><Checkbox id="agreeToTerms" checked={agreeToTerms} onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)} className="border-gray-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-1" /><Label htmlFor="agreeToTerms" className="text-gray-700 text-sm leading-relaxed">I agree to the <a href="#" className="text-blue-600 hover:underline font-medium">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</a></Label></div>
+            <div className="flex items-start space-x-2"><Checkbox id="agreeToTerms" checked={agreeToTerms} onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)} className="border-gray-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-1" /><Label htmlFor="agreeToTerms" className="text-gray-700 text-sm leading-relaxed">I agree to the <Link to="/privacy-policy" className="text-blue-600 hover:underline font-medium">Terms of Service</Link> and <Link to="/privacy-policy" className="text-blue-600 hover:underline font-medium">Privacy Policy</Link></Label></div>
             <div className="flex justify-center"><Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg h-12 w-full" disabled={isLoading}>{isLoading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Account...</>) : ("Create Account")}</Button></div>
           </form>
         </div>
