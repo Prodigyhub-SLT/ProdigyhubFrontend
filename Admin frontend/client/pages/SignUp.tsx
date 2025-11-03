@@ -36,6 +36,11 @@ export default function SignUp() {
     isTouched: false,
     message: ''
   });
+  const [passwordStrength, setPasswordStrength] = useState({
+    isValid: false,
+    isTouched: false,
+    message: ''
+  });
   const [phoneValidation, setPhoneValidation] = useState({
     isValid: false,
     isTouched: false,
@@ -106,7 +111,7 @@ export default function SignUp() {
       });
     }
 
-    // Real-time password matching validation
+  // Real-time password matching validation
     if (field === 'password' || field === 'confirmPassword') {
       const currentPassword = field === 'password' ? value : formData.password;
       const currentConfirmPassword = field === 'confirmPassword' ? value : formData.confirmPassword;
@@ -118,6 +123,17 @@ export default function SignUp() {
         message: validation.message
       });
     }
+
+  // Real-time password strength validation (on password change only)
+  if (field === 'password') {
+    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\[\]{}\-_=+,.?;:]).{8,}$/;
+    const isStrong = strongRegex.test(value);
+    setPasswordStrength({
+      isValid: isStrong,
+      isTouched: true,
+      message: isStrong ? 'Strong password' : 'Use 8+ chars incl. upper, lower, number, and symbol'
+    });
+  }
   };
 
   const validateForm = () => {
@@ -128,7 +144,9 @@ export default function SignUp() {
     if (!formData.phone.trim()) { setError('Phone number is required'); return false; }
     if (!/^\d{10}$/.test(formData.phone)) { setError('Phone number must be exactly 10 digits'); return false; }
     if (!formData.nic.trim()) { setError('NIC number is required'); return false; }
-    if (formData.password.length < 6) { setError('Password must be at least 6 characters long'); return false; }
+    // Enforce strong password
+    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\[\]{}\-_=+,.?;:]).{8,}$/;
+    if (!strongRegex.test(formData.password)) { setError('Password is too weak. Use 8+ chars with upper, lower, number, and symbol.'); return false; }
     if (!passwordValidation.isValid) { setError('Passwords do not match'); return false; }
     if (!agreeToTerms) { setError('You must agree to the Terms of Service and Privacy Policy'); return false; }
     return true;
@@ -290,8 +308,8 @@ export default function SignUp() {
                   required 
                   disabled={isLoading} 
                   className={`border-gray-300 text-gray-900 placeholder:text-gray-500 h-12 pr-12 focus:ring-blue-500 ${
-                    passwordValidation.isTouched 
-                      ? passwordValidation.isValid 
+                    passwordStrength.isTouched 
+                      ? passwordStrength.isValid 
                         ? 'focus:border-green-500 border-green-500' 
                         : 'focus:border-red-500 border-red-500' 
                       : 'focus:border-blue-500'
@@ -308,6 +326,13 @@ export default function SignUp() {
                   {showPassword ? (<EyeOff className="h-4 w-4" />) : (<Eye className="h-4 w-4" />)}
                 </Button>
               </div>
+              {passwordStrength.isTouched && (
+                <p className={`text-xs ${
+                  passwordStrength.isValid ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {passwordStrength.message}
+                </p>
+              )}
             </div>
             
             <div className="space-y-2">
