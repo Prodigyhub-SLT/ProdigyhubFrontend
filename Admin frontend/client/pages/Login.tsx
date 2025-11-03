@@ -18,6 +18,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   
   const { login, loginWithGoogle, user } = useAuth();
   const { toast } = useToast();
@@ -96,6 +98,18 @@ export default function Login() {
     } finally {
       setIsGoogleLoading(false);
     }
+  };
+
+  const handleSendReset = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resetEmail)) {
+      toast({ title: 'Invalid email', description: 'Please enter a valid email address', variant: 'destructive' });
+      return;
+    }
+    // Mock reset flow
+    toast({ title: 'Reset link sent', description: 'Check your inbox for password reset instructions.' });
+    setShowReset(false);
+    setResetEmail('');
   };
 
   return (
@@ -240,10 +254,30 @@ export default function Login() {
                   Remember me
                 </Label>
               </div>
-              <a href="#" className="text-blue-400 text-sm hover:underline">
+              <button type="button" onClick={() => setShowReset(true)} className="text-blue-400 text-sm hover:underline">
                 Forgot password?
-              </a>
+              </button>
             </div>
+
+            {showReset && (
+              <div className="bg-blue-700/40 border border-white/20 rounded-lg p-4 space-y-3">
+                <div>
+                  <Label htmlFor="resetEmail" className="text-white text-sm">Enter your email to reset password</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="bg-blue-700 border border-white/20 text-white placeholder:text-gray-300 h-11 mt-1 focus:border-white/40 focus:ring-white/20"
+                  />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button type="button" variant="outline" onClick={() => setShowReset(false)} className="bg-transparent text-white border-white/30 hover:bg-blue-700/60">Cancel</Button>
+                  <Button type="button" onClick={handleSendReset} className="bg-blue-500 hover:bg-blue-600 text-white">Send reset link</Button>
+                </div>
+              </div>
+            )}
 
             {/* Sign In Button - Centered */}
             <div className="flex justify-center">
