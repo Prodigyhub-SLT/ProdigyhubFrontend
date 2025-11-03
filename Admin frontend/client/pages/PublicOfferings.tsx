@@ -1999,11 +1999,9 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
 
                 {/* Product Description */}
                 {selectedOffering.description && (
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Product Description</h3>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <pre className="text-gray-700 leading-relaxed whitespace-pre-wrap font-normal">{selectedOffering.description}</pre>
-                    </div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-normal text-gray-800">Product Description</h3>
+                    <pre className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedOffering.description}</pre>
                   </div>
                 )}
               </div>
