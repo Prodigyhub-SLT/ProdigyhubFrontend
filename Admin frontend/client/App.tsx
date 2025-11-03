@@ -38,6 +38,7 @@ import ProductConfigurationDashboard from "./pages/ProductConfigurationDashboard
 import EnhancedDashboard from "./pages/EnhancedDashboard";
 import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
+import UserSettings from "./pages/UserSettings";
 import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
 import EmailVerification from "./pages/EmailVerification";
@@ -92,12 +93,10 @@ const App = () => (
               </ProtectedRoute>
             } />
 
-            {/* Top-level Settings route (non-admin), matches /settings */}
+            {/* Top-level Settings route (user-friendly, no admin Layout) */}
             <Route path="/settings" element={
               <ProtectedRoute>
-                <Layout>
-                  <Settings />
-                </Layout>
+                <UserSettings />
               </ProtectedRoute>
             } />
             
