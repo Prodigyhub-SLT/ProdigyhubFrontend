@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -7,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Monitor, Palette, RotateCcw, Save } from 'lucide-react';
+import { Monitor, Palette, RotateCcw, Save, ArrowLeft } from 'lucide-react';
 
 interface AppearanceSettings {
   colorScheme: 'default' | 'green' | 'purple' | 'orange';
@@ -16,6 +17,7 @@ interface AppearanceSettings {
 }
 
 export default function UserSettings() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -92,6 +94,17 @@ export default function UserSettings() {
       }}
     >
       <div className="max-w-4xl mx-auto px-4">
+        {/* Back Button */}
+        <div className="absolute top-8 left-8 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/user')}
+            className="h-10 w-10 rounded-full bg-white shadow-sm hover:bg-gray-50 border border-gray-200"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </Button>
+        </div>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white drop-shadow">Settings</h1>
           <p className="text-white/80 mt-2">Customize your dashboard appearance</p>
