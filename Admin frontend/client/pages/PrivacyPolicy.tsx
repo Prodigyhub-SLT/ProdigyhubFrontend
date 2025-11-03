@@ -1,7 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function PrivacyPolicy() {
+  const navigate = useNavigate();
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/user');
+    }
+  };
   return (
     <div 
       id="page-background"
@@ -11,6 +22,17 @@ export default function PrivacyPolicy() {
       }}
     >
       <div className="max-w-4xl mx-auto px-4">
+        {/* Back Button (top-left) */}
+        <div className="absolute top-8 left-8 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="h-10 w-10 rounded-full bg-white shadow-sm hover:bg-gray-50 border border-gray-200"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </Button>
+        </div>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white drop-shadow">Privacy Policy</h1>
           <p className="text-white/80 mt-2">Your privacy matters. This page outlines how we handle your data.</p>
