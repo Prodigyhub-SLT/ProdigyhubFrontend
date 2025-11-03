@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, Shield, Zap, Lock, ArrowRight, Sparkles, Key, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { authOperations } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
@@ -100,16 +101,20 @@ export default function Login() {
     }
   };
 
-  const handleSendReset = () => {
+  const handleSendReset = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(resetEmail)) {
       toast({ title: 'Invalid email', description: 'Please enter a valid email address', variant: 'destructive' });
       return;
     }
-    // Mock reset flow
-    toast({ title: 'Reset link sent', description: 'Check your inbox for password reset instructions.' });
-    setShowReset(false);
-    setResetEmail('');
+    try {
+      await authOperations.sendPasswordReset(resetEmail);
+      toast({ title: 'Reset link sent', description: 'Check your inbox for password reset instructions.' });
+      setShowReset(false);
+      setResetEmail('');
+    } catch (err: any) {
+      toast({ title: 'Reset failed', description: err?.message || 'Could not send reset email', variant: 'destructive' });
+    }
   };
 
   return (

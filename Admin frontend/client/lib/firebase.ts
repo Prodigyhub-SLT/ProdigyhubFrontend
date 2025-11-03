@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, push, set, remove, query, orderByChild, limitToLast } from 'firebase/database';
-import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser, sendPasswordResetEmail } from 'firebase/auth';
 
 // 🔥 FIREBASE CONFIGURATION SETUP 🔥
 // 
@@ -240,6 +240,16 @@ export const authOperations = {
   // Listen to auth state changes
   onAuthStateChanged: (callback: (user: FirebaseUser | null) => void) => {
     return onAuthStateChanged(auth, callback);
+  },
+
+  // Send password reset email
+  sendPasswordReset: async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error('Password Reset Error:', error);
+      throw error;
+    }
   }
 };
 
