@@ -70,8 +70,7 @@ export default function ProfilePopup({ isOpen, onClose, triggerRef }: ProfilePop
 
   const handlePrivacyPolicyClick = () => {
     onClose();
-    // You can navigate to a privacy policy page or open in new tab
-    window.open('/privacy-policy', '_blank');
+    navigate('/privacy-policy');
   };
 
 
