@@ -91,6 +91,15 @@ const App = () => (
                 </Routes>
               </ProtectedRoute>
             } />
+
+            {/* Top-level Settings route (non-admin), matches /settings */}
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Settings />
+                </Layout>
+              </ProtectedRoute>
+            } />
             
             {/* New Customer Onboarding Route */}
             <Route path="/new-customer" element={
