@@ -42,6 +42,7 @@ import UserSettings from "./pages/UserSettings";
 import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
 import EmailVerification from "./pages/EmailVerification";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +98,13 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <UserSettings />
+              </ProtectedRoute>
+            } />
+
+            {/* Privacy Policy (user dashboard area, protected, no admin layout) */}
+            <Route path="/privacy-policy" element={
+              <ProtectedRoute>
+                <PrivacyPolicy />
               </ProtectedRoute>
             } />
             
