@@ -595,8 +595,11 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     }
   };
 
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+
   const handleViewSpec = (offering: ProductOffering) => {
     setSelectedOffering(offering);
+    setSelectedImageIndex(0);
     setIsSpecViewOpen(true);
   };
 
@@ -1903,19 +1906,23 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   <div className="relative">
                     <div className="aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
                       <img 
-                        src={(selectedOffering as any).images[0].base64Data} 
+                        src={(selectedOffering as any).images[selectedImageIndex]?.base64Data} 
                         alt={selectedOffering.name}
                         className="max-h-full max-w-full object-contain"
                       />
                     </div>
                     
                     {/* Navigation Arrows */}
-                    {((selectedOffering as any).images?.length || 0) > 1 && (
+                    {activeTab === 'eteleshop' && ((selectedOffering as any).images?.length || 0) > 1 && (
                       <>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                          onClick={() => setSelectedImageIndex((prev) => {
+                            const count = (selectedOffering as any).images.length;
+                            return (prev - 1 + count) % count;
+                          })}
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
@@ -1923,6 +1930,10 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                           variant="ghost"
                           size="sm"
                           className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+                          onClick={() => setSelectedImageIndex((prev) => {
+                            const count = (selectedOffering as any).images.length;
+                            return (prev + 1) % count;
+                          })}
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -1931,14 +1942,15 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                   </div>
 
                   {/* Thumbnail Gallery */}
-                  {((selectedOffering as any).images?.length || 0) > 1 && (
+                  {activeTab === 'eteleshop' && ((selectedOffering as any).images?.length || 0) > 1 && (
                     <div className="flex gap-2 overflow-x-auto">
                       {(selectedOffering as any).images.map((image: any, index: number) => (
                         <div key={index} className="flex-shrink-0">
                           <img 
                             src={image.base64Data} 
                             alt={`${selectedOffering.name} ${index + 1}`}
-                            className="w-16 h-16 object-cover rounded border border-gray-200 cursor-pointer hover:border-blue-500"
+                            className={`w-16 h-16 object-cover rounded border cursor-pointer ${selectedImageIndex === index ? 'border-blue-600' : 'border-gray-200 hover:border-blue-500'}`}
+                            onClick={() => setSelectedImageIndex(index)}
                           />
                         </div>
                       ))}
