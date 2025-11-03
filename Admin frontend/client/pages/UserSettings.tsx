@@ -84,36 +84,28 @@ export default function UserSettings() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">Customize your dashboard appearance</p>
+    <div 
+      id="page-background"
+      className="min-h-screen py-8 transition-colors duration-500"
+      style={{ 
+        background: 'linear-gradient(135deg, var(--dynamic-bg-color, #3b82f6) 0%, rgba(0,0,0,0.8) 100%)'
+      }}
+    >
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white drop-shadow">Settings</h1>
+          <p className="text-white/80 mt-2">Customize your dashboard appearance</p>
         </div>
-        <div className="flex items-center gap-2">
-          {hasChanges && (
-            <Badge variant="outline" className="text-orange-600 border-orange-200">Unsaved changes</Badge>
-          )}
-          <Button variant="outline" onClick={handleReset}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-          <Button onClick={handleSave} disabled={!hasChanges}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Changes
-          </Button>
-        </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Appearance
-          </CardTitle>
-          <CardDescription>Only user-visible appearance settings. Theme switching is disabled.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <Card className="shadow-sm border border-gray-200 bg-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>Only user-visible appearance settings. Theme switching is disabled.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Color Scheme</Label>
@@ -174,8 +166,22 @@ export default function UserSettings() {
             <Monitor className="h-4 w-4" />
             Changes apply immediately and are saved on Save Changes.
           </div>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            {hasChanges && (
+              <Badge variant="outline" className="text-orange-600 border-orange-200">Unsaved changes</Badge>
+            )}
+            <Button variant="outline" onClick={handleReset}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+            <Button onClick={handleSave} disabled={!hasChanges}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
