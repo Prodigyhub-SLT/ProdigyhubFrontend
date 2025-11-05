@@ -574,17 +574,16 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
           )}
         </div>
 
-        {/* Footer */}
-        <div className="bg-gray-900 text-white p-3 mt-auto">
-          <div className="text-center mb-2">
-            <div className="text-xs text-gray-300 mb-1">Monthly Rental</div>
-            <div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
+        {/* Footer - Price bar with action */}
+        <div className="bg-gray-900 text-white p-4 mt-auto flex items-center justify-between rounded-b-2xl">
+          <div className="text-2xl font-extrabold tracking-tight">
+            {price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleViewSpec(offering)}
-            className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+            className="text-white hover:text-white bg-white/10 hover:bg-white/20 transition-all duration-200 rounded-md px-3 py-1 border border-white/20 text-xs"
           >
             Connection Speed & Terms &gt;
           </Button>
