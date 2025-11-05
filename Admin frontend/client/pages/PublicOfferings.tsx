@@ -535,7 +535,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     );
 
     return (
-      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
+      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl flex flex-col h-full min-h-[520px]">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-500 to-indigo-500 text-white p-3">
           <div className="flex items-center justify-between mb-1">
@@ -1449,7 +1449,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                     <h2 className="text-2xl font-bold text-gray-900">Fibre - Calling Plans</h2>
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                     {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'fibre').map((offering) => (
                       renderTelephoneCard(offering)
                     ))}
@@ -1467,7 +1467,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                     <h2 className="text-2xl font-bold text-gray-900">Megaline - Calling Plans</h2>
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                     {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'megaline').map((offering) => (
                       renderTelephoneCard(offering)
                     ))}
@@ -1485,7 +1485,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                     <h2 className="text-2xl font-bold text-gray-900">VoLTE - Calling Plans</h2>
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                     {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'volte').map((offering) => (
                       renderTelephoneCard(offering)
                     ))}
