@@ -535,7 +535,7 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
     );
 
     return (
-      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl flex flex-col h-full min-h-[520px]">
+      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl flex flex-col h-full min-h-[470px]">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-500 to-indigo-500 text-white p-3">
           <div className="flex items-center justify-between mb-1">
@@ -547,13 +547,13 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
 
         {/* Body */}
         <div className="p-3 bg-white flex-1">
-          <div className="mb-3 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-xs font-extrabold tracking-wide">
               TELE
             </div>
-            <div className="text-xs">
-              <div className="text-gray-500">Connection</div>
-              <div className="font-semibold text-gray-900">{telephoneConnection}</div>
+            <div className="text-sm">
+              <div className="text-gray-600 font-medium">Connection</div>
+              <div className="font-semibold text-gray-900 text-base leading-tight">{telephoneConnection}</div>
             </div>
           </div>
 
