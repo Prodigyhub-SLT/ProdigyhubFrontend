@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Package, ArrowRight, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Filter, X, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Package, ArrowRight, ChevronDown, Wifi, Building, Smartphone, Cloud, Tv, Phone, Gamepad2, Globe, Gift, Eye, Filter, X, BookOpen, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { productCatalogApi } from '@/lib/api';
 import { ProductOffering } from '../../shared/product-order-types';
 
@@ -524,6 +524,73 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
       buttonPrimary: 'bg-orange-500 hover:bg-orange-600',
       buttonSecondary: 'bg-yellow-400 hover:bg-yellow-500'
     };
+  };
+
+  // New unified card renderer for Telephone packages (matches target design)
+  const renderTelephoneCard = (offering: ProductOffering) => {
+    const price = getOfferingPrice(offering);
+    const telephoneConnection = getCustomAttributeValue(offering, 'Connection Type') || 'N/A';
+    const otherAttributes = ((offering as any).customAttributes as any[] || []).filter((attr: any) =>
+      (attr.name || '').toString().trim().toLowerCase() !== 'connection type'
+    );
+
+    return (
+      <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-emerald-500 to-indigo-500 text-white p-3">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-lg font-bold">{offering.name}</h3>
+            <Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge>
+          </div>
+          <p className="text-xs text-white/90">{offering.description || 'No description available'}</p>
+        </div>
+
+        {/* Body */}
+        <div className="p-3 bg-white flex-1">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
+              TELE
+            </div>
+            <div className="text-xs">
+              <div className="text-gray-500">Connection</div>
+              <div className="font-semibold text-gray-900">{telephoneConnection}</div>
+            </div>
+          </div>
+
+          {otherAttributes.length > 0 && (
+            <div className="space-y-2">
+              {otherAttributes.map((attr: any, index: number) => (
+                <div key={index} className="flex items-center justify-between rounded-md border border-gray-100 px-2 py-2 bg-white">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100">
+                      <Info className="h-3.5 w-3.5 text-gray-500" />
+                    </span>
+                    <span className="text-sm font-medium text-gray-600">{attr.name}</span>
+                  </div>
+                  <span className="text-sm text-gray-900 font-semibold">{attr.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-900 text-white p-3 mt-auto">
+          <div className="text-center mb-2">
+            <div className="text-xs text-gray-300 mb-1">Monthly Rental</div>
+            <div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleViewSpec(offering)}
+            className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm"
+          >
+            Connection Speed & Terms &gt;
+          </Button>
+        </div>
+      </Card>
+    );
   };
 
   const handleCategorySelect = (categoryName: string) => {
@@ -1384,30 +1451,9 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'fibre').map((offering) => {
-                      const price = getOfferingPrice(offering);
-                      const category = getOfferingCategory(offering);
-                      const isTelephone = category === 'Telephone';
-                      const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
-                      return (
-                        <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3">
-                            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div>
-                            <p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p>
-                          </div>
-                          <div className="p-3 bg-white flex-1">
-                            <div className="mb-3"><Badge variant="outline" className="bg-gray-900 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
-                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{telephoneConnection}</div></div>
-                            {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                              <div className="space-y-2">{((offering as any).customAttributes as any[]).filter((attr: any) => (attr.name || '').toString().trim().toLowerCase() !== 'connection type').map((attr: any, index: number) => (
-                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
-                              ))}</div>
-                            )}
-                          </div>
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
-                        </Card>
-                      );
-                    })}
+                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'fibre').map((offering) => (
+                      renderTelephoneCard(offering)
+                    ))}
                   </div>
                 </section>
               )}
@@ -1423,27 +1469,9 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'megaline').map((offering) => {
-                      const price = getOfferingPrice(offering);
-                      const category = getOfferingCategory(offering);
-                      const isTelephone = category === 'Telephone';
-                      const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
-                      return (
-                        <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div><p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p></div>
-                          <div className="p-3 bg-white flex-1">
-                            <div className="mb-3"><Badge variant="outline" className="bg-gray-900 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
-                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{telephoneConnection}</div></div>
-                            {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                              <div className="space-y-2">{((offering as any).customAttributes as any[]).filter((attr: any) => (attr.name || '').toString().trim().toLowerCase() !== 'connection type').map((attr: any, index: number) => (
-                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
-                              ))}</div>
-                            )}
-                          </div>
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
-                        </Card>
-                      );
-                    })}
+                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'megaline').map((offering) => (
+                      renderTelephoneCard(offering)
+                    ))}
                   </div>
                 </section>
               )}
@@ -1459,27 +1487,9 @@ export default function PublicOfferings({ onLoginClick, initialTab = 'broadband'
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'volte').map((offering) => {
-                      const price = getOfferingPrice(offering);
-                      const category = getOfferingCategory(offering);
-                      const isTelephone = category === 'Telephone';
-                      const telephoneConnection = isTelephone ? (getCustomAttributeValue(offering, 'Connection Type') || 'N/A') : undefined;
-                      return (
-                        <Card key={offering.id} className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden bg-white border-0 shadow-xl rounded-2xl max-w-xs flex flex-col">
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-bold">{offering.name}</h3><Badge className="bg-green-500 text-white border-0 text-xs font-semibold">ACTIVE</Badge></div><p className="text-xs text-blue-100 opacity-90">{offering.description || 'No description available'}</p></div>
-                          <div className="p-3 bg-white flex-1">
-                            <div className="mb-3"><Badge variant="outline" className="bg-gray-900 text-white border-0 text-xs font-bold px-2 py-1 rounded-full shadow-sm">{getOfferingCategory(offering).toUpperCase()}</Badge></div>
-                            <div className="bg-gray-50 p-2 rounded-lg"><div className="text-xs text-gray-600 mb-1">Connection Type</div><div className="text-base font-bold text-gray-900">{telephoneConnection}</div></div>
-                            {(offering as any).customAttributes && (offering as any).customAttributes.length > 0 && (
-                              <div className="space-y-2">{((offering as any).customAttributes as any[]).filter((attr: any) => (attr.name || '').toString().trim().toLowerCase() !== 'connection type').map((attr: any, index: number) => (
-                                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100"><span className="text-sm font-medium text-gray-600">{attr.name}</span><span className="text-sm text-gray-900 font-semibold">{attr.value}</span></div>
-                              ))}</div>
-                            )}
-                          </div>
-                          <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-3 mt-auto"><div className="text-center mb-2"><div className="text-xs text-blue-100 mb-1">Monthly Rental</div><div className="text-2xl font-bold">{price ? `${price.currency} ${price.amount.toLocaleString()}` : 'N/A'}</div></div><Button variant="ghost" size="sm" onClick={() => handleViewSpec(offering)} className="w-full text-white hover:bg-gray-800 hover:text-white transition-all duration-200 rounded-lg py-1.5 font-medium border border-white/20 text-sm">Connection Speed & Terms &gt;</Button></div>
-                        </Card>
-                      );
-                    })}
+                    {filteredOfferings.filter(o => getTelephoneSubCategoryGroup(o) === 'volte').map((offering) => (
+                      renderTelephoneCard(offering)
+                    ))}
                   </div>
                 </section>
               )}
