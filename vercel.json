@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "Admin frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "ProdigyHub-Unified/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/ProdigyHub-Unified/server.js"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/Admin frontend/assets/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/Admin frontend/images/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/Admin frontend/favicon.ico"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/Admin frontend/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://sltprodigyhub.vercel.app https://prodigyhub.onrender.com https://prodigyhub-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
+  ]
+}
+
